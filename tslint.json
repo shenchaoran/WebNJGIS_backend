@@ -1,10 +1,10 @@
 {
     "rules": {
         "class-name": true,
-        "comment-format": [
-            true,
-            "check-space"
-        ],
+        // "comment-format": [
+        //     true,
+        //     "check-space"
+        // ],
         "indent": [
             true,
             "spaces"
@@ -15,25 +15,25 @@
             "check-whitespace"
         ],
         "no-var-keyword": true,
-        "quotemark": [
-            true,
-            "double",
-            "avoid-escape"
-        ],
+        // "quotemark": [
+        //     true,
+        //     // "double",
+        //     "avoid-escape"
+        // ],
         "semicolon": [
             true,
             "always",
             "ignore-bound-class-methods"
         ],
-        "whitespace": [
-            true,
-            "check-branch",
-            "check-decl",
-            "check-operator",
-            "check-module",
-            "check-separator",
-            "check-type"
-        ],
+        // "whitespace": [
+        //     true,
+        //     "check-branch",
+        //     "check-decl",
+        //     "check-operator",
+        //     "check-module",
+        //     "check-separator",
+        //     "check-type"
+        // ],
         "typedef-whitespace": [
             true,
             {
@@ -52,7 +52,7 @@
             }
         ],
         "no-internal-module": true,
-        "no-trailing-whitespace": true,
+        // "no-trailing-whitespace": true,
         "no-null-keyword": true,
         "prefer-const": true,
         "jsdoc-format": true
