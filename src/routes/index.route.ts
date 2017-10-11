@@ -7,7 +7,14 @@ module.exports = router;
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        res.end('111');
+        res.locals.successed = true;
+        res.locals.resData = [{
+            data: '111',
+        }];
+        res.locals.template = [{
+            data: 'string'
+        }];
+        return next();
     });
 
 router.use('/', LoginRouter);

@@ -8,7 +8,7 @@ const expressValidator = require('express-validator');
 const session = require('express-session');
 
 const MyRouter = require('../routes/base.route');
-const setting = require('../config/setting');
+import { setting } from '../config/setting';
 
 const router = new MyRouter();
 module.exports = router;
@@ -36,6 +36,11 @@ router.use(expressValidator());
 //   }));
 
 // TODO 可以把登录模块放在这里
+router.use((req: Request, res: Response, next: NextFunction) => {
+    res.locals.userid = 'I am a userid';
+    res.locals.ticket = 'I am a token';
+    return next();
+});
 
 // 解析cookie，通过req.cookies使用
 router.use(cookieParser());

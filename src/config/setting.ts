@@ -1,9 +1,9 @@
-let os = require('os');
-let fs = require('fs');
-let path = require('path');
+import * as os from 'os';
+import * as fs from 'fs';
+import * as path from 'path';
 
-module.exports = {
-    version: 0.01,
+export const setting = {
+    version: 'v0.01',
     port: '9999',
     SESSION_SECRET: 'ashdfjhaxaskjfxfjksdjhflak',
     platform: (function() {

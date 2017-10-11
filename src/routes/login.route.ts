@@ -6,5 +6,12 @@ module.exports = router;
 
 router.route('/login')
     .get((req: Request, res: Response, next: NextFunction) => {
-        res.end('login');
+        res.locals.successed = true;
+        res.locals.resData = [{
+            data: 'login'
+        }];
+        res.locals.template = [{
+            data: 'string'
+        }];
+        return next();
     });

@@ -5,16 +5,16 @@ const debug = require('debug')('webnjgis:server');
 const http = require('http');
 import { Request, Response } from "express";
 
-const setting = require('./config/setting');
+import { setting } from './config/setting';
 const router = require('./routes/index.route');
-const preRouter = require('./middleware/pre-request.middleware');
-const postRouter = require('./middleware/post-response.middleware');
+const preRouter = require('./middlewares/pre-request.middleware');
+const postRouter = require('./middlewares/post-response.middleware');
 const port = setting.port;
 //////////////////////////////////////
 const app = express();
 app.set("port", setting.port || 3000);
-app.set("views", path.join(__dirname, "../views"));
-app.set("view engine", "ejs");
+// app.set("views", path.join(__dirname, "../views"));
+// app.set("view engine", "ejs");
 
 // pre-request
 app.use('/', preRouter);
