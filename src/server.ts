@@ -6,7 +6,7 @@ const http = require('http');
 import { Request, Response } from "express";
 
 import { setting } from './config/setting';
-const router = require('./routes/index.route');
+const router = require('./routes/main.route');
 const preRouter = require('./middlewares/pre-request.middleware');
 const postRouter = require('./middlewares/post-response.middleware');
 const port = setting.port;

@@ -27,7 +27,7 @@ router.use(expressValidator());
 // router.use(session({
 //     resave: true,
 //     saveUninitialized: true,
-//     secret: process.env.SESSION_SECRET,
+//     secret: process.env.session_secret,
 //     cookie: { maxAge: 3600000 * 2}
 //     // store: new MongoStore({
 //     //   url: process.env.MONGODB_URI || process.env.MONGOLAB_URI,

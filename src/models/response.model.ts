@@ -7,8 +7,8 @@ module.exports = class ResponseModel {
         code: string;
         desc: string;
     };
-    data: Array<any>;
-    template: Array<any>;
+    data: any;
+    template: any;
     userid: string;
 
     constructor() {}
