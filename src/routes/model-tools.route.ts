@@ -13,7 +13,16 @@ router.route('/:id')
     .get(ModelToolsCtrl.getModelTool);
 
 router.route('/:id/input')
-    .get(ModelToolsCtrl.getModelInput);
+    .get(
+        ModelToolsCtrl.getModelInput,
+        ModelToolsCtrl.getModelSchemas,
+        (req: Request, res: Response, next: NextFunction) => {
+            next();
+        }
+    );
 
 router.route('/:id/invoke')
-    .post(ModelToolsCtrl.invoke);
+    .post(ModelToolsCtrl.invokeModelTool);
+
+router.route('/records/:id')
+    .get(ModelToolsCtrl.getInvokeRecord);
