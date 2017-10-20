@@ -1,11 +1,11 @@
-let os = require('os');
-let fs = require('fs');
-let path = require('path');
+import * as os from 'os';
+import * as fs from 'fs';
+import * as path from 'path';
 
-module.exports = {
-    version: 0.01,
+export const setting = {
+    version: 'v0.01',
     port: '9999',
-    SESSION_SECRET: 'ashdfjhaxaskjfxfjksdjhflak',
+    session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     platform: (function() {
         let platform = 1;
         if (os.type() == 'Linux') {
@@ -17,5 +17,11 @@ module.exports = {
         name: 'WebNJGIS',
         host: '127.0.0.1',
         port: '27017'
-    }
+    },
+    model_service_container: {
+        // host: '172.21.213.146',
+        host: '127.0.0.1',
+        port: '8060'
+    },
+    uploadPath: __dirname + '/../upload/'
 };

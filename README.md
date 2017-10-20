@@ -1,6 +1,10 @@
-# TypeScript Node Starter
+# WebNJGIS backend
 
 [![Dependency Status](https://david-dm.org/Microsoft/TypeScript-Node-Starter.svg)](https://david-dm.org/Microsoft/TypeScript-Node-Starter) [![Build Status](https://travis-ci.org/Microsoft/TypeScript-Node-Starter.svg?branch=master)](https://travis-ci.org/Microsoft/TypeScript-Node-Starter) 
+
+# Design
+- 与模型服务容器松耦合，依赖于模型服务容器。在运行前要配置依托的服务容器信息。
+- 
 
 # Pre-reqs
 - Install [Node.js](https://nodejs.org/en/)
@@ -10,7 +14,7 @@
 # Getting started
 - Clone the repository
 ```
-git clone --depth=1 https://github.com/Microsoft/TypeScript-Node-Starter.git <project_name>
+git clone --depth=1 https://github.com/shenchaoran/WebNJGIS_backend.git <project_name>
 ```
 - Install dependencies
 ```
@@ -25,7 +29,7 @@ mongod
 ```
 npm start
 ```
-Navigate to `http://localhost:3000`
+Navigate to `http://localhost:9999`
 
 # TypeScript + Node 
 The main purpose of this repository is to show a good end-to-end project setup and workflow for writing Node code in TypeScript.
@@ -409,9 +413,3 @@ In that file you'll find two sections:
 | typescript                      | JavaScript compiler/type checker that boosts JavaScript productivity  |
 
 To install or update these dependencies you can use `npm install` or `npm update`.
-
-# Other
-Here is a section of miscellaneous tips. 
-
-# Hackathon Starter Project
-A majority of this quick start's content was inspired or adapted from Sahat's excellent [Hackathon Starter project](https://github.com/sahat/hackathon-starter).

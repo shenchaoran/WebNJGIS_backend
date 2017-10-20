@@ -1,20 +1,27 @@
 // inlet
 const express = require('express');
 const path = require('path');
-const debug = require('debug')('webnjgis:server');
+const util = require('util'); 
 const http = require('http');
 import { Request, Response } from "express";
+//////////////////////////////////////use for debug
+const debug = require('debug');
+(<any>global).debug = debug;
+const serverDebug = debug('WebNJGIS: server');
 
-const setting = require('./config/setting');
-const router = require('./routes/index.route');
-const preRouter = require('./middleware/pre-request.middleware');
-const postRouter = require('./middleware/post-response.middleware');
+import { setting } from './config/setting';
+const router = require('./routes/main.route');
+const preRouter = require('./middlewares/pre-request.middleware');
+const postRouter = require('./middlewares/post-response.middleware');
 const port = setting.port;
-//////////////////////////////////////
+//////////////////////////////////////init operation
+//TODO 创建文件夹 upload/geo_data
+
+//////////////////////////////////////router
 const app = express();
 app.set("port", setting.port || 3000);
-app.set("views", path.join(__dirname, "../views"));
-app.set("view engine", "ejs");
+// app.set("views", path.join(__dirname, "../views"));
+// app.set("view engine", "ejs");
 
 // pre-request
 app.use('/', preRouter);
@@ -52,9 +59,9 @@ server.on('error', (error: any) => {
 server.on('listening', () => {
     const addr = server.address();
     const bind = typeof addr === 'string' ?
-        'pipe ' + addr :
-        'port ' + addr.port;
-    debug('***************Listening on ' + bind + '***************');
+        'Pipe: ' + addr :
+        'Port: ' + addr.port;
+        serverDebug(bind);
 });
 
 module.exports = app;
