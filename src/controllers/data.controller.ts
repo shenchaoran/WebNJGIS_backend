@@ -10,6 +10,7 @@ import { setting } from '../config/setting';
 import { dataModel, GeoDataType, GeoData } from '../models/data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
+const dataDebug = debug('WebNJGIS: data');
 
 export const uploadFiles = (
     req: Request,
@@ -52,7 +53,6 @@ export const uploadFiles = (
         }
     });
 };
-
 export const post2Server = (
     req: Request,
     res: Response,
@@ -95,4 +95,40 @@ export const post2Server = (
         .catch(err => {
             return next(err);
         });
+};
+
+export const downloadData = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    dataDebug(req.params);
+    const url = APIModel.getAPIUrl('download-geo-data', req.params);
+    // RequestCtrl
+    //     .postByPipe(req, url)
+    //     .then((data: any) => {
+            
+    //         res.set({
+    //             'Content-Type': 'file/xml',
+    //             'Content-Length': data.body.length });
+    //         res.setHeader('Content-Disposition', 'attachment; filename=' + encodeURIComponent(req.query.filename));
+    //         res.end(data);
+    //     })
+    //     .catch(next);
+}
+
+export const getUDXType = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+
+};
+
+export const visualization = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+
 };

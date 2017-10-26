@@ -9,7 +9,7 @@
     "author": "Bowden Kelly",
     "license": "MIT",
     "scripts": {
-        "start": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=5 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1 && npm run build && npm run watch",
+        "start": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=1 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1 && npm run build && npm run watch",
         "debugcfg": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=5 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1",
         "build": "npm run build-ts && npm run tslint",
         "serve": "nodemon dist/server.js",
@@ -63,17 +63,18 @@
         "formidable": "^1.1.1",
         "lodash": "^4.17.4",
         "lusca": "^1.4.1",
-        "mongoose": "^4.12.2",
+        "mongoose": "^4.12.4",
         "morgan": "^1.7.0",
         "nodemailer": "^2.6.4",
         "passport": "0.3.2",
         "passport-facebook": "^2.1.1",
         "passport-local": "^1.0.0",
         "pug": "^2.0.0-beta6",
-        "request": "^2.78.0",
+        "request": "^2.83.0",
         "request-promise": "^4.2.2",
         "supports-color": "^4.4.0",
-        "xmldom": "^0.1.27"
+        "xmldom": "^0.1.27",
+        "xpath": "0.0.24"
     },
     "devDependencies": {
         "@types/request-promise": "^4.1.38",

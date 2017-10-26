@@ -31,6 +31,11 @@ export const APIS = {
             desc: ''
         },
         {
+            id: 'download-geo-data',
+            pathname: '/geodata/:id',
+            desc: ''
+        },
+        {
             id: 'invoke-record',
             pathname: '/modelserrun/json/:id',
             desc: ''
