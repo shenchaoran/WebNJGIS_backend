@@ -1,8 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
-const requestP = require('request-promise');
+const requestPromise = require('request-promise');
 const request = require('request');
 import * as fs from 'fs';
-// import * as Promise from 'bluebird';
+import * as Promise from 'bluebird';
 
 // reference: https://github.com/request/request-promise
 
@@ -12,7 +12,7 @@ export const getByServer = (url: string, form: any) => {
         method: 'GET',
         qs: form
     };
-    return requestP(options);
+    return requestPromise(options);
 };
 
 export const postByServer = (url: string, body: any, type: PostRequestType) => {
@@ -47,40 +47,40 @@ export const postByServer = (url: string, body: any, type: PostRequestType) => {
             'content-type': 'multipart/form-data'
         };
     }
-    return requestP(options);
+    return requestPromise(options);
 };
 
-// 通过管道请求转发
+// 通过管道请求转发 TODO fix hot
 export const getByPipe = (req: Request, url: string) => {
-    // return new Promise((resolve, reject) => {
-    //     req.pipe(
-    //         request.get(url, (err, response, body) => {
-    //             if (err) {
-    //                 return reject(err);
-    //             } else {
-    //                 return resolve({
-    //                     response: response,
-    //                     body: body
-    //                 });
-    //             }
-    //         })
-    //     );
-    // });
+    return new Promise((resolve, reject) => {
+        req.pipe(
+            request.get(url, (err, response, body) => {
+                if (err) {
+                    return reject(err);
+                } else {
+                    return resolve({
+                        response: response,
+                        body: body
+                    });
+                }
+            })
+        );
+    });
 };
 
 export const postByPipe = (req: Request, url: string) => {
-    // return new Promise((resolve, reject) => {
-    //     req.pipe(
-    //         request
-    //             .post(url)
-    //             .then(response => {
-    //                 return resolve(response);
-    //             })
-    //             .catch(error => {
-    //                 return reject(error);
-    //             })
-    //     );
-    // });
+    return new Promise((resolve, reject) => {
+        req.pipe(
+            request
+                .post(url)
+                .then(response => {
+                    return resolve(response);
+                })
+                .catch(error => {
+                    return reject(error);
+                })
+        );
+    });
 };
 
 export enum PostRequestType {

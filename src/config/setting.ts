@@ -23,5 +23,10 @@ export const setting = {
         host: '127.0.0.1',
         port: '8060'
     },
-    uploadPath: __dirname + '/../upload/'
+    uploadPath: __dirname + '/../upload/',
+    UDX: {
+        parse: {
+            maxSize: 10000
+        }
+    }
 };

@@ -5,6 +5,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { ObjectID } from 'mongodb';
 import * as fs from 'fs';
+const request = require('request');
 
 import { setting } from '../config/setting';
 import { dataModel, GeoDataType, GeoData } from '../models/data.model';
@@ -104,26 +105,17 @@ export const downloadData = (
 ) => {
     dataDebug(req.params);
     const url = APIModel.getAPIUrl('download-geo-data', req.params);
-    // RequestCtrl
-    //     .postByPipe(req, url)
-    //     .then((data: any) => {
-            
-    //         res.set({
-    //             'Content-Type': 'file/xml',
-    //             'Content-Length': data.body.length });
-    //         res.setHeader('Content-Disposition', 'attachment; filename=' + encodeURIComponent(req.query.filename));
-    //         res.end(data);
-    //     })
-    //     .catch(next);
+    RequestCtrl.getByServer(url, undefined)
+        .then((response) => {
+            res.set({
+                'Content-Type': 'file/xml',
+                'Content-Length': response.length,
+                'Content-Disposition': 'attachment;filename=' + encodeURIComponent(req.query.filename)
+            });
+            return res.end(response);
+        })
+        .catch(next);
 }
-
-export const getUDXType = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-
-};
 
 export const visualization = (
     req: Request,

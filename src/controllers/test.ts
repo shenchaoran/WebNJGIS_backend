@@ -1,6 +1,9 @@
-const debug = require('debug')('app');
+const debug = require('debug')('WebNJGIS: debug');
+const xpath = require('xpath');
+const dom = require('xmldom').DOMParser;
 
-// 运行 DEBUG=app node 01.js
-// 输出：app hello +0ms
-debug('hellosafsfsdf');
-console.log(1);
+const xml = "asdfasf"
+const doc = new dom().parseFromString(xml)
+const nodes = xpath.select("//title", doc)
+console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
+console.log("Node: " + nodes[0].toString())
