@@ -25,7 +25,8 @@ export const parseUDX = (req: Request, res: Response, next: NextFunction) => {
         .then(parsed => {
             res.locals.resData = parsed;
             res.locals.template = {};
-            res.locals.succeed = true;
+            res.locals.successed = true;
+            return next();
         })
         .catch(next);
 };
