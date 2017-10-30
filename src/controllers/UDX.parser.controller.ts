@@ -15,6 +15,7 @@ import { dataModel, GeoDataType, GeoData } from '../models/data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 import { UDXType, UDXTable } from '../models/UDX.type.model';
+import * as StringUtils from '../utils/string.utils';
 
 export const parseUDX = (req: Request, res: Response, next: NextFunction) => {
     dataDebug(req.params);
@@ -91,26 +92,34 @@ export const parseTable = (udxStr): UDXTable => {
     const doc = new dom().parseFromString(udxStr);
     const colNodes = xpath.select('/dataset/XDO[@name=\'table\']/XDO', doc);
     const table = new UDXTable();
-    const cols = [];
-    let rowsNum = 0;
-    const colsNum = colNodes.length;
+    const rowsData: Array<any> = [];
     _
         .chain(colNodes)
-        .map(colNode => {
+        .map((colNode, colIndex) => {
             const nameNode = xpath.select1('@name', colNode);
             const kernelTypeNode = xpath.select1('@kernelType', colNode);
             const valueNode = xpath.select1('@value', colNode);
             let name = undefined;
             let kernelType = undefined;
             let value = undefined;
+
+            let column = undefined;
             if(nameNode) {
                 name = nameNode.value;
-                table.header.push(name);
+                column = {
+                    data: name,
+                    title: StringUtils.Upper1st(name),
+                    readOnly: true
+                };
             }
             if(kernelTypeNode) {
-                kernelType = kernelTypeNode.value;
-                table.types.push(kernelType);
+                let type = kernelTypeNode.value;
+                type = type.split('_')[0];
+                kernelType = type;
+                // column.type = type;
             }
+            table.columns.push(column);
+
             if(valueNode) {
                 value = valueNode.value;
                 value = _.split(value, ';');
@@ -124,23 +133,16 @@ export const parseTable = (udxStr): UDXTable => {
                         value = _.map(value, parseFloat);
                         break;
                 }
-                if(value.length > rowsNum) {
-                    rowsNum = value.length;
-                }
-                cols.push(value);
+                _.map(value, (td, rowIndex) => {
+                    if(rowsData.length <= rowIndex) {
+                        rowsData.push({});
+                    }
+                    _.set(rowsData[rowIndex], name, td);
+                });
             }
         })
         .value();
 
-    _.map(cols, (col, colIndex) => {
-        _.map(col, (td, rowIndex) => {
-            if(table.body.length <= rowIndex) {
-                table.body.push([]);
-            }
-            table.body[rowIndex].push(col[rowIndex]);
-        })
-    });
-    table.colCount = colsNum;
-    table.rowCount = rowsNum;
+    table.data = rowsData;
     return table;
 };

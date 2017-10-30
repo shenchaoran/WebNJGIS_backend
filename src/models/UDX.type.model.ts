@@ -11,16 +11,15 @@ export enum UDXType {
 
 // 为方便前台处理，table以二维矩阵的形式存储，header存放表头
 export class UDXTable {
-    header: Array<string>;
-    types: Array<string>;
-    body: Array<Array<any>>;
-    colCount?: number;
-    rowCount?: number;
+    columns: Array<{
+        data: string;
+        title: string;
+        type?: string;
+        readOnly: boolean;
+    }>;
+    data: Array<any>;
     constructor() {
-        this.header = [];
-        this.types = [];
-        this.body = [];
-        this.colCount = 0;
-        this.rowCount = 0;
+        this.columns = [];
+        this.data = [];
     }
 }
