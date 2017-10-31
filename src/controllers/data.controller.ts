@@ -8,7 +8,7 @@ import * as fs from 'fs';
 const request = require('request');
 
 import { setting } from '../config/setting';
-import { dataModel, GeoDataType, GeoData } from '../models/data.model';
+import { DataModelInstance, GeoDataType, GeoDataClass } from '../models/data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 const dataDebug = debug('WebNJGIS: data');
@@ -29,7 +29,7 @@ export const uploadFiles = (
             const filename = file.name;
             const ext = filename.substr(filename.lastIndexOf('.'));
             const newName = new ObjectID() + ext;
-            const geoData = new GeoData(
+            const geoData = new GeoDataClass(
                 filename,
                 newName,
                 fields.type,
@@ -83,7 +83,7 @@ export const post2Server = (
                 fs.rename(fpath, newPath, () => {
                     res.locals.resData = geoData;
                     res.locals.template = {};
-                    res.locals.successed = true;
+                    res.locals.succeed = true;
                     return next();
                 });
             }

@@ -41,11 +41,13 @@ export const getModelTools = (req: Request, res: Response, next: NextFunction) =
                     "ms_permission": 'number',
                     "__v": 'number'
                 }];
-                res.locals.successed = true;
+                res.locals.succeed = true;
             }
             return next();
         })
-        .catch(next);
+        .catch(err => {
+            next(err);
+        });
 };
 
 export const getModelTool = (req: Request, res: Response, next: NextFunction) => {
@@ -84,7 +86,7 @@ export const getModelTool = (req: Request, res: Response, next: NextFunction) =>
                     "ms_permission": 'number',
                     "__v": 'number'
                 };
-                res.locals.successed = true;
+                res.locals.succeed = true;
             }
             return next();
         })
@@ -133,7 +135,7 @@ export const getModelInput = (req: Request, res: Response, next: NextFunction) =
                 });
                 res.locals.resData.states = myStates;
                 res.locals.template = {};
-                res.locals.successed = true;
+                res.locals.succeed = true;
             }
             return next();
         })
@@ -161,7 +163,7 @@ export const invokeModelTool = (req: Request, res: Response, next: NextFunction)
                     msrid: inquireData.msr_id
                 };
                 res.locals.template = {};
-                res.locals.successed = true;
+                res.locals.succeed = true;
             }
             return next();
         })
@@ -176,7 +178,7 @@ export const getInvokeRecord = (req: Request, res: Response, next: NextFunction)
             if(inquireData.result === 'suc') {
                 res.locals.resData = inquireData.data;
                 res.locals.template = {};
-                res.locals.successed = true;
+                res.locals.succeed = true;
                 return next();
             }
             else {

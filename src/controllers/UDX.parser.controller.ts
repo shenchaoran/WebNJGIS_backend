@@ -11,7 +11,7 @@ const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 
 import { setting } from '../config/setting';
-import { dataModel, GeoDataType, GeoData } from '../models/data.model';
+import { DataModelInstance, GeoDataType, GeoDataClass } from '../models/data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 import { UDXType, UDXTable } from '../models/UDX.type.model';
@@ -26,7 +26,7 @@ export const parseUDX = (req: Request, res: Response, next: NextFunction) => {
         .then(parsed => {
             res.locals.resData = parsed;
             res.locals.template = {};
-            res.locals.successed = true;
+            res.locals.succeed = true;
             return next();
         })
         .catch(next);

@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const util = require('util'); 
 const http = require('http');
-import { Request, Response } from "express";
+import { Response, Request, NextFunction } from "express";
 //////////////////////////////////////use for debug
 const debug = require('debug');
 (<any>global).debug = debug;
@@ -13,22 +13,24 @@ import { setting } from './config/setting';
 const router = require('./routes/main.route');
 const preRouter = require('./middlewares/pre-request.middleware');
 const postRouter = require('./middlewares/post-response.middleware');
+const ResponseModel = require('./models/response.model');
 const port = setting.port;
 //////////////////////////////////////init operation
 //TODO 创建文件夹 upload/geo_data
 
 //////////////////////////////////////router
 const app = express();
+// (<any>global).app = app;
 app.set("port", setting.port || 3000);
 // app.set("views", path.join(__dirname, "../views"));
 // app.set("view engine", "ejs");
 
 // pre-request
-app.use('/', preRouter);
+preRouter(app);
 // request/response
 app.use('/', router);
 // post-response
-app.use('/', postRouter);
+postRouter(app);
 //////////////////////////////////////
 const server = http.createServer(app);
 server.listen(app.get('port'));

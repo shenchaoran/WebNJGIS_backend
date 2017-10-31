@@ -6,7 +6,7 @@ module.exports = class MyRouter{
         const router = express.Router();
         router.route('/ping')
             .get((req: Request, res: Response, next: NextFunction) => {
-                res.locals.successed = true;
+                res.locals.succeed = true;
                 res.locals.resData = [{
                     href: req.originalUrl
                 }];

@@ -6,6 +6,7 @@ export const setting = {
     version: 'v0.01',
     port: '9999',
     session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
+    jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
     platform: (function() {
         let platform = 1;
         if (os.type() == 'Linux') {

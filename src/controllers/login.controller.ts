@@ -1,13 +1,101 @@
-import { Response, Request, NextFunction } from "express";
+import { Response, Request, NextFunction } from 'express';
 import * as Promise from 'bluebird';
+const jwt = require('jwt-simple');
+const moment = require('moment');
 
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
+import { UserModelInstance, UserClass } from '../models/user.model';
 
-export const getModelTools = (req: Request, res: Response, next: NextFunction) => {
-    res.locals.resData = '';
-    res.locals.template = {};
-    res.locals.successed = true;
-    return next();
+export const login = (req: Request, res: Response, next: NextFunction) => {
+    const username = req.body.username;
+    const passport = req.body.passport;
+    if(username === undefined || passport === undefined) {
+        res.locals.resData = {
+            succeed: false
+        }
+        res.locals.template = {};
+        res.locals.succeed = true;
+        return next();
+    }
+    UserModelInstance.find({ username: username })
+        .then(user => {
+            user = user[0];
+            if (user.passport === passport) {
+                const expires = moment()
+                    .add('days', 7)
+                    .valueOf();
+                const token = jwt.encode(
+                    {
+                        iss: user.username,
+                        exp: expires
+                    },
+                    setting.jwt_secret
+                );
+
+                res.locals.resData = {
+                    succeed: true,
+                    jwt: {
+                        token: token,
+                        expires: expires
+                    }
+                };
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            } else {
+                res.locals.resData = {
+                    succeed: false
+                }
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            }
+        })
+        .catch(next);
 };
+
+export const logout = (req: Request, res: Response, next: NextFunction) => {};
+
+export const register = (req: Request, res: Response, next: NextFunction) => {
+    const username = req.body.username;
+    const passport = req.body.passport;
+    const email = req.body.email;
+    if(username !== undefined && passport !== undefined && email !== undefined) {
+        const user = {
+            username: username,
+            passport: passport,
+            email: email
+        };
+        UserModelInstance.find({username: username})
+            .then(rst => {
+                if(rst.length === 0) {
+                    return UserModelInstance.insert(user);
+                }
+                else {
+                    const err = <any>(new Error('username has registered!'));
+                    err.status = 417;
+                    return Promise.reject(err);
+                }
+            })
+            .then(rst => {
+                res.locals.resData = {
+                    succeed: true
+                }
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    }
+    else {
+        res.locals.resData = {
+            succeed: false
+        }
+        res.locals.template = {};
+        res.locals.succeed = true;
+        return next();
+    }
+};
+export const findPst = (req: Request, res: Response, next: NextFunction) => {};

@@ -9,7 +9,7 @@ const VisualizationRouter = require('./visualization.route');
 const router = new MyRouter();
 module.exports = router;
 
-router.use('/login', LoginRouter);
+router.use('/auth', LoginRouter);
 router.use('/data', DataRouter);
 router.use('/model-tools', ModelToolsRouter);
 router.use('/data-tools', DataToolsRouter);

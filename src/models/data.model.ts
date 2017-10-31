@@ -4,6 +4,7 @@ class DataModel extends MongooseModel {
     constructor() {
         const collectionName = 'Geo_Data';
         const schema = {
+            gdid: String,
             filename: String,
             path: String,
             type: Number,
@@ -14,14 +15,14 @@ class DataModel extends MongooseModel {
     }
 }
 
-export const dataModel = new DataModel();
+export const DataModelInstance = new DataModel();
 
 export enum GeoDataType {
     RAW = 1,
     UDX = 2
 }
 
-export class GeoData {
+export class GeoDataClass {
     gdid: string;
     filename: string;
     path: string;
