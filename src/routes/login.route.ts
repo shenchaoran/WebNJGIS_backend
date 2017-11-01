@@ -12,4 +12,4 @@ router.route('/logout').post(LoginCtrl.logout);
 
 router.route('/register').post(LoginCtrl.register);
 
-router.route('/find-pst').post(LoginCtrl.findPst);
+router.route('/find-psw').post(LoginCtrl.findPst);

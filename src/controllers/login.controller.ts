@@ -10,8 +10,8 @@ import { UserModelInstance, UserClass } from '../models/user.model';
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
-    const passport = req.body.passport;
-    if(username === undefined || passport === undefined) {
+    const password = req.body.password;
+    if(username === undefined || password === undefined) {
         res.locals.resData = {
             succeed: false
         }
@@ -22,7 +22,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
     UserModelInstance.find({ username: username })
         .then(user => {
             user = user[0];
-            if (user.passport === passport) {
+            if (user.password === password) {
                 const expires = moment()
                     .add('days', 7)
                     .valueOf();
@@ -38,7 +38,8 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
                     succeed: true,
                     jwt: {
                         token: token,
-                        expires: expires
+                        expires: expires,
+                        username: user.username
                     }
                 };
                 res.locals.template = {};
@@ -60,12 +61,12 @@ export const logout = (req: Request, res: Response, next: NextFunction) => {};
 
 export const register = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
-    const passport = req.body.passport;
+    const password = req.body.password;
     const email = req.body.email;
-    if(username !== undefined && passport !== undefined && email !== undefined) {
+    if(username !== undefined && password !== undefined && email !== undefined) {
         const user = {
             username: username,
-            passport: passport,
+            password: password,
             email: email
         };
         UserModelInstance.find({username: username})

@@ -16,10 +16,7 @@ router.route('/:id')
 router.route('/:id/input')
     .get(
         ModelToolsCtrl.getModelInput,
-        ModelToolsCtrl.getModelSchemas,
-        (req: Request, res: Response, next: NextFunction) => {
-            next();
-        }
+        ModelToolsCtrl.getModelSchemas
     );
 
 router.route('/:id/invoke')

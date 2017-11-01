@@ -5,7 +5,7 @@ class UserModel extends MongooseModel {
         const collectionName = 'User';
         const schema = {
             username: String,
-            passport: String,
+            password: String,
             email: String
         };
 
@@ -17,6 +17,6 @@ export const UserModelInstance = new UserModel();
 
 export class UserClass {
     username: string;
-    passport: string;
+    password: string;
     email?: string;
 }

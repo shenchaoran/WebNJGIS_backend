@@ -31,6 +31,20 @@ npm start
 ```
 Navigate to `http://localhost:9999`
 
+# Architecture
+- pre-middleware: 对应用级或路由级中间件统一处理
+- post-middleware: 对response和error统一处理（除了下载文件这种特殊情况）
+
+# Design
+- 基于中间件的后台开发
+- 使用应用级中间件对response统一处理：
+    - success: status.code = 200, 数据放在data里
+    - fail: status.code 和 desc 详细描述错误详情
+
+<br>
+<hr>
+<br>
+
 # TypeScript + Node 
 The main purpose of this repository is to show a good end-to-end project setup and workflow for writing Node code in TypeScript.
 I will try to keep this as up-to-date as possible, but community contributions and recommendations for improvements are encouraged and will be most welcome. 

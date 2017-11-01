@@ -44,6 +44,7 @@ module.exports = (app) => {
 
     // all cross origin
     app.all('*', function(req: Request, res: Response, next: NextFunction) {
+        // TODO 为防止CSRF攻击，应设置为前端所在的域名
         res.header('Access-Control-Allow-Origin', '*');
         res.header(
             'Access-Control-Allow-Headers',
@@ -61,6 +62,7 @@ module.exports = (app) => {
         }
     });
 
+    // 此处其实不用使用应用级中间件，放在需要登录验证的模块中，比如个人中心，使用路由级中间件
     // 登陆验证拦截器，根据header中的Authorization (token)得到user，并放在req.query中
     app.all('*', (req: Request, res: Response, next: NextFunction) => {
         const skipUrls = ['auth', 'css'];
@@ -84,13 +86,17 @@ module.exports = (app) => {
             token = token.split('bearer ')[1];
         }
         else {
-            return next();
+            const err = <any>new Error(
+                'No authorization, please login in first!'
+            );
+            err.status = 403;
+            return next(err);
         }
         
         if (token) {
             try {
                 const decoded = jwt.decode(token, setting.jwt_secret);
-                console.log(decoded);
+                // console.log(decoded);
                 if (decoded.exp <= Date.now()) {
                     const err = <any>new Error('Access token has expired');
                     err.status = 406;

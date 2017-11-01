@@ -93,6 +93,7 @@ export const getModelTool = (req: Request, res: Response, next: NextFunction) =>
         .catch(next);
 };
 
+// TODO promise ...
 export const getModelInput = (req: Request, res: Response, next: NextFunction) => {
     const url = APIModel.getAPIUrl('model-input', req.params);
     RequestCtrl.getByServer(url, {})

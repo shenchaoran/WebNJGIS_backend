@@ -1,8 +1,8 @@
 import { setting } from '../config/setting';
 module.exports = class ResponseModel {
-    private version: string = setting.version;
+    private app: any = setting.app;                 // app base info
     href: string;
-    token: string;                                 // 身份认证
+    token: string;                                  // 身份认证
     status: {
         code: string;                               // http状态码
         desc: string;                               // 可以放出错的详细信息

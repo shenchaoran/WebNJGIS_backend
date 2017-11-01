@@ -3,9 +3,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export const setting = {
-    version: 'v0.01',
+    app: {
+        name: 'WebNJGIS',
+        version: 'v0.01'
+    },
     port: '9999',
-    session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
+    // session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
     platform: (function() {
         let platform = 1;
