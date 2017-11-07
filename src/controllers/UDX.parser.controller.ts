@@ -6,7 +6,7 @@ import * as path from 'path';
 import { ObjectID } from 'mongodb';
 import * as fs from 'fs';
 const request = require('request');
-const dataDebug = debug('WebNJGIS: data');
+const dataDebug = debug('WebNJGIS: Data');
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 
@@ -16,13 +16,15 @@ import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 import { UDXType, UDXTable } from '../models/UDX.type.model';
 import * as StringUtils from '../utils/string.utils';
+import * as PropParser from './UDX.property.controller';
+import * as VisualParser from './UDX.visualization.controller';
 
-export const parseUDX = (req: Request, res: Response, next: NextFunction) => {
+export const parseUDXProp = (req: Request, res: Response, next: NextFunction) => {
     dataDebug(req.params);
     const url = APIModel.getAPIUrl('download-geo-data', req.params);
     RequestCtrl.getByServer(url, undefined)
         .then(parseUDXType)
-        .then(parseByType)
+        .then(PropParser.parse)
         .then(parsed => {
             res.locals.resData = parsed;
             res.locals.template = {};
@@ -32,8 +34,23 @@ export const parseUDX = (req: Request, res: Response, next: NextFunction) => {
         .catch(next);
 };
 
+export const parseUDXVisual = (req: Request, res: Response, next: NextFunction) => {
+    dataDebug(req.params);
+    const url = APIModel.getAPIUrl('download-geo-data', req.params);
+    RequestCtrl.getByServer(url, undefined)
+        .then(parseUDXType)
+        .then(VisualParser.parse)
+        .then(parsed => {
+            res.locals.resData = parsed;
+            res.locals.template = {};
+            res.locals.succeed = true;
+            return next();
+        })
+        .catch(next);
+}
+
 // 对内部使用的常用UDX进行解析，其他格式暂不支持。
-export const parseUDXType = (udxStr): Promise<{type: any; UDX: any}> => {
+const parseUDXType = (udxStr): Promise<{type: any; UDX: any}> => {
     return new Promise((resolve, reject) => {
         let udxType;
         const doc = new dom().parseFromString(udxStr);
@@ -71,78 +88,4 @@ export const parseUDXType = (udxStr): Promise<{type: any; UDX: any}> => {
             UDX: udxStr
         });
     });
-};
-
-export const parseByType = (data): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        let parsed;
-        switch (data.type) {
-            case UDXType.TABLE: 
-                parsed = parseTable(data.UDX);
-                break;
-            case UDXType.ASCII_GRID:
-                //... 
-                break;
-        }
-        return resolve(parsed);
-    });
-};
-
-export const parseTable = (udxStr): UDXTable => {
-    const doc = new dom().parseFromString(udxStr);
-    const colNodes = xpath.select('/dataset/XDO[@name=\'table\']/XDO', doc);
-    const table = new UDXTable();
-    const rowsData: Array<any> = [];
-    _
-        .chain(colNodes)
-        .map((colNode, colIndex) => {
-            const nameNode = xpath.select1('@name', colNode);
-            const kernelTypeNode = xpath.select1('@kernelType', colNode);
-            const valueNode = xpath.select1('@value', colNode);
-            let name = undefined;
-            let kernelType = undefined;
-            let value = undefined;
-
-            let column = undefined;
-            if(nameNode) {
-                name = nameNode.value;
-                column = {
-                    data: name,
-                    title: StringUtils.Upper1st(name),
-                    readOnly: true
-                };
-            }
-            if(kernelTypeNode) {
-                let type = kernelTypeNode.value;
-                type = type.split('_')[0];
-                kernelType = type;
-                // column.type = type;
-            }
-            table.columns.push(column);
-
-            if(valueNode) {
-                value = valueNode.value;
-                value = _.split(value, ';');
-                switch (kernelType) {
-                    case 'string_array':
-                        break;
-                    case 'int_array':
-                        value = _.map(value, parseInt)
-                        break;
-                    case 'real_array':
-                        value = _.map(value, parseFloat);
-                        break;
-                }
-                _.map(value, (td, rowIndex) => {
-                    if(rowsData.length <= rowIndex) {
-                        rowsData.push({});
-                    }
-                    _.set(rowsData[rowIndex], name, td);
-                });
-            }
-        })
-        .value();
-
-    table.data = rowsData;
-    return table;
 };

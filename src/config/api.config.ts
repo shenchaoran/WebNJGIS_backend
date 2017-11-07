@@ -1,6 +1,11 @@
 export const APIS = {
     data: [
         {
+            id: 'connector',
+            pathname: '/ping',
+            desc: ''
+        },
+        {
             id: 'model-tools',
             pathname: '/modelser/json/all',
             desc: ''

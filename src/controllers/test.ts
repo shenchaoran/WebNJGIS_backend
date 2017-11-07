@@ -1,4 +1,4 @@
-const debug = require('debug')('WebNJGIS: debug');
+const debug = require('debug')('WebNJGIS: Debug');
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 

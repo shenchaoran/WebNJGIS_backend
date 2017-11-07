@@ -16,8 +16,8 @@ router.route('/upload')
 router.route('/:id/download')
     .get(DataCtrl.downloadData);
 
-router.route('/:id/parse')
-    .get(UDXParser.parseUDX);
+router.route('/:id/property')
+    .get(UDXParser.parseUDXProp);
 
-router.route('/:id/visualization')
-    .post(DataCtrl.visualization);
+router.route('/:id/show')
+    .get(UDXParser.parseUDXVisual);

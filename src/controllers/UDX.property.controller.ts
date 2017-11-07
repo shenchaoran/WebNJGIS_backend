@@ -1,22 +1,18 @@
 import * as _ from 'lodash';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
-import * as Promise from 'bluebird';
-import * as path from 'path';
-import { ObjectID } from 'mongodb';
-import * as fs from 'fs';
-const request = require('request');
-const visualDebug = debug('WebNJGIS: Visualization');
 
 import { UDXType, UDXTable } from '../models/UDX.type.model';
 import * as StringUtils from '../utils/string.utils';
+const propDebug = debug('WebNJGIS: Property');
+import * as ArrayUtils from '../utils/array.utils';
 
 export const parse = (data): Promise<any> => {
     return new Promise((resolve, reject) => {
         let parsed;
         switch (data.type) {
             case UDXType.TABLE: 
-                parsed = showTable(data.UDX);
+                parsed = parseTableProp(data.UDX);
                 break;
             case UDXType.ASCII_GRID:
                 //... 
@@ -27,13 +23,52 @@ export const parse = (data): Promise<any> => {
             parsed: parsed
         });
     });
-}
+};
 
-export const showTable = (udxStr): UDXTable => {
+const parseTableProp = (udxStr): UDXTable => {
     const doc = new dom().parseFromString(udxStr);
     const colNodes = xpath.select('/dataset/XDO[@name=\'table\']/XDO', doc);
     const table = new UDXTable();
     const rowsData: Array<any> = [];
+
+    table.columns = [
+        {
+            data: 'name',
+            title: 'Name',
+            readOnly: true
+        },
+        {
+            data: 'type',
+            title: 'Type',
+            readOnly: true
+        },
+        {
+            data: 'min',
+            title: 'Minimum',
+            readOnly: true
+        },
+        {
+            data: 'max',
+            title: 'Maximum',
+            readOnly: true
+        },
+        {
+            data: 'mean',
+            title: 'Mean',
+            readOnly: true
+        },
+        {
+            data: 'stdDev',
+            title: 'Standard Deviation',
+            readOnly: true
+        },
+        {
+            data: 'sum',
+            title: 'Sum',
+            readOnly: true
+        },
+    ];
+    table.data = [];
     _
         .chain(colNodes)
         .map((colNode, colIndex) => {
@@ -43,15 +78,14 @@ export const showTable = (udxStr): UDXTable => {
             let name = undefined;
             let kernelType = undefined;
             let value = undefined;
+            let max = undefined;
+            let min = undefined;
+            let mean = undefined;
+            let stdDev = undefined;
+            let sum = undefined;
 
-            let column = undefined;
             if(nameNode) {
                 name = nameNode.value;
-                column = {
-                    data: name,
-                    title: StringUtils.upper1st(name),
-                    readOnly: true
-                };
             }
             if(kernelTypeNode) {
                 let type = kernelTypeNode.value;
@@ -59,32 +93,39 @@ export const showTable = (udxStr): UDXTable => {
                 kernelType = type;
                 // column.type = type;
             }
-            table.columns.push(column);
 
             if(valueNode) {
                 value = valueNode.value;
                 value = _.split(value, ';');
                 value = _.map(value, _.trim);
                 switch (kernelType) {
-                    case 'string_array':
+                    case 'string':
+                        value = _.map(value, parseFloat);
                         break;
-                    case 'int_array':
+                    case 'int':
                         value = _.map(value, parseInt)
                         break;
-                    case 'real_array':
+                    case 'real':
                         value = _.map(value, parseFloat);
                         break;
                 }
-                _.map(value, (td, rowIndex) => {
-                    if(rowsData.length <= rowIndex) {
-                        rowsData.push({});
-                    }
-                    _.set(rowsData[rowIndex], name, td);
-                });
+                mean = _.mean(value).toFixed(2);
+                max = (<number>_.max(value)).toFixed(2);
+                min = (<number>_.min(value)).toFixed(2);
+                sum = _.sum(value).toFixed(2);
+                stdDev = ArrayUtils.stdDev(value).toFixed(2);
             }
+
+            table.data.push({
+                name: name,
+                type: kernelType,
+                min: min,
+                max: max,
+                mean: mean,
+                stdDev: stdDev,
+                sum: sum
+            });
         })
         .value();
-
-    table.data = rowsData;
     return table;
 };

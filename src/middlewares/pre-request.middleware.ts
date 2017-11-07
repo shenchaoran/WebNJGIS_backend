@@ -65,6 +65,9 @@ module.exports = (app) => {
     // 此处其实不用使用应用级中间件，放在需要登录验证的模块中，比如个人中心，使用路由级中间件
     // 登陆验证拦截器，根据header中的Authorization (token)得到user，并放在req.query中
     app.all('*', (req: Request, res: Response, next: NextFunction) => {
+        if(setting.auth === false) {
+            return next();
+        }
         const skipUrls = ['auth', 'css'];
         let isSkiped = false;
         _.map(skipUrls, skipUrl => {

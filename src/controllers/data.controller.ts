@@ -11,7 +11,7 @@ import { setting } from '../config/setting';
 import { DataModelInstance, GeoDataType, GeoDataClass } from '../models/data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
-const dataDebug = debug('WebNJGIS: data');
+const dataDebug = debug('WebNJGIS: Data');
 
 export const uploadFiles = (
     req: Request,

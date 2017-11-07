@@ -7,17 +7,18 @@ import { Response, Request, NextFunction } from "express";
 //////////////////////////////////////use for debug
 const debug = require('debug');
 (<any>global).debug = debug;
-const serverDebug = debug('WebNJGIS: server');
+const serverDebug = debug('WebNJGIS: Server');
 
 import { setting } from './config/setting';
 const router = require('./routes/main.route');
 const preRouter = require('./middlewares/pre-request.middleware');
 const postRouter = require('./middlewares/post-response.middleware');
 const ResponseModel = require('./models/response.model');
+import { connect2MSC } from './controllers/connector.controller';
 const port = setting.port;
 //////////////////////////////////////init operation
 //TODO 创建文件夹 upload/geo_data
-
+connect2MSC();
 //////////////////////////////////////router
 const app = express();
 // (<any>global).app = app;
