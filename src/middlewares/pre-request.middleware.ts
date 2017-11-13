@@ -81,6 +81,8 @@ module.exports = (app) => {
             return next();
         }
 
+        // 对于某些情况下不能写入到请求头，所以允许在body或者query中存放认证信息
+        // 比如window.open时
         let token =
             (req.body && req.body.Authorization) ||
             (req.query && req.query.Authorization) ||
