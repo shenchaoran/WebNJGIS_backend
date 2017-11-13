@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction, Router } from "express";
 const express = require('express');
 
-module.exports = class MyRouter{
+module.exports = class MyRouter {
     constructor() {
         const router = express.Router();
         router.route('/ping')
