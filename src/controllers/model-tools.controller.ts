@@ -7,7 +7,14 @@ const dom = require('xmldom').DOMParser;
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
+import * as DataCtrl from '../controllers/data.controller';
 
+/**
+ * 获取模型服务列表
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ */
 export const getModelTools = (
     req: Request,
     res: Response,
@@ -56,6 +63,14 @@ export const getModelTools = (
         });
 };
 
+/**
+ * 从数据库中获取模型服务详情
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ * @returns 
+ */
 export const getModelTool = (
     req: Request,
     res: Response,
@@ -103,7 +118,13 @@ export const getModelTool = (
         .catch(next);
 };
 
-// TODO promise ...
+/**
+ * 获取模型服务输入数据
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ */
 export const getModelInput = (
     req: Request,
     res: Response,
@@ -128,17 +149,22 @@ export const getModelInput = (
                     };
                     _.map(<Array<any>>state.Event, event => {
                         let schemaName;
-                        if (event.DispatchParameter !== undefined &&
+                        if (
+                            event.DispatchParameter !== undefined &&
                             event.DispatchParameter.$ !== undefined &&
-                            event.DispatchParameter.$.datasetReference !== undefined
+                            event.DispatchParameter.$.datasetReference !==
+                                undefined
                         ) {
-                            schemaName = event.DispatchParameter.$.datasetReference;
+                            schemaName =
+                                event.DispatchParameter.$.datasetReference;
                         } else if (
                             event.ResponseParameter !== undefined &&
                             event.ResponseParameter.$ !== undefined &&
-                            event.ResponseParameter.$.datasetReference !== undefined
+                            event.ResponseParameter.$.datasetReference !==
+                                undefined
                         ) {
-                            schemaName = event.ResponseParameter.$.datasetReference;
+                            schemaName =
+                                event.ResponseParameter.$.datasetReference;
                         }
                         if (event.$.type === 'noresponse') {
                             myState.outputs.push({
@@ -169,6 +195,13 @@ export const getModelInput = (
         .catch(next);
 };
 
+/**
+ * 获取模型中的所有schema
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ */
 export const getModelSchemas = (
     req: Request,
     res: Response,
@@ -183,6 +216,13 @@ export const getModelSchemas = (
         .catch(next);
 };
 
+/**
+ * 调用模型
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ */
 export const invokeModelTool = (
     req: Request,
     res: Response,
@@ -190,21 +230,43 @@ export const invokeModelTool = (
 ) => {
     const url = APIModel.getAPIUrl('model-invoke', req.params);
     const form: any = req.query;
-    RequestCtrl.getByServer(url, form)
-        .then((inquireData: any) => {
-            inquireData = JSON.parse(inquireData);
-            if (inquireData.res === 'suc') {
+    const inputs = JSON.parse(form.inputdata);
+    const inputsId = _.map(inputs, input => (<any>input).DataId);
+
+    const postDataPromises = _.map(inputsId, DataCtrl.pushData);
+    Promise.all(postDataPromises)
+        .then(rsts => {
+            // console.log(rsts);
+            _.map(inputs, (input, i) => {
+                (<any>input).DataId = rsts[i];
+            });
+            form.inputdata = JSON.stringify(inputs);
+
+            return RequestCtrl.getByServer(url, form);
+        })
+        .then((response: any) => {
+            response = JSON.parse(response);
+            if (response.res === 'suc') {
                 res.locals.resData = {
-                    msrid: inquireData.msr_id
+                    msrid: response.msr_id
                 };
                 res.locals.template = {};
                 res.locals.succeed = true;
+                return next();
+            } else {
+                return next(new Error('model service invoke failed!'));
             }
-            return next();
         })
         .catch(next);
 };
 
+/**
+ * 获取msr
+ * 
+ * @param {Request} req 
+ * @param {Response} res 
+ * @param {NextFunction} next 
+ */
 export const getInvokeRecord = (
     req: Request,
     res: Response,
@@ -212,13 +274,31 @@ export const getInvokeRecord = (
 ) => {
     const url = APIModel.getAPIUrl('invoke-record', req.params);
     RequestCtrl.getByServer(url, {})
-        .then((inquireData: any) => {
-            inquireData = JSON.parse(inquireData);
-            if (inquireData.result === 'suc') {
-                res.locals.resData = inquireData.data;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
+        .then(response => {
+            response = JSON.parse(response);
+            if (response.result === 'suc') {
+                const msr = response.data;
+                if (msr.msr_time === 0) {
+                    res.locals.resData = {
+                        finished: false
+                    };
+                    res.locals.template = {};
+                    res.locals.succeed = true;
+                    return next();
+                } else {
+                    const outputs = msr.msr_output;
+                    Promise.all(_.map(outputs, DataCtrl.pullData))
+                        .then(rsts => {
+                            res.locals.resData = {
+                                finished: true,
+                                outputs: rsts
+                            };
+                            res.locals.template = {};
+                            res.locals.succeed = true;
+                            return next();
+                        })
+                        .catch(next);
+                }
             } else {
                 const err: any = new Error('get msr failed!');
                 err.code = '500';
@@ -229,6 +309,13 @@ export const getInvokeRecord = (
 };
 
 ///////////////////////// processer
+
+/**
+ * 获取模型中所有的schema
+ * 
+ * @param {any} mdlStr 
+ * @returns 
+ */
 const extractSchema = mdlStr => {
     const doc = new dom().parseFromString(mdlStr);
     let schemasDom: Array<any> = xpath.select(

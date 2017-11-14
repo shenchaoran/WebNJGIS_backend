@@ -8,17 +8,17 @@ import * as fs from 'fs';
 const request = require('request');
 const visualDebug = debug('WebNJGIS: Visualization');
 
-import { UDXType, UDXTable } from '../models/UDX.type.model';
+import { UDXType, UDXTableXML } from '../models/UDX.type.model';
 import * as StringUtils from '../utils/string.utils';
 
 export const parse = (data): Promise<any> => {
     return new Promise((resolve, reject) => {
         let parsed;
         switch (data.type) {
-            case UDXType.TABLE: 
+            case UDXType.TABLE_XML: 
                 parsed = showTable(data.UDX);
                 break;
-            case UDXType.ASCII_GRID:
+            case UDXType.ASCII_GRID_XML:
                 //... 
                 break;
         }
@@ -29,10 +29,10 @@ export const parse = (data): Promise<any> => {
     });
 }
 
-export const showTable = (udxStr): UDXTable => {
+export const showTable = (udxStr): UDXTableXML => {
     const doc = new dom().parseFromString(udxStr);
     const colNodes = xpath.select('/dataset/XDO[@name=\'table\']/XDO', doc);
-    const table = new UDXTable();
+    const table = new UDXTableXML();
     const rowsData: Array<any> = [];
     _
         .chain(colNodes)

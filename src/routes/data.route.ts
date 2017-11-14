@@ -8,10 +8,7 @@ const router = new MyRouter();
 module.exports = router;
 
 router.route('/upload')
-    .post(
-        DataCtrl.uploadFiles,
-        DataCtrl.post2Server
-    );
+    .post(DataCtrl.uploadFiles);
 
 router.route('/:id/download')
     .get(DataCtrl.downloadData);

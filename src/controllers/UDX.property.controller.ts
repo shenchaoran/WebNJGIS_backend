@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 
-import { UDXType, UDXTable } from '../models/UDX.type.model';
+import { UDXType, UDXTableXML } from '../models/UDX.type.model';
 import * as StringUtils from '../utils/string.utils';
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
@@ -11,10 +11,10 @@ export const parse = (data): Promise<any> => {
     return new Promise((resolve, reject) => {
         let parsed;
         switch (data.type) {
-            case UDXType.TABLE: 
+            case UDXType.TABLE_XML: 
                 parsed = parseTableProp(data.UDX);
                 break;
-            case UDXType.ASCII_GRID:
+            case UDXType.ASCII_GRID_XML:
                 //... 
                 break;
         }
@@ -25,10 +25,10 @@ export const parse = (data): Promise<any> => {
     });
 };
 
-const parseTableProp = (udxStr): UDXTable => {
+const parseTableProp = (udxStr): UDXTableXML => {
     const doc = new dom().parseFromString(udxStr);
     const colNodes = xpath.select('/dataset/XDO[@name=\'table\']/XDO', doc);
-    const table = new UDXTable();
+    const table = new UDXTableXML();
     const rowsData: Array<any> = [];
 
     table.columns = [

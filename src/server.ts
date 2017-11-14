@@ -12,7 +12,7 @@ const serverDebug = debug('WebNJGIS: Server');
 const initDebug = debug('WebNJGIS: Init');
 
 import { setting } from './config/setting';
-const router = require('./routes/main.route');
+const router = require('./routes/index.route');
 const preRouter = require('./middlewares/pre-request.middleware');
 const postRouter = require('./middlewares/post-response.middleware');
 const ResponseModel = require('./models/response.model');

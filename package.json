@@ -12,7 +12,7 @@
         "start": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=1 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1 && npm run build && npm run watch",
         "debugcfg": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=5 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1",
         "build": "npm run build-ts && npm run tslint",
-        "serve": "nodemon dist/server.js",
+        "serve": "nodemon --inspect=0.0.0.0:65535 dist/server.js",
         "watch": "concurrently -k -p \"[{name}]\" -n \"Sass,TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-sass\" \"npm run watch-ts\" \"npm run serve\"",
         "test": "jest --forceExit",
         "build-ts": "tsc",
@@ -74,6 +74,7 @@
         "pug": "^2.0.0-beta6",
         "request-promise": "^4.2.2",
         "supports-color": "^4.4.0",
+        "unzip": "^0.1.11",
         "xmldom": "^0.1.27",
         "xpath": "0.0.24"
     },
