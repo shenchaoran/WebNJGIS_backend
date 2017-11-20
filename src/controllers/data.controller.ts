@@ -16,7 +16,9 @@ import {
 } from '../models/data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
+import * as UDXParser from './UDX.parser.controller';
 const dataDebug = debug('WebNJGIS: Data');
+import UDXComparer = require('./UDX.compare.control');
 
 /**
  * 条目保存到数据库，文件移动到upload/geo_data中
@@ -345,3 +347,37 @@ export const visualization = (
     res: Response,
     next: NextFunction
 ) => {};
+
+export const compareUDX = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const leftId = req.params.left;
+    const rightId = req.params.right;
+
+    Promise.all(_.map([leftId, rightId], _id => {
+        return new Promise((resolve, reject) => {
+            DataModelInstance.find({_id: _id})
+                .then(rsts => {
+                    if (rsts.length) {
+                        const doc = rsts[0];
+                        return Promise.resolve(doc);
+                    } else {
+                        return next(new Error("can't find data!"));
+                    }
+                })
+                .then(UDXParser.parseUDXType)
+                .then(resolve)
+                .catch(reject);
+        })
+    }))
+        .then(UDXComparer.compare)
+        .then(rst => {
+            res.locals.resData = rst;
+            res.locals.template = {};
+            res.locals.succeed = true;
+            return next();
+        })
+        .catch(next);
+};

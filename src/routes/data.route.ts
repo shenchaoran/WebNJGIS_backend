@@ -18,3 +18,6 @@ router.route('/:id/property')
 
 router.route('/:id/show')
     .get(UDXParser.parseUDXVisual);
+
+router.route('/compare/:left/2/:right')
+    .get(DataCtrl.compareUDX);
