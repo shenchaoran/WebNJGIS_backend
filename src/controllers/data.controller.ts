@@ -91,13 +91,15 @@ export const uploadFiles = (
                     unzipExtractor.on('close', () => {
                         insertItem();
                     });
-                } else if (
-                    ext === '.xml' ||
-                    ext === '.txt' ||
-                    ext === '.csv' ||
-                    ext === '.xls' ||
-                    ext === '.xlsx'
-                ) {
+                } 
+                // else if (
+                //     ext === '.xml' ||
+                //     ext === '.txt' ||
+                //     ext === '.csv' ||
+                //     ext === '.xls' ||
+                //     ext === '.xlsx'
+                // ) {
+                else {
                     insertItem();
                 }
             });
@@ -222,26 +224,41 @@ export const pullData = (output): Promise<any> => {
     const oid = new ObjectID();
     const oidStr = oid.toHexString();
     const url = APIModel.getAPIUrl('download-geo-data', { id: output.DataId });
+    let dataLabel = output.Tag;
+    if(dataLabel.indexOf('.') != -1) {
+        dataLabel = dataLabel.substring(0,dataLabel.lastIndexOf('.'));
+    }
+
     return new Promise((resolve, reject) => {
-        RequestCtrl.getByServer(url, undefined, true)
+        RequestCtrl.getByServer(url, undefined)
             .then(response => {
-                if (_.startsWith(response.statusCode, '200')) {
-                    const resHeaders = response.headers;
-                    const hName = resHeaders['content-disposition'];
-                    const fName = hName.substr(hName.indexOf('filename=') + 9);
-                    extName = fName.substr(fName.indexOf('.') + 1);
-                    let newName: string = undefined;
-                    if (extName === 'xml') {
-                        dataType = GeoDataType.UDX;
-                        newName = oidStr + '.xml';
-                    } else if (extName === 'zip' || extName === 'txt' || extName === 'csv' || extName === 'xls' || extName === 'xlsx') {
-                        dataType = GeoDataType.RAW;
-                        newName = oidStr + '.' + extName;
-                    }
-                    const fpath = path.join(setting.uploadPath, 'geo_data', newName);
-                    fs.writeFile(fpath, response.data, (err) => {
+                response = JSON.parse(response);
+                // const resHeaders = response.headers;
+                // const hName = resHeaders['content-disposition'];
+                // const fName = hName.substr(hName.indexOf('filename=') + 9);
+                const fName = response.gd_fname;
+                extName = fName.substr(fName.indexOf('.') + 1);
+                if(extName) {
+                    dataLabel += '.' + extName;
+                }
+                let newName: string = undefined;
+                let fdata = undefined;
+                if (extName === 'xml') {
+                    dataType = GeoDataType.UDX;
+                    newName = oidStr + '.xml';
+                    fdata = new Buffer(response.gd_value, 'binary');
+                // } else if (extName === 'zip' || extName === 'txt' || extName === 'csv' || extName === 'xls' || extName === 'xlsx') {
+                } else {
+                    dataType = GeoDataType.RAW;
+                    newName = oidStr + '.' + extName;
+                    fdata = new Buffer(response.gd_value, 'binary');
+                }
+                const fpath = path.join(setting.uploadPath, 'geo_data', newName);
+
+                return new Promise((resolve2, reject2) => {
+                    fs.writeFile(fpath, fdata, (err) => {
                         if(err) {
-                            return reject(err);
+                            return reject2(err);
                         }
                         else {
                             if(extName === 'zip') {
@@ -252,19 +269,19 @@ export const pullData = (output): Promise<any> => {
                                 );
                                 const unzipExtractor = unzip.Extract({ path: unzipPath });
                                 fs.createReadStream(fpath).pipe(unzipExtractor);
-                                unzipExtractor.on('error', err => reject(err));
+                                unzipExtractor.on('error', err => {
+                                    reject2(err)
+                                });
                                 unzipExtractor.on('close', () => {
-                                    return resolve();
+                                    return resolve2();
                                 });
                             }
                             else {
-                                return resolve();
+                                return resolve2();
                             }
                         }
                     })
-                } else {
-                    return reject(new Error('download result data failed!'));
-                }
+                });
             })
             .then(() => {
                 const newItem = {
@@ -280,6 +297,7 @@ export const pullData = (output): Promise<any> => {
             .then(doc => {
                 if (doc != undefined) {
                     output.DataId = oidStr;
+                    output.filename = dataLabel;
                     return resolve(output);
                 }
                 else {
