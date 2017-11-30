@@ -5,6 +5,7 @@ import * as fs from 'fs';
 
 import { UDXType, UDXTableXML } from '../models/UDX.type.model';
 import * as StringUtils from '../utils/string.utils';
+const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
 import {

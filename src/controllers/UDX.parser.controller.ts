@@ -6,6 +6,7 @@ import * as path from 'path';
 import { ObjectID } from 'mongodb';
 import * as fs from 'fs';
 const request = require('request');
+const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;

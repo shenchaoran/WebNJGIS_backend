@@ -7,7 +7,7 @@ const http = require('http');
 import { Response, Request, NextFunction } from 'express';
 //////////////////////////////////////use for debug
 const debug = require('debug');
-(<any>global).debug = debug;
+// (<any>global).debug = debug;
 const serverDebug = debug('WebNJGIS: Server');
 const initDebug = debug('WebNJGIS: Init');
 

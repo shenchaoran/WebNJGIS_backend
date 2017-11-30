@@ -6,6 +6,7 @@ import * as path from 'path';
 import { ObjectID } from 'mongodb';
 import * as fs from 'fs';
 const request = require('request');
+const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
 
 import { UDXType, UDXTableXML } from '../models/UDX.type.model';

@@ -4,6 +4,7 @@ import * as Promise from 'bluebird';
 import * as RequestCtrl from '../controllers/request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
+const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 
 export const connect2MSC = (): Promise<any> => {

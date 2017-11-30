@@ -39,7 +39,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
                     jwt: {
                         token: token,
                         expires: expires,
-                        username: user.username
+                        user: user
                     }
                 };
                 res.locals.template = {};

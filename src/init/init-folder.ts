@@ -1,4 +1,5 @@
 import * as Promise from 'bluebird';
+const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 import * as _ from 'lodash';
 import * as fs from 'fs';

@@ -2,6 +2,7 @@ import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
 
 import { setting } from '../config/setting';
+const debug = require('debug');
 const mongooseDebug = debug('WebNJGIS: Mongoose');
 
 mongoose.Promise = require('bluebird');

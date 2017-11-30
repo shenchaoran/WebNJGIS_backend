@@ -1,5 +1,6 @@
 import { UserModelInstance } from '../models/user.model';
 import * as Promise from 'bluebird';
+const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 
 export const initUser = (): Promise<any> => {

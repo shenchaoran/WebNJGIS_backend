@@ -17,6 +17,7 @@ import {
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 import * as UDXParser from './UDX.parser.controller';
+const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
 import UDXComparer = require('./UDX.compare.control');
 
