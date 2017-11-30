@@ -144,7 +144,7 @@ export const showRAWTable = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
                 if(i !== 0 && i !== 1) {
                     const obj: any = {};
                     _.map(rows[0], (th, j) => {
-                        _.set(obj, th, row[j]);
+                        _.set(obj, th, _.get(row, j));
                     });
                     rowsObj.push(obj);
                 }
