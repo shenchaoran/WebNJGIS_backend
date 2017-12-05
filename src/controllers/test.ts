@@ -11,10 +11,10 @@ import { Buffer } from 'buffer';
 // console.log(nodes[0].localName + ": " + nodes[0].firstChild.data)
 // console.log("Node: " + nodes[0].toString())
 
-const fpath = 'F:\\geomodelling\\webNJGIS_backend_ts\\dist\\upload\\geo_data\\5a0abb3cfaa10b56b4eb598d.zip';
-const fpath2 = 'F:\\geomodelling\\webNJGIS_backend_ts\\dist\\upload\\geo_data\\5a0abb3cfaa10b56b4eb598d_2.zip';
+const fpath = 'F:\\geomodelling\\webNJGIS_backend_ts\\dist\\upload\\geo-data\\5a0abb3cfaa10b56b4eb598d.zip';
+const fpath2 = 'F:\\geomodelling\\webNJGIS_backend_ts\\dist\\upload\\geo-data\\5a0abb3cfaa10b56b4eb598d_2.zip';
 
-const unzipPath = 'F:\\geomodelling\\webNJGIS_backend_ts\\dist\\upload\\geo_data\\5a0abb3cfaa10b56b4eb598d_2';
+const unzipPath = 'F:\\geomodelling\\webNJGIS_backend_ts\\dist\\upload\\geo-data\\5a0abb3cfaa10b56b4eb598d_2';
 fs.readFile(fpath, (err, buf) => {
     const strbuf = buf.toString();
     console.log(strbuf);

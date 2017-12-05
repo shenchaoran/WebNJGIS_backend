@@ -5,15 +5,12 @@ import * as fs from 'fs';
 
 import {
     UDXCfg,
-    UDXSchema,
-    SchemaType,
-    ExternalName
 } from '../models/UDX.cfg.model';
 import { UDXType, UDXTableXML } from '../models/UDX.type.model';
 import * as PropParser from './UDX.property.controller';
 import { resolve } from 'path';
 
-export const compare = (UDXs: Array<{ type: any; UDX?: any; udxcfg?: UDXCfg }>): Promise<any> => {
+export const compare = (UDXs: Array<{ type: any; udxcfg: UDXCfg }>): Promise<any> => {
     const types = _
         .chain(UDXs)
         .map(UDX => _.get(UDX, 'type'))
@@ -25,9 +22,9 @@ export const compare = (UDXs: Array<{ type: any; UDX?: any; udxcfg?: UDXCfg }>):
             case UDXType.TABLE_RAW:
                 promise = compareRAWTable(UDXs);
                 break;
-            case UDXType.TABLE_XML:
-                console.log('TODO!');
-                break;
+            // case UDXType.TABLE_XML:
+            //     console.log('TODO!');
+            //     break;
         }
         return promise;
     }
@@ -37,7 +34,7 @@ export const compare = (UDXs: Array<{ type: any; UDX?: any; udxcfg?: UDXCfg }>):
     }
 }
 
-const compareRAWTable = (UDXs: Array<{ type: any; UDX?: any; udxcfg?: UDXCfg }>): Promise<any> => {
+const compareRAWTable = (UDXs: Array<{ type: any; udxcfg?: UDXCfg }>): Promise<any> => {
     return new Promise((resolve, reject) => {
         Promise.all(_.map(UDXs, PropParser.parse))
             .then(resolve)

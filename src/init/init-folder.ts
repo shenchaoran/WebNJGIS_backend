@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export const initFolders = (): Promise<any> => {
-    const folders = ['upload', 'upload/geo_data'];
+    const folders = ['upload', 'upload/geo-data'];
     return new Promise((resolve, reject) => {
         Promise.all(_.map(folders, initFolder))
             .then(rsts => {

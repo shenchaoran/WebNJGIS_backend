@@ -36,21 +36,21 @@ export const uploadFiles = (
 ) => {
     const form = new formidable.IncomingForm();
     form.encoding = 'utf-8';
-    form.uploadDir = path.join(setting.uploadPath, 'geo_data');
+    form.uploadDir = path.join(setting.uploadPath, 'geo-data');
     form.keepExtensions = true;
     form.maxFieldsSize = 500 * 1024 * 1024;
     form.parse(req, (err, fields, files) => {
         if (err) {
             return next(err);
         }
-        if (files.geo_data) {
-            const file = files.geo_data;
+        if (files['geo-data']) {
+            const file = files['geo-data'];
             const filename = file.name;
             const ext = filename.substr(filename.lastIndexOf('.'));
             const oid = new ObjectID();
             const newName = oid + ext;
 
-            const newPath = path.join(setting.uploadPath, 'geo_data', newName);
+            const newPath = path.join(setting.uploadPath, 'geo-data', newName);
             fs.rename(file.path, newPath, err => {
                 if (err) {
                     return next(err);
@@ -83,7 +83,7 @@ export const uploadFiles = (
                 if (ext === '.zip') {
                     const unzipPath = path.join(
                         setting.uploadPath,
-                        'geo_data',
+                        'geo-data',
                         oid.toHexString()
                     );
                     const unzipExtractor = unzip.Extract({ path: unzipPath });
@@ -121,7 +121,7 @@ export const post2Server = (
     next: NextFunction
 ) => {
     const geoData = res.locals.resData;
-    const fpath = path.join(setting.uploadPath, 'geo_data', geoData.path);
+    const fpath = path.join(setting.uploadPath, 'geo-data', geoData.path);
     let url = APIModel.getAPIUrl('upload-geo-data');
     url += `?type=file&gd_tag=${geoData.tag}`;
     const form = {
@@ -136,7 +136,7 @@ export const post2Server = (
                     geoData.gdid + fpath.substr(fpath.lastIndexOf('.'));
                 const newPath = path.join(
                     setting.uploadPath,
-                    'geo_data',
+                    'geo-data',
                     newName
                 );
                 DataModelInstance.insert({
@@ -182,7 +182,7 @@ export const pushData = (_id: string): Promise<any> => {
                     url += `?type=file&gd_tag=${doc.tag}`;
                     const fpath = path.join(
                         setting.uploadPath,
-                        'geo_data',
+                        'geo-data',
                         doc.path
                     );
                     const form = {
@@ -254,7 +254,7 @@ export const pullData = (output): Promise<any> => {
                     newName = oidStr + '.' + extName;
                     fdata = new Buffer(response.gd_value, 'binary');
                 }
-                const fpath = path.join(setting.uploadPath, 'geo_data', newName);
+                const fpath = path.join(setting.uploadPath, 'geo-data', newName);
 
                 return new Promise((resolve2, reject2) => {
                     fs.writeFile(fpath, fdata, (err) => {
@@ -265,7 +265,7 @@ export const pullData = (output): Promise<any> => {
                             if(extName === 'zip') {
                                 const unzipPath = path.join(
                                     setting.uploadPath,
-                                    'geo_data',
+                                    'geo-data',
                                     oidStr
                                 );
                                 const unzipExtractor = unzip.Extract({ path: unzipPath });
@@ -328,7 +328,7 @@ export const downloadData = (
                 gd = gd[0];
                 const fpath = path.join(
                     setting.uploadPath,
-                    'geo_data',
+                    'geo-data',
                     gd.path
                 );
                 fs.stat(fpath, (err, stats) => {

@@ -17,6 +17,7 @@ class DataModel extends MongooseModel {
 
 export const DataModelInstance = new DataModel();
 
+// deprecated
 export enum GeoDataType {
     RAW = 1,
     UDX = 2

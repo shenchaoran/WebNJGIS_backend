@@ -23,12 +23,8 @@ import { UDXType, UDXTableXML } from '../models/UDX.type.model';
 import * as StringUtils from '../utils/string.utils';
 import * as PropParser from './UDX.property.controller';
 import * as VisualParser from './UDX.visualization.controller';
-import {
-    UDXCfg,
-    UDXSchema,
-    SchemaType,
-    ExternalName
-} from '../models/UDX.cfg.model';
+import { UDXCfg } from '../models/UDX.cfg.model';
+import { UDX_SCHEMAS, UDXSchema, SchemaType } from '../models/UDX.schema.model';
 
 export const parseUDXProp = (
     req: Request,
@@ -85,9 +81,10 @@ export const parseUDXVisual = (
 
 // 对内部使用的常用UDX进行解析，其他格式暂不支持。
 // TODO schema数据库
-export const parseUDXType = (doc): Promise<{ type: any; UDX?: any; udxcfg?: UDXCfg }> => {
+export const parseUDXType = (doc): Promise<{ type: any; udxcfg: UDXCfg }> => {
     if (doc.type === GeoDataType.UDX) {
-        const fpath = path.join(setting.uploadPath, 'geo_data', doc.path);
+        // deprecated
+        const fpath = path.join(setting.uploadPath, 'geo-data', doc.path);
         return new Promise((resolve, reject) => {
             fs.readFile(fpath, (err, udxBuffer) => {
                 if (err) {
@@ -144,7 +141,7 @@ export const parseUDXType = (doc): Promise<{ type: any; UDX?: any; udxcfg?: UDXC
         const folderName = fname.substring(0, fname.lastIndexOf('.'));
         const folderPath = path.join(
             setting.uploadPath,
-            'geo_data',
+            'geo-data',
             folderName
         );
         const cfgPath = path.join(folderPath, 'configure.udxcfg');

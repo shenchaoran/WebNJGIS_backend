@@ -63,6 +63,35 @@ export const getModelTools = (
         });
 };
 
+export const convert2Tree = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const models = <Array<any>>res.locals.resData;
+    // TODO 这里先统一到一个分类下，等有真正的分类方法后在实现
+    const category = {
+        type: 'root',
+        label: 'Earth\'s carbon cycle model',
+        value: undefined,
+        id: 'asldfjlas',
+        expanded: true,
+        items: []
+    };
+    _.map(models, model => {
+        category.items.push({
+            type: 'leaf',
+            label: model.ms_model.m_name,
+            value: model,
+            id: model._id
+        });
+    });
+    res.locals.resData = [category];
+    res.locals.template = {};
+    res.locals.succeed = true;
+    return next();
+};
+
 /**
  * 从数据库中获取模型服务详情
  * 
@@ -76,6 +105,10 @@ export const getModelTool = (
     res: Response,
     next: NextFunction
 ) => {
+    if(req.params.id === 'tree-mode') {
+        // 这里路由不太合理，所以会跳转到这里
+        return next();
+    }
     if (req.params.id === 'ping') {
         return next();
     }

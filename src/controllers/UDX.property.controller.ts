@@ -10,19 +10,18 @@ const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
 import {
     UDXCfg,
-    UDXSchema,
     SchemaType,
     ExternalName
 } from '../models/UDX.cfg.model';
 import * as VisualParser from './UDX.visualization.controller';
 
-export const parse = (data: { type: any; UDX?: any; udxcfg?: UDXCfg }): Promise<any> => {
+export const parse = (data: { type: any; udxcfg: UDXCfg }): Promise<any> => {
     return new Promise((resolve, reject) => {
         let promiseFunc = undefined;
         switch (data.type) {
-            case UDXType.TABLE_XML:
-                promiseFunc = parseXMLTableProp(data.UDX);
-                break;
+            // case UDXType.TABLE_XML:
+            //     promiseFunc = parseXMLTableProp(data.UDX);
+            //     break;
             case UDXType.TABLE_RAW:
                 promiseFunc = new Promise((resolve, reject) => {
                     Promise.all([
@@ -38,7 +37,7 @@ export const parse = (data: { type: any; UDX?: any; udxcfg?: UDXCfg }): Promise<
                         .catch(reject);
                 });
                 break;
-            case UDXType.ASCII_GRID_XML:
+            case UDXType.UNKNOWN:
                 //...
                 break;
         }
@@ -53,6 +52,7 @@ export const parse = (data: { type: any; UDX?: any; udxcfg?: UDXCfg }): Promise<
     });
 };
 
+// deprecated
 const parseXMLTableProp = (udxStr): Promise<UDXTableXML> => {
     return new Promise((resolve, reject) => {
         try {

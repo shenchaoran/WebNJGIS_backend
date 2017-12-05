@@ -19,7 +19,7 @@ const ResponseModel = require('./models/response.model');
 import { init } from './init/index';
 const port = setting.port;
 //////////////////////////////////////init operation
-//TODO 创建文件夹 upload/geo_data
+//TODO 创建文件夹 upload/geo-data
 init()
     .then(() => {
         //////////////////////////////////////router
