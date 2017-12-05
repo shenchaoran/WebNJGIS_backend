@@ -1,4 +1,7 @@
 import { MongooseModel } from './mongodb.model';
+import { UDXSchema } from './UDX-schema.class';
+import * as mongoose from 'mongoose';
+
 
 class DataModel extends MongooseModel {
     constructor() {
@@ -6,9 +9,10 @@ class DataModel extends MongooseModel {
         const schema = {
             gdid: String,
             filename: String,
-            path: String
-            // type: Number,
-            // tag: String
+            path: String,
+            $schema: mongoose.SchemaTypes.Mixed,
+            permission: String,
+            userId: String
         };
 
         super(collectionName, schema);
@@ -17,22 +21,12 @@ class DataModel extends MongooseModel {
 
 export const DataModelInstance = new DataModel();
 
-// deprecated
-// export enum GeoDataType {
-//     RAW = 1,
-//     UDX = 2
-// }
-
 export class GeoDataClass {
+    _id: mongoose.Types.ObjectId;
     gdid: string;
     filename: string;
     path: string;
-    // type: GeoDataType;
-    // tag: string;
-    constructor(filename, path) {
-        this.filename = filename;
-        this.path = path;
-        // this.type = type;
-        // this.tag = tag;
-    }
+    $schema: UDXSchema;
+    permission: string;
+    userId: string;
 }

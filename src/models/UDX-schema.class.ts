@@ -1,29 +1,52 @@
+import * as _ from 'lodash';
 
-export class UDXSchema {
-    type: SchemaType;
-    externalName?: string;
-    externalId?: string;
-}
-export enum SchemaType {
+export enum SchemaSrc {
     external,
     internal
 }
 
 export enum ExternalName {
-    Table_RAW
+    TABLE_RAW,
+    SHAPEFILE_RAW,
+    GRID_RAW
 };
 
 export class UDXCfg {
     entrance: string;
     entries?: Array<string>;
     format?: string;
-    schema: UDXSchema;
+    $schema: UDXSchema;
 }
 
-export const UDX_SCHEMAS = [
-    {
-        type: SchemaType.external,
-        externalName: ExternalName.Table_RAW,
-        externalId: '0aaf177d-d40f-4249-bcf4-4e7193f1273e'
+export class UDXSchema {
+    type: SchemaSrc;
+    externalName?: string;
+    externalId?: string;
+    static UDX_SCHEMAS = [
+        {
+            type: SchemaSrc.external,
+            externalName: ExternalName.TABLE_RAW,
+            externalId: 'TABLE_RAW'
+        },
+        {
+            type: SchemaSrc.external,
+            externalName: ExternalName.SHAPEFILE_RAW,
+            externalId: 'SHAPEFILE_RAW'
+        },
+        {
+            type: SchemaSrc.external,
+            externalName: ExternalName.GRID_RAW,
+            externalId: 'GRID_RAW'
+        }
+    ];
+
+    static get schemas() {
+        return UDXSchema.UDX_SCHEMAS;
     }
-];
+
+    static find(id: string) {
+        return _.find(UDXSchema.UDX_SCHEMAS, schema => {
+            return schema.externalId === id;
+        });
+    }
+}

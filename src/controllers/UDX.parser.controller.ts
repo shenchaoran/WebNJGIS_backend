@@ -22,7 +22,7 @@ import { UDXType, UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
 import * as PropParser from './UDX.property.controller';
 import * as VisualParser from './UDX.visualization.controller';
-import { UDX_SCHEMAS, UDXSchema, SchemaType, UDXCfg } from '../models/UDX-schema.class';
+import { UDXSchema, SchemaSrc, UDXCfg } from '../models/UDX-schema.class';
 
 export const parseUDXProp = (
     req: Request,
@@ -142,12 +142,12 @@ export const parseUDXType = (doc): Promise<{ type: any; udxcfg: UDXCfg }> => {
             'geo-data',
             folderName
         );
-        const cfgPath = path.join(folderPath, 'configure.udxcfg');
+        const cfgPath = path.join(folderPath, 'index.config');
         return new Promise((resolve, reject) => {
             UDXCfgParser(cfgPath)
                 .then(udxcfg => {
                     return resolve({
-                        type: UDXType[udxcfg.schema.externalName.toUpperCase()],
+                        type: UDXType[udxcfg.$schema.externalName.toUpperCase()],
                         udxcfg: udxcfg
                     });
                 })
@@ -157,7 +157,7 @@ export const parseUDXType = (doc): Promise<{ type: any; udxcfg: UDXCfg }> => {
 };
 
 export const UDXCfgParser = (cfgPath: string): Promise<UDXCfg> => {
-    const folderPath = cfgPath.substring(0, cfgPath.lastIndexOf('configure.udxcfg'));
+    const folderPath = cfgPath.substring(0, cfgPath.lastIndexOf('index.config'));
     return new Promise((resolve, reject) => {
         fs.readFile(cfgPath, (err, dataBuf) => {
             if (err) {
@@ -170,9 +170,9 @@ export const UDXCfgParser = (cfgPath: string): Promise<UDXCfg> => {
                 const rootNode = xpath.select('/UDXZip', doc)[0];
                 const schemaNode = xpath.select('Schema', rootNode)[0];
                 const schema = new UDXSchema();
-                udxCfg.schema = schema;
-                schema.type = <any>SchemaType[xpath.select('@type', schemaNode)[0].value];
-                if (schema.type === SchemaType.external) {
+                udxCfg.$schema = schema;
+                schema.type = <any>SchemaSrc[xpath.select('@type', schemaNode)[0].value];
+                if (schema.type === SchemaSrc.external) {
                     schema.externalId = xpath.select(
                         '@externalId',
                         schemaNode
@@ -181,7 +181,7 @@ export const UDXCfgParser = (cfgPath: string): Promise<UDXCfg> => {
                         '@externalName',
                         schemaNode
                     )[0].value;
-                } else if (schema.type === SchemaType.internal) {
+                } else if (schema.type === SchemaSrc.internal) {
                     // TODO
                 }
                 udxCfg.entrance = xpath.select(

@@ -19,6 +19,7 @@ import * as UDXParser from './UDX.parser.controller';
 const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
 import UDXComparer = require('./UDX.compare.control');
+import { UDXSchema, SchemaSrc, UDXCfg } from '../models/UDX-schema.class';
 
 /**
  * 条目保存到数据库，文件移动到upload/geo_data中
@@ -54,14 +55,17 @@ export const uploadFiles = (
                 if (err) {
                     return next(err);
                 }
-                const insertItem = () => {
+                const insertItem = (udxcfg: UDXCfg) => {
                     const newItem = {
                         _id: oid,
                         gdid: undefined,
                         filename: filename,
-                        tag: fields.tag,
-                        type: fields.type,
-                        path: newName
+                        // tag: fields.tag,
+                        // type: fields.type,
+                        path: newName,
+                        $schema: {
+
+                        }
                     };
                     DataModelInstance.insert(newItem)
                         .then(doc => {
@@ -79,6 +83,7 @@ export const uploadFiles = (
                         })
                         .catch(next);
                 };
+
                 if (ext === '.zip') {
                     const unzipPath = path.join(
                         setting.uploadPath,
@@ -89,7 +94,10 @@ export const uploadFiles = (
                     fs.createReadStream(newPath).pipe(unzipExtractor);
                     unzipExtractor.on('error', err => next(err));
                     unzipExtractor.on('close', () => {
-                        insertItem();
+                        const cfgPath = path.join(unzipPath, 'index.config');
+                        UDXParser.UDXCfgParser(cfgPath)
+                            .then(insertItem);
+                            
                     });
                 } 
                 // else if (
@@ -100,7 +108,9 @@ export const uploadFiles = (
                 //     ext === '.xlsx'
                 // ) {
                 else {
-                    insertItem();
+                    dataDebug('Upload data type error!');
+                    return next(new Error('Upload data type error!'));
+                    // insertItem();
                 }
             });
         }
