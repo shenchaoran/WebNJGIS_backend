@@ -3,16 +3,12 @@ const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 import * as fs from 'fs';
 
-import { UDXType, UDXTableXML } from '../models/UDX.type.model';
+import { UDXType, UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
 const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
-import {
-    UDXCfg,
-    SchemaType,
-    ExternalName
-} from '../models/UDX.cfg.model';
+import { UDXCfg } from '../models/UDX-schema.class';
 import * as VisualParser from './UDX.visualization.controller';
 
 export const parse = (data: { type: any; udxcfg: UDXCfg }): Promise<any> => {

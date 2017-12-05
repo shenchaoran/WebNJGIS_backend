@@ -6,9 +6,9 @@ class DataModel extends MongooseModel {
         const schema = {
             gdid: String,
             filename: String,
-            path: String,
-            type: Number,
-            tag: String
+            path: String
+            // type: Number,
+            // tag: String
         };
 
         super(collectionName, schema);
@@ -18,21 +18,21 @@ class DataModel extends MongooseModel {
 export const DataModelInstance = new DataModel();
 
 // deprecated
-export enum GeoDataType {
-    RAW = 1,
-    UDX = 2
-}
+// export enum GeoDataType {
+//     RAW = 1,
+//     UDX = 2
+// }
 
 export class GeoDataClass {
     gdid: string;
     filename: string;
     path: string;
-    type: GeoDataType;
-    tag: string;
-    constructor(filename, path, type, tag) {
+    // type: GeoDataType;
+    // tag: string;
+    constructor(filename, path) {
         this.filename = filename;
         this.path = path;
-        this.type = type;
-        this.tag = tag;
+        // this.type = type;
+        // this.tag = tag;
     }
 }

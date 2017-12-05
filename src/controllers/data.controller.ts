@@ -11,9 +11,8 @@ import * as unzip from 'unzip';
 import { setting } from '../config/setting';
 import {
     DataModelInstance,
-    GeoDataType,
     GeoDataClass
-} from '../models/data.model';
+} from '../models/UDX-data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 import * as UDXParser from './UDX.parser.controller';
@@ -221,7 +220,7 @@ export const pushData = (_id: string): Promise<any> => {
  */
 export const pullData = (output): Promise<any> => {
     let extName = undefined;
-    let dataType: GeoDataType;
+    // let dataType: GeoDataType;
     const oid = new ObjectID();
     const oidStr = oid.toHexString();
     const url = APIModel.getAPIUrl('download-geo-data', { id: output.DataId });
@@ -244,16 +243,16 @@ export const pullData = (output): Promise<any> => {
                 }
                 let newName: string = undefined;
                 let fdata = undefined;
-                if (extName === 'xml') {
-                    dataType = GeoDataType.UDX;
-                    newName = oidStr + '.xml';
-                    fdata = new Buffer(response.gd_value, 'binary');
-                // } else if (extName === 'zip' || extName === 'txt' || extName === 'csv' || extName === 'xls' || extName === 'xlsx') {
-                } else {
-                    dataType = GeoDataType.RAW;
+                // if (extName === 'xml') {
+                //     dataType = GeoDataType.UDX;
+                //     newName = oidStr + '.xml';
+                //     fdata = new Buffer(response.gd_value, 'binary');
+                // // } else if (extName === 'zip' || extName === 'txt' || extName === 'csv' || extName === 'xls' || extName === 'xlsx') {
+                // } else {
+                //     dataType = GeoDataType.RAW;
                     newName = oidStr + '.' + extName;
                     fdata = new Buffer(response.gd_value, 'binary');
-                }
+                // }
                 const fpath = path.join(setting.uploadPath, 'geo-data', newName);
 
                 return new Promise((resolve2, reject2) => {
@@ -289,8 +288,8 @@ export const pullData = (output): Promise<any> => {
                     _id: oid,
                     gdid: output.DataId,
                     filename: output.Tag,
-                    tag: output.Tag,
-                    type: dataType,
+                    // tag: output.Tag,
+                    // type: dataType,
                     path: oidStr + '.' + extName
                 };
                 return DataModelInstance.insert(newItem);

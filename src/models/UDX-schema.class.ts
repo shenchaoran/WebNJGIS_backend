@@ -13,6 +13,13 @@ export enum ExternalName {
     Table_RAW
 };
 
+export class UDXCfg {
+    entrance: string;
+    entries?: Array<string>;
+    format?: string;
+    schema: UDXSchema;
+}
+
 export const UDX_SCHEMAS = [
     {
         type: SchemaType.external,

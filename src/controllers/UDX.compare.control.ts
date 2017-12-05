@@ -3,10 +3,8 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import {
-    UDXCfg,
-} from '../models/UDX.cfg.model';
-import { UDXType, UDXTableXML } from '../models/UDX.type.model';
+import { UDXCfg } from '../models/UDX-schema.class';
+import { UDXType, UDXTableXML } from '../models/UDX-type.class';
 import * as PropParser from './UDX.property.controller';
 import { resolve } from 'path';
 

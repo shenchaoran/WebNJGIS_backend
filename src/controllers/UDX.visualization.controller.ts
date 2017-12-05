@@ -9,11 +9,9 @@ const request = require('request');
 const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
 
-import { UDXType, UDXTableXML } from '../models/UDX.type.model';
+import { UDXType, UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
-import {
-    UDXCfg
-} from '../models/UDX.cfg.model';
+import { UDXCfg } from '../models/UDX-schema.class';
 
 export const parse = (data: { type: any; udxcfg: UDXCfg }): Promise<any> => {
     return new Promise((resolve, reject) => {
