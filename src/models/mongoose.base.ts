@@ -30,7 +30,7 @@ mongoose.connection.on('disconnected', () => {
     mongooseDebug('Mongoose disconnected');
 });
 
-export class MongooseModel {
+export class Mongoose {
     private schema: any;
     private model: any;
     constructor(collectionName, schema) {

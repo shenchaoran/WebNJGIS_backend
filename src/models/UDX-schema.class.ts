@@ -8,35 +8,39 @@ export enum SchemaSrc {
 export enum ExternalName {
     TABLE_RAW,
     SHAPEFILE_RAW,
-    GRID_RAW
+    ASCII_GRID_RAW
 };
 
 export class UDXCfg {
     entrance: string;
     entries?: Array<string>;
     format?: string;
-    $schema: UDXSchema;
+    schema$: UDXSchema;
 }
 
 export class UDXSchema {
     type: SchemaSrc;
     externalName?: string;
     externalId?: string;
+    description?: string;
     static UDX_SCHEMAS = [
         {
             type: SchemaSrc.external,
             externalName: ExternalName.TABLE_RAW,
-            externalId: 'TABLE_RAW'
+            externalId: 'TABLE_RAW',
+            description: ''
         },
         {
             type: SchemaSrc.external,
             externalName: ExternalName.SHAPEFILE_RAW,
-            externalId: 'SHAPEFILE_RAW'
+            externalId: 'SHAPEFILE_RAW',
+            description: ''
         },
         {
             type: SchemaSrc.external,
-            externalName: ExternalName.GRID_RAW,
-            externalId: 'GRID_RAW'
+            externalName: ExternalName.ASCII_GRID_RAW,
+            externalId: 'ASCII_GRID_RAW',
+            description: ''
         }
     ];
 

@@ -1,16 +1,15 @@
-import { MongooseModel } from './mongodb.model';
+import { Mongoose } from './mongoose.base';
 import { UDXSchema } from './UDX-schema.class';
 import * as mongoose from 'mongoose';
 
 
-class DataModel extends MongooseModel {
+class GeoDataDB extends Mongoose {
     constructor() {
         const collectionName = 'Geo_Data';
         const schema = {
-            gdid: String,
             filename: String,
             path: String,
-            $schema: mongoose.SchemaTypes.Mixed,
+            schema$: mongoose.SchemaTypes.Mixed,
             permission: String,
             userId: String
         };
@@ -19,14 +18,13 @@ class DataModel extends MongooseModel {
     }
 }
 
-export const DataModelInstance = new DataModel();
+export const geoDataDB = new GeoDataDB();
 
 export class GeoDataClass {
     _id: mongoose.Types.ObjectId;
-    gdid: string;
     filename: string;
     path: string;
-    $schema: UDXSchema;
+    schema$: UDXSchema;
     permission: string;
     userId: string;
 }

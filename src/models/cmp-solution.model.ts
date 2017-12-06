@@ -1,7 +1,7 @@
-import { MongooseModel } from './mongodb.model';
+import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
 
-class CmpSolutionModel extends MongooseModel {
+class CmpSolutionDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpSolution';
         const schema = {
@@ -12,7 +12,7 @@ class CmpSolutionModel extends MongooseModel {
     }
 }
 
-export const CmpSolutionModelInstance = new CmpSolutionModel();
+export const cmpSolutionDB = new CmpSolutionDB();
 
 export class CmpSolution {
     

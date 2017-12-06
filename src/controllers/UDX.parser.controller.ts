@@ -13,7 +13,7 @@ const dom = require('xmldom').DOMParser;
 
 import { setting } from '../config/setting';
 import {
-    DataModelInstance,
+    geoDataDB,
     GeoDataClass
 } from '../models/UDX-data.model';
 import * as APIModel from '../models/api.model';
@@ -31,7 +31,7 @@ export const parseUDXProp = (
 ) => {
     dataDebug(req.params);
 
-    DataModelInstance.find({ _id: req.params.id })
+    geoDataDB.find({ _id: req.params.id })
         .then(rsts => {
             if (rsts.length) {
                 const doc = rsts[0];
@@ -57,7 +57,7 @@ export const parseUDXVisual = (
     next: NextFunction
 ) => {
     dataDebug(req.params);
-    DataModelInstance.find({ _id: req.params.id })
+    geoDataDB.find({ _id: req.params.id })
         .then(rsts => {
             if (rsts.length) {
                 const doc = rsts[0];
@@ -147,7 +147,7 @@ export const parseUDXType = (doc): Promise<{ type: any; udxcfg: UDXCfg }> => {
             UDXCfgParser(cfgPath)
                 .then(udxcfg => {
                     return resolve({
-                        type: UDXType[udxcfg.$schema.externalName.toUpperCase()],
+                        type: UDXType[udxcfg.schema$.externalName.toUpperCase()],
                         udxcfg: udxcfg
                     });
                 })
@@ -170,7 +170,7 @@ export const UDXCfgParser = (cfgPath: string): Promise<UDXCfg> => {
                 const rootNode = xpath.select('/UDXZip', doc)[0];
                 const schemaNode = xpath.select('Schema', rootNode)[0];
                 const schema = new UDXSchema();
-                udxCfg.$schema = schema;
+                udxCfg.schema$ = schema;
                 schema.type = <any>SchemaSrc[xpath.select('@type', schemaNode)[0].value];
                 if (schema.type === SchemaSrc.external) {
                     schema.externalId = xpath.select(

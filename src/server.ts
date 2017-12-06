@@ -15,7 +15,7 @@ import { setting } from './config/setting';
 const router = require('./routes/index.route');
 const preRouter = require('./middlewares/pre-request.middleware');
 const postRouter = require('./middlewares/post-response.middleware');
-const ResponseModel = require('./models/response.model');
+const ResponseModel = require('./models/response.class');
 import { init } from './init/index';
 const port = setting.port;
 //////////////////////////////////////init operation

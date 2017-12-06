@@ -10,7 +10,7 @@ import * as unzip from 'unzip';
 
 import { setting } from '../config/setting';
 import {
-    DataModelInstance,
+    geoDataDB,
     GeoDataClass
 } from '../models/UDX-data.model';
 import * as APIModel from '../models/api.model';
@@ -58,20 +58,18 @@ export const uploadFiles = (
                 const insertItem = (udxcfg: UDXCfg) => {
                     const newItem = {
                         _id: oid,
-                        gdid: undefined,
                         filename: filename,
                         // tag: fields.tag,
                         // type: fields.type,
                         path: newName,
-                        $schema: {
+                        schema$: {
 
                         }
                     };
-                    DataModelInstance.insert(newItem)
+                    geoDataDB.insert(newItem)
                         .then(doc => {
                             res.locals.resData = {
                                 _id: oid.toHexString(),
-                                gdid: undefined,
                                 filename: filename,
                                 tag: fields.tag,
                                 type: fields.type,
@@ -148,7 +146,7 @@ export const post2Server = (
                     'geo-data',
                     newName
                 );
-                DataModelInstance.insert({
+                geoDataDB.insert({
                     gdid: geoData.gdid,
                     filename: geoData.filename,
                     path: newName,
@@ -184,7 +182,7 @@ export const pushData = (_id: string): Promise<any> => {
     let doc = undefined;
     let url = APIModel.getAPIUrl('upload-geo-data');
     return new Promise((resolve, reject) => {
-        DataModelInstance.find({ _id: _id })
+        geoDataDB.find({ _id: _id })
             .then(rsts => {
                 if (rsts.length) {
                     doc = rsts[0];
@@ -209,14 +207,14 @@ export const pushData = (_id: string): Promise<any> => {
             .then(response => {
                 response = JSON.parse(response);
                 if (response.res === 'suc') {
-                    doc.gdid = response.gd_id;
-                    return DataModelInstance.update({ _id: _id }, doc);
+                    // doc.gdid = response.gd_id;
+                    return geoDataDB.update({ _id: _id }, doc);
                 } else {
                     return reject(new Error('post to model server failed!'));
                 }
             })
             .then(rst => {
-                return resolve(doc.gdid);
+                return resolve(doc._id);
             })
             .catch(err => {
                 return reject(err);
@@ -296,13 +294,13 @@ export const pullData = (output): Promise<any> => {
             .then(() => {
                 const newItem = {
                     _id: oid,
-                    gdid: output.DataId,
+                    // gdid: output.DataId,
                     filename: output.Tag,
                     // tag: output.Tag,
                     // type: dataType,
                     path: oidStr + '.' + extName
                 };
-                return DataModelInstance.insert(newItem);
+                return geoDataDB.insert(newItem);
             })
             .then(doc => {
                 if (doc != undefined) {
@@ -331,7 +329,7 @@ export const downloadData = (
     next: NextFunction
 ) => {
     dataDebug(req.params);
-    DataModelInstance.find({ _id: req.params.id })
+    geoDataDB.find({ _id: req.params.id })
         .then(gd => {
             if (gd.length) {
                 gd = gd[0];
@@ -386,7 +384,7 @@ export const compareUDX = (
 
     Promise.all(_.map([leftId, rightId], _id => {
         return new Promise((resolve, reject) => {
-            DataModelInstance.find({_id: _id})
+            geoDataDB.find({_id: _id})
                 .then(rsts => {
                     if (rsts.length) {
                         const doc = rsts[0];

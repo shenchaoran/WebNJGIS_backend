@@ -10,7 +10,7 @@ const jwt = require('jwt-simple');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
-import { UserModelInstance } from '../models/user.model';
+import { userDB } from '../models/user.model';
 
 module.exports = (app) => {
     // 私钥
@@ -107,7 +107,7 @@ module.exports = (app) => {
                     err.status = 406;
                     return next(err);
                 } else {
-                    UserModelInstance.find({ username: decoded.iss })
+                    userDB.find({ username: decoded.iss })
                         .then(users => {
                             if (users.length === 0) {
                                 const err = <any>new Error(
