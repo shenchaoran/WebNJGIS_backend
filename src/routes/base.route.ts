@@ -1,12 +1,12 @@
 import { Response, Request, NextFunction, Router } from "express";
 const express = require('express');
 
-module.exports = class MyRouter{
+module.exports = class MyRouter {
     constructor() {
         const router = express.Router();
         router.route('/ping')
             .get((req: Request, res: Response, next: NextFunction) => {
-                res.locals.successed = true;
+                res.locals.succeed = true;
                 res.locals.resData = [{
                     href: req.originalUrl
                 }];

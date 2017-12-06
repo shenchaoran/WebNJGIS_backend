@@ -2,7 +2,8 @@ import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
 
 import { setting } from '../config/setting';
-const mongooseDebug = debug('WebNJGIS: mongoose');
+const debug = require('debug');
+const mongooseDebug = debug('WebNJGIS: Mongoose');
 
 mongoose.Promise = require('bluebird');
 const url =
@@ -29,7 +30,7 @@ mongoose.connection.on('disconnected', () => {
     mongooseDebug('Mongoose disconnected');
 });
 
-export class MongooseModel {
+export class Mongoose {
     private schema: any;
     private model: any;
     constructor(collectionName, schema) {
@@ -39,7 +40,7 @@ export class MongooseModel {
         this.model = mongoose.model(collectionName, this.schema);
     }
 
-    public find(where) {
+    public find(where): Promise<any> {
         return new Promise((resolve, reject) => {
             this.model.find(where, (err, rst) => {
                 if (err) {
@@ -51,7 +52,7 @@ export class MongooseModel {
         });
     }
 
-    public remove(where) {
+    public remove(where): Promise<any> {
         return new Promise((resolve, reject) => {
             this.model.remove(where, err => {
                 if (err) {
@@ -63,7 +64,7 @@ export class MongooseModel {
         });
     }
 
-    public insert(item) {
+    public insert(item): Promise<any> {
         const model = new this.model(item);
         return new Promise((resolve, reject) => {
             model.save((err, rst) => {
@@ -76,7 +77,7 @@ export class MongooseModel {
         });
     }
 
-    public update(where, update, options?) {
+    public update(where, update, options?): Promise<any> {
         return new Promise((resolve, reject) => {
             this.model.update(where, update, (err, rst) => {
                 if (err) {

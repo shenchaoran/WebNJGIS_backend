@@ -1,6 +1,11 @@
 export const APIS = {
     data: [
         {
+            id: 'connector',
+            pathname: '/ping',
+            desc: ''
+        },
+        {
             id: 'model-tools',
             pathname: '/modelser/json/all',
             desc: ''
@@ -28,6 +33,11 @@ export const APIS = {
         {
             id: 'upload-geo-data',
             pathname: '/geodata',
+            desc: ''
+        },
+        {
+            id: 'download-geo-data',
+            pathname: '/geodata/detail/:id',
             desc: ''
         },
         {

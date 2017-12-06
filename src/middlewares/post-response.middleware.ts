@@ -1,51 +1,44 @@
-import { Response, Request, NextFunction } from "express";
+import { Response, Request, NextFunction } from 'express';
 
-const MyRouter = require('../routes/base.route');
-const ResponseModel = require('../models/response.model');
+const ResponseModel = require('../models/response.class');
 
-const router = new MyRouter();
-module.exports = router;
+module.exports = (app) => {
+    // unify response
+    app.use((req: Request, res: Response, next: NextFunction) => {
+        // console.log(res.locals);
+        if (res.locals.succeed === true) {
+            const resData = new ResponseModel();
+            resData.href = req.originalUrl;
+            resData.token = res.locals.token;
+            resData.username = res.locals.username;
+            resData.status = {
+                code: '200',
+                desc: 'succeed'
+            };
+            resData.data = res.locals.resData;
+            resData.template = res.locals.template;
+            return res.json(resData);
+        } else {
+            return next();
+        }
+    });
 
-// unify response 
-router.use((req: Request, res: Response, next: NextFunction) => {
-    // console.log(res.locals);
-    if(res.locals.successed === true) {
+    app.use((req: Request, res: Response, next: NextFunction) => {
+        const err = <any>new Error('Not Found');
+        err.status = 404;
+        next(err);
+    });
+
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         const resData = new ResponseModel();
         resData.href = req.originalUrl;
-        resData.ticket = res.locals.ticket;
-        resData.userid = res.locals.userid;
+        resData.token = res.locals.token;
+        resData.username = res.locals.username;
         resData.status = {
-            code: '200',
-            desc: 'successed'
+            code: err.status || 500,
+            desc: err.message,
+            stack: req.app.get('env') === 'development' ? err.stack : {}
         };
-        resData.data = res.locals.resData;
-        resData.template = res.locals.template;
         return res.json(resData);
-    }
-    else {
-        return next();
-    }
-});
-
-// catch 404 and forward to error handler
-router.use((req: Request, res: Response, next: NextFunction) => {
-    const err = <any>(new Error('Not Found'));
-    err.status = 404;
-    next(err);
-});
-
-// error handler
-router.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    const resData = new ResponseModel();
-    resData.href = req.originalUrl;
-    resData.ticket = res.locals.ticket;
-    resData.userid = res.locals.userid;
-    resData.status = {
-        code: err.status || 500,
-        desc: err.message,
-        stack: req.app.get('env') === 'development' 
-                    ? err.stack
-                    : {}
-    };
-    return res.json(resData);
-});
+    });
+}
