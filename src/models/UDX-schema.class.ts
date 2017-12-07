@@ -23,22 +23,22 @@ export class UDXSchema {
     externalName?: string;
     externalId?: string;
     description?: string;
-    static UDX_SCHEMAS = [
+    private static UDX_SCHEMAS = [
         {
             type: SchemaSrc.external,
-            externalName: ExternalName.TABLE_RAW,
+            externalName: ExternalName[ExternalName.TABLE_RAW],
             externalId: 'TABLE_RAW',
             description: ''
         },
         {
             type: SchemaSrc.external,
-            externalName: ExternalName.SHAPEFILE_RAW,
+            externalName: ExternalName[ExternalName.SHAPEFILE_RAW],
             externalId: 'SHAPEFILE_RAW',
             description: ''
         },
         {
             type: SchemaSrc.external,
-            externalName: ExternalName.ASCII_GRID_RAW,
+            externalName: ExternalName[ExternalName.ASCII_GRID_RAW],
             externalId: 'ASCII_GRID_RAW',
             description: ''
         }

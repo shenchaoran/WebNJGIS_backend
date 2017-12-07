@@ -8,39 +8,42 @@ import * as StringUtils from '../utils/string.utils';
 const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
-import { UDXCfg } from '../models/UDX-schema.class';
+import { UDXCfg, ExternalName } from '../models/UDX-schema.class';
 import * as VisualParser from './UDX.visualization.controller';
 
-export const parse = (data: { type: any; udxcfg: UDXCfg }): Promise<any> => {
+
+export const parse = (udxcfg: UDXCfg): Promise<any> => {
     return new Promise((resolve, reject) => {
         let promiseFunc = undefined;
-        switch (data.type) {
-            // case UDXType.TABLE_XML:
-            //     promiseFunc = parseXMLTableProp(data.UDX);
-            //     break;
-            case UDXType.TABLE_RAW:
-                promiseFunc = new Promise((resolve, reject) => {
-                    Promise.all([
-                        parseRAWTableProp(data.udxcfg),
-                        VisualParser.showRAWTable(data.udxcfg)
-                    ])
-                        .then(rsts => {
-                            return resolve ({
-                                prop: rsts[0],
-                                show: rsts[1]
-                            });
-                        })
-                        .catch(reject);
-                });
-                break;
-            case UDXType.UNKNOWN:
-                //...
-                break;
+        if(udxcfg.schema$.externalName === ExternalName[ExternalName.TABLE_RAW]) {
+            promiseFunc = new Promise((resolve, reject) => {
+                Promise.all([
+                    parseRAWTableProp(udxcfg),
+                    VisualParser.showRAWTable(udxcfg)
+                ])
+                    .then(rsts => {
+                        return resolve ({
+                            prop: rsts[0],
+                            show: rsts[1]
+                        });
+                    })
+                    .catch(reject);
+            });
         }
+        else if(udxcfg.schema$.externalName === ExternalName[ExternalName.ASCII_GRID_RAW]) {
+            promiseFunc = parseRAWAsciiProp(udxcfg);
+        }
+        else if(udxcfg.schema$.externalName === ExternalName[ExternalName.SHAPEFILE_RAW]) {
+            promiseFunc = parseRAWShpProp(udxcfg);
+        }
+        else {
+            new Error('todo');
+        }
+
         promiseFunc
             .then(parsed => {
                 return resolve({
-                    type: data.type,
+                    type: udxcfg.schema$.externalName,
                     parsed: parsed
                 });
             })
@@ -255,3 +258,11 @@ const parseRAWTableProp = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
         });
     });
 };
+
+const parseRAWAsciiProp = (udxcfg: UDXCfg): Promise<any> => {
+    return ;
+}
+
+const parseRAWShpProp = (udxcfg: UDXCfg): Promise<any> => {
+    return ;
+}

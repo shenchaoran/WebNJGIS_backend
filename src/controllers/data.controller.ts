@@ -18,7 +18,7 @@ import * as RequestCtrl from './request.controller';
 import * as UDXParser from './UDX.parser.controller';
 const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
-import UDXComparer = require('./UDX.compare.control');
+import UDXComparators = require('./UDX.compare.control');
 import { UDXSchema, SchemaSrc, UDXCfg } from '../models/UDX-schema.class';
 
 /**
@@ -93,7 +93,7 @@ export const uploadFiles = (
                     unzipExtractor.on('error', err => next(err));
                     unzipExtractor.on('close', () => {
                         const cfgPath = path.join(unzipPath, 'index.config');
-                        UDXParser.UDXCfgParser(cfgPath)
+                        UDXParser.parseUDXCfg(cfgPath)
                             .then(insertItem);
                             
                     });
@@ -393,12 +393,12 @@ export const compareUDX = (
                         return next(new Error("can't find data!"));
                     }
                 })
-                .then(UDXParser.parseUDXType)
+                .then(UDXParser.parseUDXCfg)
                 .then(resolve)
                 .catch(reject);
         })
     }))
-        .then(UDXComparer.compare)
+        .then(UDXComparators.compare)
         .then(rst => {
             res.locals.resData = rst;
             res.locals.template = {};

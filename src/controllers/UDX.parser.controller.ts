@@ -18,7 +18,7 @@ import {
 } from '../models/UDX-data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
-import { UDXType, UDXTableXML } from '../models/UDX-type.class';
+import { UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
 import * as PropParser from './UDX.property.controller';
 import * as VisualParser from './UDX.visualization.controller';
@@ -40,7 +40,7 @@ export const parseUDXProp = (
                 return next(new Error("can't find data!"));
             }
         })
-        .then(parseUDXType)
+        .then(parseUDXCfg)
         .then(PropParser.parse)
         .then(parsed => {
             res.locals.resData = parsed;
@@ -66,7 +66,7 @@ export const parseUDXVisual = (
                 return next(new Error("can't find data!"));
             }
         })
-        .then(parseUDXType)
+        .then(parseUDXCfg)
         .then(VisualParser.parse)
         .then(parsed => {
             res.locals.resData = parsed;
@@ -77,86 +77,88 @@ export const parseUDXVisual = (
         .catch(next);
 };
 
+// region deprecated
 // 对内部使用的常用UDX进行解析，其他格式暂不支持。
 // TODO schema数据库
-export const parseUDXType = (doc): Promise<{ type: any; udxcfg: UDXCfg }> => {
-    // if (doc.type === GeoDataType.UDX) {
-    //     // deprecated
-    //     const fpath = path.join(setting.uploadPath, 'geo-data', doc.path);
-    //     return new Promise((resolve, reject) => {
-    //         fs.readFile(fpath, (err, udxBuffer) => {
-    //             if (err) {
-    //                 return Promise.reject(err);
-    //             } else {
-    //                 try {
-    //                     const udxStr = udxBuffer.toString();
-    //                     let udxType;
-    //                     const doc = new dom().parseFromString(udxStr);
-    //                     const dataset = xpath.select('/dataset', doc)[0];
-    //                     const level1Nodes = xpath.select('XDO/@name', dataset);
-    //                     const level1Names = [];
-    //                     _.map(level1Nodes, node => {
-    //                         level1Names.push((<any>node).value);
-    //                     });
-    //                     if (_.indexOf(level1Names, 'table') !== -1) {
-    //                         udxType = UDXType.TABLE_XML;
-    //                     } else if (
-    //                         _.indexOf(level1Names, 'ShapeType') !== -1 &&
-    //                         _.indexOf(level1Names, 'FeatureCollection') !==
-    //                             -1 &&
-    //                         _.indexOf(level1Names, 'AttributeTable') !== -1 &&
-    //                         _.indexOf(level1Names, 'SpatialRef') !== -1
-    //                     ) {
-    //                         udxType = UDXType.SHAPEFILE_XML;
-    //                     } else if (
-    //                         _.indexOf(level1Names, 'header') !== -1 &&
-    //                         _.indexOf(level1Names, 'bands') !== -1 &&
-    //                         _.indexOf(level1Names, 'projection') !== -1
-    //                     ) {
-    //                         udxType = UDXType.GRID_XML;
-    //                     } else if (
-    //                         _.indexOf(level1Names, 'head') !== -1 &&
-    //                         _.indexOf(level1Names, 'body') !== -1
-    //                     ) {
-    //                         // ...
-    //                     } else {
-    //                         udxType = UDXType.UNKNOWN_XML;
-    //                     }
-    //                     return resolve({
-    //                         type: udxType,
-    //                         UDX: udxStr
-    //                     });
-    //                 } catch (e) {
-    //                     dataDebug(e);
-    //                     return reject(e);
-    //                 }
-    //             }
-    //         });
-    //     });
-    // } else if (doc.type === GeoDataType.RAW) {
-        // TODO
-        const fname = doc.path;
-        const folderName = fname.substring(0, fname.lastIndexOf('.'));
-        const folderPath = path.join(
-            setting.uploadPath,
-            'geo-data',
-            folderName
-        );
-        const cfgPath = path.join(folderPath, 'index.config');
-        return new Promise((resolve, reject) => {
-            UDXCfgParser(cfgPath)
-                .then(udxcfg => {
-                    return resolve({
-                        type: UDXType[udxcfg.schema$.externalName.toUpperCase()],
-                        udxcfg: udxcfg
-                    });
-                })
-                .catch(reject);
-        });
-    // }
-};
+// export const parseUDXType = (doc): Promise<{ type: any; udxcfg: UDXCfg }> => {
+//     // if (doc.type === GeoDataType.UDX) {
+//     //     // deprecated
+//     //     const fpath = path.join(setting.uploadPath, 'geo-data', doc.path);
+//     //     return new Promise((resolve, reject) => {
+//     //         fs.readFile(fpath, (err, udxBuffer) => {
+//     //             if (err) {
+//     //                 return Promise.reject(err);
+//     //             } else {
+//     //                 try {
+//     //                     const udxStr = udxBuffer.toString();
+//     //                     let udxType;
+//     //                     const doc = new dom().parseFromString(udxStr);
+//     //                     const dataset = xpath.select('/dataset', doc)[0];
+//     //                     const level1Nodes = xpath.select('XDO/@name', dataset);
+//     //                     const level1Names = [];
+//     //                     _.map(level1Nodes, node => {
+//     //                         level1Names.push((<any>node).value);
+//     //                     });
+//     //                     if (_.indexOf(level1Names, 'table') !== -1) {
+//     //                         udxType = UDXType.TABLE_XML;
+//     //                     } else if (
+//     //                         _.indexOf(level1Names, 'ShapeType') !== -1 &&
+//     //                         _.indexOf(level1Names, 'FeatureCollection') !==
+//     //                             -1 &&
+//     //                         _.indexOf(level1Names, 'AttributeTable') !== -1 &&
+//     //                         _.indexOf(level1Names, 'SpatialRef') !== -1
+//     //                     ) {
+//     //                         udxType = UDXType.SHAPEFILE_XML;
+//     //                     } else if (
+//     //                         _.indexOf(level1Names, 'header') !== -1 &&
+//     //                         _.indexOf(level1Names, 'bands') !== -1 &&
+//     //                         _.indexOf(level1Names, 'projection') !== -1
+//     //                     ) {
+//     //                         udxType = UDXType.GRID_XML;
+//     //                     } else if (
+//     //                         _.indexOf(level1Names, 'head') !== -1 &&
+//     //                         _.indexOf(level1Names, 'body') !== -1
+//     //                     ) {
+//     //                         // ...
+//     //                     } else {
+//     //                         udxType = UDXType.UNKNOWN_XML;
+//     //                     }
+//     //                     return resolve({
+//     //                         type: udxType,
+//     //                         UDX: udxStr
+//     //                     });
+//     //                 } catch (e) {
+//     //                     dataDebug(e);
+//     //                     return reject(e);
+//     //                 }
+//     //             }
+//     //         });
+//     //     });
+//     // } else if (doc.type === GeoDataType.RAW) {
+//         // TODO
+//         const fname = doc.path;
+//         const folderName = fname.substring(0, fname.lastIndexOf('.'));
+//         const folderPath = path.join(
+//             setting.uploadPath,
+//             'geo-data',
+//             folderName
+//         );
+//         const cfgPath = path.join(folderPath, 'index.config');
+//         return new Promise((resolve, reject) => {
+//             parseUDXCfg(cfgPath)
+//                 .then(udxcfg => {
+//                     return resolve({
+//                         type: External[udxcfg.schema$.externalName],
+//                         udxcfg: udxcfg
+//                     });
+//                 })
+//                 .catch(reject);
+//         });
+//     // }
+// };
+// endregion
 
-export const UDXCfgParser = (cfgPath: string): Promise<UDXCfg> => {
+export const parseUDXCfg = (cfgPath: string): Promise<UDXCfg> => {
     const folderPath = cfgPath.substring(0, cfgPath.lastIndexOf('index.config'));
     return new Promise((resolve, reject) => {
         fs.readFile(cfgPath, (err, dataBuf) => {
