@@ -1,5 +1,6 @@
 import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
+import { ResourceSrc } from './resource.enum';
 
 class ModelServiceDB extends Mongoose {
     constructor() {
@@ -14,7 +15,8 @@ class ModelServiceDB extends Mongoose {
                     stop: String,
                     progress: String,
                     data: String
-                }
+                },
+                src: Number
             },
             MDL: {
                 meta: {
@@ -29,7 +31,7 @@ class ModelServiceDB extends Mongoose {
                         description: String,
                         optional: Boolean,
                         schema$: {
-                            type: Number,
+                            src: Number,
                             externalId: String
                         }
                     }
@@ -55,7 +57,8 @@ export class ModelService {
             stop: string,
             progress: string,
             data: string
-        }
+        },
+        src: ResourceSrc
     };
     MDL: {
         meta: {
@@ -70,7 +73,7 @@ export class ModelService {
                 description: string,
                 optional: boolean,
                 schema$: {
-                    type: number,
+                    src: number,
                     externalId: string
                 }
             }

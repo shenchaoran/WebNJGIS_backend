@@ -10,7 +10,8 @@ module.exports = router;
 router.route('/')
     .get(
         ModelToolsCtrl.getModelTools
-    );
+    )
+    .post(ModelToolsCtrl.insert);
 
 router.route('/tree-mode')
     .get(
@@ -19,16 +20,5 @@ router.route('/tree-mode')
     );
 
 router.route('/:id')
-    .get(ModelToolsCtrl.getModelTool);
-
-router.route('/:id/input')
-    .get(
-        ModelToolsCtrl.getModelInput,
-        ModelToolsCtrl.getModelSchemas
-    );
-
-router.route('/:id/invoke')
-    .post(ModelToolsCtrl.invokeModelTool);
-
-router.route('/records/:id')
-    .get(ModelToolsCtrl.getInvokeRecord);
+    .get(ModelToolsCtrl.getModelTool)
+    .delete(ModelToolsCtrl.remove);

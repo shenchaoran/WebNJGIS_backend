@@ -19,17 +19,121 @@ import * as UDXParser from './UDX.parser.controller';
 const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
 import UDXComparators = require('./UDX.compare.control');
-import { UDXSchema, SchemaSrc, UDXCfg } from '../models/UDX-schema.class';
+import { UDXSchema, UDXCfg } from '../models/UDX-schema.class';
+import { ResourceSrc } from '../models/resource.enum';
+
+export const find = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    geoDataDB.find({})
+        .then(docs => {
+            res.locals.resData = docs;
+            res.locals.template = {};
+            res.locals.succeed = true;
+            return next();
+        })
+        .catch(next);
+};
+
+// 前端数据资源放在三个tab中，每个tab中的数据按照树状结构显示
+export const convert2Tree = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    // TODO 树的组织标准未定，暂时都放在《地球碳循环模式》下面。
+    let trees = {
+        std: [{
+            type: 'root',
+            label: 'Earth\'s carbon cycle model',
+            value: undefined,
+            id: 'aaaaaaaaa',
+            expanded: true,
+            items: []
+        }],
+        public: [{
+            type: 'root',
+            label: 'Earth\'s carbon cycle model',
+            value: undefined,
+            id: 'bbbbbbbbb',
+            expanded: true,
+            items: []
+        }],
+        personal: undefined
+    };
+    const docs = <Array<any>>res.locals.resData;
+    const stdDocs = _.filter(docs, doc => doc.src === ResourceSrc.STANDARD);
+    const publicDocs = _.filter(docs, doc => doc.src === ResourceSrc.PUBLIC);
+    let personalDocs = undefined;
+    if(req.query.user && req.query.user.username !== 'Tourist') {
+        trees.personal = [{
+            type: 'root',
+            label: 'Earth\'s carbon cycle model',
+            value: undefined,
+            id: 'ccccccccccc',
+            expanded: true,
+            items: []
+        }];
+        personalDocs = <Array<any>>_.filter(docs, doc => doc.userId === req.query.user._id);
+        if(personalDocs) {
+            _.map(personalDocs, doc => {
+                trees.personal[0].items.push({
+                    type: 'leaf',
+                    label: (<any>doc).filename,
+                    value: doc,
+                    id: (<any>doc)._id
+                });
+            });
+        }
+    }
+    _.map(stdDocs, doc => {
+        trees.std[0].items.push({
+            type: 'leaf',
+            label: doc.filename,
+            value: doc,
+            id: doc._id
+        });
+    });
+    _.map(publicDocs, doc => {
+        trees.public[0].items.push({
+            type: 'leaf',
+            label: doc.filename,
+            value: doc,
+            id: doc._id
+        });
+    });
+
+    res.locals.resData = trees;
+    return next();
+}
+
+export const remove = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    if(req.params.id != undefined) {
+        geoDataDB.remove({_id: req.params.id})
+            .then(docs => {
+                res.locals.resData = docs;
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    }
+    else {
+        return next(new Error('can\'t find related resource in the database!'));
+    }
+};
 
 /**
- * 条目保存到数据库，文件移动到upload/geo_data中
+ * 条目保存到数据库，文件移动到upload/geo-data中
  * 如果数据为zip则解压
- * 
- * @param req
- * @param res 
- * @param next 
  */
-export const uploadFiles = (
+export const insert = (
     req: Request,
     res: Response,
     next: NextFunction
@@ -55,33 +159,6 @@ export const uploadFiles = (
                 if (err) {
                     return next(err);
                 }
-                const insertItem = (udxcfg: UDXCfg) => {
-                    const newItem = {
-                        _id: oid,
-                        filename: filename,
-                        // tag: fields.tag,
-                        // type: fields.type,
-                        path: newName,
-                        schema$: {
-
-                        }
-                    };
-                    geoDataDB.insert(newItem)
-                        .then(doc => {
-                            res.locals.resData = {
-                                _id: oid.toHexString(),
-                                filename: filename,
-                                tag: fields.tag,
-                                type: fields.type,
-                                path: newName
-                            };
-                            res.locals.template = undefined;
-                            res.locals.succeed = true;
-                            return next();
-                        })
-                        .catch(next);
-                };
-
                 if (ext === '.zip') {
                     const unzipPath = path.join(
                         setting.uploadPath,
@@ -94,21 +171,31 @@ export const uploadFiles = (
                     unzipExtractor.on('close', () => {
                         const cfgPath = path.join(unzipPath, 'index.config');
                         UDXParser.parseUDXCfg(cfgPath)
-                            .then(insertItem);
+                            .then(udxcfg => {
+                                const newItem = {
+                                    _id: oid,
+                                    filename: filename,
+                                    path: newName,
+                                    schema$: udxcfg.schema$,
+                                    permission: fields.permission,
+                                    userId: fields.userId,
+                                    desc: fields.desc
+                                };
+                                geoDataDB.insert(newItem)
+                                    .then(doc => {
+                                        res.locals.resData = doc;
+                                        res.locals.template = {};
+                                        res.locals.succeed = true;
+                                        return next();
+                                    })
+                                    .catch(next);
+                            });
                             
                     });
                 } 
-                // else if (
-                //     ext === '.xml' ||
-                //     ext === '.txt' ||
-                //     ext === '.csv' ||
-                //     ext === '.xls' ||
-                //     ext === '.xlsx'
-                // ) {
                 else {
                     dataDebug('Upload data type error!');
                     return next(new Error('Upload data type error!'));
-                    // insertItem();
                 }
             });
         }
@@ -116,67 +203,7 @@ export const uploadFiles = (
 };
 
 /**
- * deprecated
- * 
- * @param req 
- * @param res 
- * @param next 
- */
-export const post2Server = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const geoData = res.locals.resData;
-    const fpath = path.join(setting.uploadPath, 'geo-data', geoData.path);
-    let url = APIModel.getAPIUrl('upload-geo-data');
-    url += `?type=file&gd_tag=${geoData.tag}`;
-    const form = {
-        myfile: fs.createReadStream(fpath)
-    };
-    RequestCtrl.postByServer(url, form, RequestCtrl.PostRequestType.File)
-        .then(response => {
-            response = JSON.parse(response);
-            if (response.res === 'suc') {
-                geoData.gdid = response.gd_id;
-                const newName =
-                    geoData.gdid + fpath.substr(fpath.lastIndexOf('.'));
-                const newPath = path.join(
-                    setting.uploadPath,
-                    'geo-data',
-                    newName
-                );
-                geoDataDB.insert({
-                    gdid: geoData.gdid,
-                    filename: geoData.filename,
-                    path: newName,
-                    type: geoData.type,
-                    tag: geoData.tag
-                })
-                    .then(rst => {
-                        fs.rename(fpath, newPath, () => {
-                            res.locals.resData = geoData;
-                            res.locals.template = {};
-                            res.locals.succeed = true;
-                            return next();
-                        });
-                    })
-                    .catch(next);
-            } else {
-                const err: any = new Error('post into server failed!');
-                err.code = '500';
-                return next(err);
-            }
-        })
-        .catch(err => {
-            return next(err);
-        });
-};
-
-/**
  * 从数据库中查询数据，并post到模型服务容器中
- * 
- * @param _id 
  */
 export const pushData = (_id: string): Promise<any> => {
     let doc = undefined;
@@ -224,7 +251,6 @@ export const pushData = (_id: string): Promise<any> => {
 
 /**
  * 从模型服务容器中下载模型计算结果数据，并保存到本地服务器中
- * @param output 
  */
 export const pullData = (output): Promise<any> => {
     let extName = undefined;
@@ -316,14 +342,7 @@ export const pullData = (output): Promise<any> => {
     });
 };
 
-/**
- * 从本地数据库查找数据位置，并返回数据内容
- * 
- * @param req 
- * @param res 
- * @param next 
- */
-export const downloadData = (
+export const download = (
     req: Request,
     res: Response,
     next: NextFunction

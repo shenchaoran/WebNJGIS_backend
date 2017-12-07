@@ -22,7 +22,8 @@ import { UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
 import * as PropParser from './UDX.property.controller';
 import * as VisualParser from './UDX.visualization.controller';
-import { UDXSchema, SchemaSrc, UDXCfg } from '../models/UDX-schema.class';
+import { UDXSchema, UDXCfg } from '../models/UDX-schema.class';
+import { ResourceSrc } from '../models/resource.enum';
 
 export const parseUDXProp = (
     req: Request,
@@ -173,8 +174,8 @@ export const parseUDXCfg = (cfgPath: string): Promise<UDXCfg> => {
                 const schemaNode = xpath.select('Schema', rootNode)[0];
                 const schema = new UDXSchema();
                 udxCfg.schema$ = schema;
-                schema.type = <any>SchemaSrc[xpath.select('@type', schemaNode)[0].value];
-                if (schema.type === SchemaSrc.external) {
+                schema.src = <any>ResourceSrc[xpath.select('@type', schemaNode)[0].value];
+                if (schema.src === ResourceSrc.EXTERNAL) {
                     schema.externalId = xpath.select(
                         '@externalId',
                         schemaNode
@@ -183,7 +184,7 @@ export const parseUDXCfg = (cfgPath: string): Promise<UDXCfg> => {
                         '@externalName',
                         schemaNode
                     )[0].value;
-                } else if (schema.type === SchemaSrc.internal) {
+                } else if (schema.src === ResourceSrc.INTERNAL) {
                     // TODO
                 }
                 udxCfg.entrance = xpath.select(

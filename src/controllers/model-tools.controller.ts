@@ -8,59 +8,62 @@ import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
 import * as DataCtrl from '../controllers/data.controller';
+import { modelServiceDB } from '../models/model-service.model';
 
-/**
- * 获取模型服务列表
- * @param {Request} req 
- * @param {Response} res 
- * @param {NextFunction} next 
- */
+
+export const insert = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    if(req.body.ms != undefined) {
+        modelServiceDB.insert(req.body.ms)
+            .then(doc => {
+                res.locals.resData = doc;
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    }
+    else {
+        return next(new Error('add resource into database failed!'));
+    }
+}
+
+export const remove = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    if(req.params.id != undefined) {
+        modelServiceDB.remove({_id: req.params.id})
+            .then(docs => {
+                res.locals.resData = docs;
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    }
+    else {
+        return next(new Error('can\'t find related resource in the database!'));
+    }
+}
+
 export const getModelTools = (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
-    const url = APIModel.getAPIUrl('model-tools');
-    RequestCtrl.getByServer(url, {})
-        .then((inquireData: any) => {
-            inquireData = JSON.parse(inquireData);
-            if (inquireData.result === 'suc') {
-                res.locals.resData = inquireData.data;
-                res.locals.template = [
-                    {
-                        _id: 'string',
-                        ms_model: {
-                            m_name: 'string',
-                            m_type: 'string',
-                            m_url: 'string',
-                            p_id: 'string',
-                            m_id: undefined,
-                            m_register: 'boolean'
-                        },
-                        mv_num: 'string',
-                        ms_des: 'string',
-                        ms_platform: 'number',
-                        ms_update: 'string',
-                        ms_path: 'string',
-                        ms_img: undefined,
-                        ms_xml: 'string',
-                        ms_status: 'number',
-                        ms_user: {
-                            u_name: 'string',
-                            u_email: 'string'
-                        },
-                        ms_limited: 'number',
-                        ms_permission: 'number',
-                        __v: 'number'
-                    }
-                ];
-                res.locals.succeed = true;
-            }
+    modelServiceDB.find({})
+        .then(docs => {
+            res.locals.resData = docs;
+            res.locals.template = {};
+            res.locals.succeed = true;
             return next();
         })
-        .catch(err => {
-            next(err);
-        });
+        .catch(next);
 };
 
 export const convert2Tree = (
@@ -78,12 +81,12 @@ export const convert2Tree = (
         expanded: true,
         items: []
     };
-    _.map(models, model => {
+    _.map(models, ms => {
         category.items.push({
             type: 'leaf',
-            label: model.ms_model.m_name,
-            value: model,
-            id: model._id
+            label: ms.MDL.meta.name,
+            value: ms,
+            id: ms._id
         });
     });
     res.locals.resData = [category];
@@ -92,14 +95,6 @@ export const convert2Tree = (
     return next();
 };
 
-/**
- * 从数据库中获取模型服务详情
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {NextFunction} next 
- * @returns 
- */
 export const getModelTool = (
     req: Request,
     res: Response,
@@ -112,150 +107,23 @@ export const getModelTool = (
     if (req.params.id === 'ping') {
         return next();
     }
-    const url = APIModel.getAPIUrl('model-tool', req.params);
-    RequestCtrl.getByServer(url, {})
-        .then((inquireData: any) => {
-            inquireData = JSON.parse(inquireData);
-            if (inquireData.result === 'suc') {
-                res.locals.resData = inquireData.data;
-                res.locals.template = {
-                    _id: 'string',
-                    ms_model: {
-                        m_name: 'string',
-                        m_type: 'string',
-                        m_url: 'string',
-                        p_id: 'string',
-                        m_id: undefined,
-                        m_register: 'boolean'
-                    },
-                    mv_num: 'string',
-                    ms_des: 'string',
-                    ms_platform: 'number',
-                    ms_update: 'string',
-                    ms_path: 'string',
-                    ms_img: undefined,
-                    ms_xml: 'string',
-                    ms_status: 'number',
-                    ms_user: {
-                        u_name: 'string',
-                        u_email: 'string'
-                    },
-                    ms_limited: 'number',
-                    ms_permission: 'number',
-                    __v: 'number'
-                };
-                res.locals.succeed = true;
-            }
-            return next();
-        })
-        .catch(next);
-};
-
-/**
- * 获取模型服务输入数据
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {NextFunction} next 
- */
-export const getModelInput = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const url = APIModel.getAPIUrl('model-input', req.params);
-    RequestCtrl.getByServer(url, {})
-        .then((inquireData: any) => {
-            inquireData = JSON.parse(inquireData);
-            if (inquireData.input !== undefined) {
-                res.locals.resData = {};
-                const myStates: Array<{
-                    $: any;
-                    inputs: Array<any>;
-                    outputs: Array<any>;
-                }> = [];
-                _.map(<Array<any>>inquireData.input.States, state => {
-                    const myState = {
-                        $: state.$,
-                        inputs: [],
-                        outputs: []
-                    };
-                    _.map(<Array<any>>state.Event, event => {
-                        let schemaName;
-                        if (
-                            event.DispatchParameter !== undefined &&
-                            event.DispatchParameter.$ !== undefined &&
-                            event.DispatchParameter.$.datasetReference !==
-                                undefined
-                        ) {
-                            schemaName =
-                                event.DispatchParameter.$.datasetReference;
-                        } else if (
-                            event.ResponseParameter !== undefined &&
-                            event.ResponseParameter.$ !== undefined &&
-                            event.ResponseParameter.$.datasetReference !==
-                                undefined
-                        ) {
-                            schemaName =
-                                event.ResponseParameter.$.datasetReference;
-                        }
-                        if (event.$.type === 'noresponse') {
-                            myState.outputs.push({
-                                name: event.$.name,
-                                type: event.$.type,
-                                optional: event.$.optional,
-                                description: event.$.description,
-                                schema: schemaName
-                            });
-                        } else if (event.$.type === 'response') {
-                            myState.inputs.push({
-                                name: event.$.name,
-                                type: event.$.type,
-                                optional: event.$.optional,
-                                description: event.$.description,
-                                schema: schemaName
-                            });
-                        }
-                    });
-                    myStates.push(myState);
-                });
-                res.locals.resData.states = myStates;
+    
+    modelServiceDB.find({_id: req.params.id})
+        .then(docs => {
+            if(docs.length) {
+                res.locals.resData = docs[0];
                 res.locals.template = {};
                 res.locals.succeed = true;
             }
-            return next();
+            else {
+                res.locals.resData = undefined;
+                res.locals.template = {};
+                res.locals.succeed = true;
+            }
         })
         .catch(next);
 };
 
-/**
- * 获取模型中的所有schema
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {NextFunction} next 
- */
-export const getModelSchemas = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const url = APIModel.getAPIUrl('model-schemas', req.params);
-    RequestCtrl.getByServer(url, {})
-        .then((inquireData: any) => {
-            res.locals.resData.schemas = extractSchema(inquireData);
-            return next();
-        })
-        .catch(next);
-};
-
-/**
- * 调用模型
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {NextFunction} next 
- */
 export const invokeModelTool = (
     req: Request,
     res: Response,
@@ -293,13 +161,6 @@ export const invokeModelTool = (
         .catch(next);
 };
 
-/**
- * 获取msr
- * 
- * @param {Request} req 
- * @param {Response} res 
- * @param {NextFunction} next 
- */
 export const getInvokeRecord = (
     req: Request,
     res: Response,
@@ -345,9 +206,6 @@ export const getInvokeRecord = (
 
 /**
  * 获取模型中所有的schema
- * 
- * @param {any} mdlStr 
- * @returns 
  */
 const extractSchema = mdlStr => {
     const doc = new dom().parseFromString(mdlStr);

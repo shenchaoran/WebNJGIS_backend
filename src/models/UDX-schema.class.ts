@@ -1,9 +1,6 @@
 import * as _ from 'lodash';
 
-export enum SchemaSrc {
-    external,
-    internal
-}
+import { ResourceSrc } from './resource.enum';
 
 export enum ExternalName {
     TABLE_RAW,
@@ -19,25 +16,25 @@ export class UDXCfg {
 }
 
 export class UDXSchema {
-    type: SchemaSrc;
+    src: ResourceSrc;
     externalName?: string;
     externalId?: string;
     description?: string;
     private static UDX_SCHEMAS = [
         {
-            type: SchemaSrc.external,
+            src: ResourceSrc.EXTERNAL,
             externalName: ExternalName[ExternalName.TABLE_RAW],
             externalId: 'TABLE_RAW',
             description: ''
         },
         {
-            type: SchemaSrc.external,
+            src: ResourceSrc.EXTERNAL,
             externalName: ExternalName[ExternalName.SHAPEFILE_RAW],
             externalId: 'SHAPEFILE_RAW',
             description: ''
         },
         {
-            type: SchemaSrc.external,
+            src: ResourceSrc.EXTERNAL,
             externalName: ExternalName[ExternalName.ASCII_GRID_RAW],
             externalId: 'ASCII_GRID_RAW',
             description: ''
