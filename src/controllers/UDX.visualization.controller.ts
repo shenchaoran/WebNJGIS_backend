@@ -9,28 +9,30 @@ const request = require('request');
 const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
 
-import { UDXType, UDXTableXML } from '../models/UDX-type.class';
+import { UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
-import { UDXCfg } from '../models/UDX-schema.class';
+import { UDXCfg, ExternalName } from '../models/UDX-schema.class';
 
-export const parse = (data: { type: any; udxcfg: UDXCfg }): Promise<any> => {
+export const parse = (udxcfg: UDXCfg): Promise<any> => {
     return new Promise((resolve, reject) => {
         let promiseFunc = undefined;
-        switch (data.type) {
-            // case UDXType.TABLE_XML:
-            //     promiseFunc = showXMLTable(data.UDX);
-            //     break;
-            case UDXType.TABLE_RAW:
-                promiseFunc = showRAWTable(data.udxcfg);
-                break;
-            case UDXType.UNKNOWN:
-                //...
-                break;
+        if(udxcfg.schema$.externalName === ExternalName[ExternalName.TABLE_RAW]) {
+            promiseFunc = showRAWTable(udxcfg);
         }
+        else if(udxcfg.schema$.externalName === ExternalName[ExternalName.ASCII_GRID_RAW]) {
+            promiseFunc = showRAWAscii(udxcfg);
+        }
+        else if(udxcfg.schema$.externalName === ExternalName[ExternalName.SHAPEFILE_RAW]) {
+            promiseFunc = showRAWShp(udxcfg);
+        }
+        else {
+
+        }
+
         promiseFunc
             .then(parsed => {
                 return resolve({
-                    type: data.type,
+                    type: udxcfg.schema$.externalName,
                     parsed: parsed
                 });
             })
@@ -152,3 +154,11 @@ export const showRAWTable = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
         });
     })
 };
+
+export const showRAWAscii = (udxcfg: UDXCfg): Promise<any> => {
+    return;
+}
+
+export const showRAWShp = (udxcfg: UDXCfg): Promise<any> => {
+    return;
+}

@@ -1,11 +1,10 @@
 import { Response, Request, NextFunction } from "express";
 const MyRouter = require('./base.route');
+const router = new MyRouter();
+module.exports = router;
 
 import * as DataCtrl from '../controllers/data.controller';
 import * as UDXParser from '../controllers/UDX.parser.controller';
-
-const router = new MyRouter();
-module.exports = router;
 
 router.route('/upload')
     .post(DataCtrl.uploadFiles);
