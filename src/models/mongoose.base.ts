@@ -2,6 +2,7 @@ import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
 
 import { setting } from '../config/setting';
+const debug = require('debug');
 const mongooseDebug = debug('WebNJGIS: Mongoose');
 
 mongoose.Promise = require('bluebird');
@@ -29,7 +30,7 @@ mongoose.connection.on('disconnected', () => {
     mongooseDebug('Mongoose disconnected');
 });
 
-export class MongooseModel {
+export class Mongoose {
     private schema: any;
     private model: any;
     constructor(collectionName, schema) {

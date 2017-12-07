@@ -6,16 +6,17 @@ import * as Promise from 'bluebird';
 
 // reference: https://github.com/request/request-promise
 
-export const getByServer = (url: string, form: any) => {
+export const getByServer = (url: string, form: any, isFullResponse?: boolean): Promise<any> => {
     const options = {
         url: url,
         method: 'GET',
-        qs: form
+        qs: form,
+        resolveWithFullResponse: isFullResponse === true
     };
     return requestPromise(options);
 };
 
-export const postByServer = (url: string, body: any, type: PostRequestType) => {
+export const postByServer = (url: string, body: any, type: PostRequestType): Promise<any> => {
     const options: any = {
         uri: url,
         method: 'POST'

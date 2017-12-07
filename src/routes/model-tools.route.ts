@@ -8,7 +8,15 @@ const router = new MyRouter();
 module.exports = router;
 
 router.route('/')
-    .get(ModelToolsCtrl.getModelTools);
+    .get(
+        ModelToolsCtrl.getModelTools
+    );
+
+router.route('/tree-mode')
+    .get(
+        ModelToolsCtrl.getModelTools,
+        ModelToolsCtrl.convert2Tree
+    );
 
 router.route('/:id')
     .get(ModelToolsCtrl.getModelTool);

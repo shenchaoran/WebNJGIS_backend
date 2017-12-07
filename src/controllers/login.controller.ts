@@ -6,7 +6,7 @@ const moment = require('moment');
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
-import { UserModelInstance, UserClass } from '../models/user.model';
+import { userDB, UserClass } from '../models/user.model';
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
@@ -19,7 +19,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         res.locals.succeed = true;
         return next();
     }
-    UserModelInstance.find({ username: username })
+    userDB.find({ username: username })
         .then(user => {
             user = user[0];
             if (user.password === password) {
@@ -39,7 +39,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
                     jwt: {
                         token: token,
                         expires: expires,
-                        username: user.username
+                        user: user
                     }
                 };
                 res.locals.template = {};
@@ -69,10 +69,10 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
             password: password,
             email: email
         };
-        UserModelInstance.find({username: username})
+        userDB.find({username: username})
             .then(rst => {
                 if(rst.length === 0) {
-                    return UserModelInstance.insert(user);
+                    return userDB.insert(user);
                 }
                 else {
                     const err = <any>(new Error('username has registered!'));

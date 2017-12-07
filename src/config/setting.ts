@@ -19,13 +19,14 @@ export const setting = {
         return platform;
     })(),
     mongodb: {
-        name: 'WebNJGIS',
+        // name: 'WebNJGIS',
+        name: 'Comparison',
         host: '127.0.0.1',
         port: '27017'
     },
     model_service_container: {
-        // host: '172.21.213.146',
-        host: '127.0.0.1',
+        host: '172.21.213.146',
+        // host: '127.0.0.1',
         port: '8060'
     },
     uploadPath: __dirname + '/../upload/',

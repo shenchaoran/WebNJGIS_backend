@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 
-const ResponseModel = require('../models/response.model');
+const ResponseModel = require('../models/response.class');
 
 module.exports = (app) => {
     // unify response

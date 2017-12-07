@@ -37,7 +37,7 @@ export const APIS = {
         },
         {
             id: 'download-geo-data',
-            pathname: '/geodata/:id',
+            pathname: '/geodata/detail/:id',
             desc: ''
         },
         {
