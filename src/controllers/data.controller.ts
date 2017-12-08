@@ -38,13 +38,9 @@ export const find = (
 };
 
 // 前端数据资源放在三个tab中，每个tab中的数据按照树状结构显示
-export const convert2Tree = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
+export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     // TODO 树的组织标准未定，暂时都放在《地球碳循环模式》下面。
-    let trees = {
+    const trees = {
         std: [{
             type: 'root',
             label: 'Earth\'s carbon cycle model',
@@ -63,11 +59,10 @@ export const convert2Tree = (
         }],
         personal: undefined
     };
-    const docs = <Array<any>>res.locals.resData;
     const stdDocs = _.filter(docs, doc => doc.src === ResourceSrc.STANDARD);
     const publicDocs = _.filter(docs, doc => doc.src === ResourceSrc.PUBLIC);
     let personalDocs = undefined;
-    if(req.query.user && req.query.user.username !== 'Tourist') {
+    if(user && user.username !== 'Tourist') {
         trees.personal = [{
             type: 'root',
             label: 'Earth\'s carbon cycle model',
@@ -76,7 +71,7 @@ export const convert2Tree = (
             expanded: true,
             items: []
         }];
-        personalDocs = <Array<any>>_.filter(docs, doc => doc.userId === req.query.user._id);
+        personalDocs = <Array<any>>_.filter(docs, doc => doc.userId === user._id);
         if(personalDocs) {
             _.map(personalDocs, doc => {
                 trees.personal[0].items.push({
@@ -105,8 +100,7 @@ export const convert2Tree = (
         });
     });
 
-    res.locals.resData = trees;
-    return next();
+    return Promise.resolve(trees);
 }
 
 export const remove = (

@@ -2,23 +2,30 @@ import { Response, Request, NextFunction } from "express";
 
 const MyRouter = require('./base.route');
 import * as ModelToolsCtrl from './../controllers/model-tools.controller';
-const postRouter = require('../middlewares/post-response.middleware');
+import { modelServiceDB } from '../models/model-service.model';
+const db = modelServiceDB;
 
-const router = new MyRouter();
+const defaultRoutes = [
+    'insert',
+    'find',
+    'remove'
+];
+
+const router = new MyRouter(modelServiceDB, defaultRoutes);
 module.exports = router;
 
 router.route('/')
-    .get(
-        ModelToolsCtrl.getModelTools
-    )
-    .post(ModelToolsCtrl.insert);
-
-router.route('/tree-mode')
-    .get(
-        ModelToolsCtrl.getModelTools,
-        ModelToolsCtrl.convert2Tree
-    );
-
-router.route('/:id')
-    .get(ModelToolsCtrl.getModelTool)
-    .delete(ModelToolsCtrl.remove);
+    .get((req: Request, res: Response, next: NextFunction) => {
+        db
+            .find({})
+            .then(docs => {
+                return ModelToolsCtrl.convert2Tree(req.query.user, docs)
+            })
+            .then(docs => {
+                res.locals.resData = docs;
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    });

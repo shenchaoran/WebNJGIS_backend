@@ -1,14 +1,33 @@
 import { Response, Request, NextFunction } from 'express';
 const MyRouter = require('./base.route');
-const router = new MyRouter();
+import * as CmpSolutionCtrl from '../controllers/cmp-solution.controller';
+import { cmpSolutionDB } from '../models/cmp-solution.model';
+const db = cmpSolutionDB;
+
+const defaultRoutes = [
+    'insert',
+    'find',
+    'remove',
+    'update'
+];
+
+const router = new MyRouter(cmpSolutionDB, defaultRoutes);
 module.exports = router;
 
-import * as CmpSolutionCtrl from '../controllers/cmp-solution.controller';
+// router.route('/:id').get(cmpSolutionDB.find);
 
-router.route('/').post(CmpSolutionCtrl.insert);
-
-router.route('/:id').get(CmpSolutionCtrl.find);
-
-router.route('/:id').put(CmpSolutionCtrl.update);
-
-router.route('/:id').delete(CmpSolutionCtrl.remove);
+router.route('/')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        db
+            .find({})
+            .then(docs => {
+                return CmpSolutionCtrl.convert2Tree(req.query.user, docs);
+            })
+            .then(docs => {
+                res.locals.resData = docs;
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    });

@@ -11,91 +11,51 @@ import * as PropParser from './UDX.property.controller';
 import * as UDXParser from './UDX.parser.controller';
 import * as UDXComparators from './UDX.compare.control';
 import { cmpSolutionDB } from '../models/cmp-solution.model';
+import { ResourceSrc } from '../models/resource.enum';
 
-export const insert = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.body.solution) {
-        cmpSolutionDB.insert(req.body.solution)
-            .then(doc => {
-                res.locals.resData = {
-                    succeed: true
-                };
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
+export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
+    const trees = {
+        public: [{
+            type: 'root',
+            label: 'Earth\'s carbon cycle model',
+            value: undefined,
+            id: 'bbbbbbbbb',
+            expanded: true,
+            items: []
+        }],
+        personal: undefined
+    };
+    const publicDocs = _.filter(docs, doc => doc.src === ResourceSrc.PUBLIC);
+    let personalDocs = undefined;
+    if(user && user.username !== 'Tourist') {
+        trees.personal = [{
+            type: 'root',
+            label: 'Earth\'s carbon cycle model',
+            value: undefined,
+            id: 'ccccccccccc',
+            expanded: true,
+            items: []
+        }];
+        personalDocs = <Array<any>>_.filter(docs, doc => doc.userId === user._id);
+        if(personalDocs) {
+            _.map(personalDocs, doc => {
+                trees.personal[0].items.push({
+                    type: 'leaf',
+                    label: (<any>doc).meta.name,
+                    value: doc,
+                    id: (<any>doc)._id
+                });
+            });
+        }
     }
-    else {
-        return next(new Error('invalid request body!'));
-    }
-}
+    _.map(publicDocs, doc => {
+        trees.public[0].items.push({
+            type: 'leaf',
+            label: doc.meta.name,
+            value: doc,
+            id: doc._id
+        });
+    });
 
-export const remove = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.body.id) {
-        cmpSolutionDB.remove({_id: req.body.id})
-            .then(() => {
-                res.locals.resData = {
-                    succeed: true
-                };
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    }
-    else {
-        return next(new Error('invalid request body!'));
-    }
-}
-
-export const find = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.query.id) {
-        cmpSolutionDB.find({_id: req.body.id})
-            .then(doc => {
-                res.locals.resData = {
-                    doc: doc
-                };
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    }
-    else {
-        return next(new Error('invalid request body!'));
-    }
-}
-
-export const update = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.body.solution) {
-        cmpSolutionDB.update({_id: req.body.id}, req.body.solution)
-            .then(() => {
-                res.locals.resData = {
-                    succeed: true
-                };
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    }
-    else {
-        return next(new Error('invalid request body!'));
-    }
+    return Promise.resolve(trees);
 }

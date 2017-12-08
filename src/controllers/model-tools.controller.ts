@@ -10,68 +10,8 @@ import * as APIModel from '../models/api.model';
 import * as DataCtrl from '../controllers/data.controller';
 import { modelServiceDB } from '../models/model-service.model';
 
-
-export const insert = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.body.ms != undefined) {
-        modelServiceDB.insert(req.body.ms)
-            .then(doc => {
-                res.locals.resData = doc;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    }
-    else {
-        return next(new Error('add resource into database failed!'));
-    }
-}
-
-export const remove = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.params.id != undefined) {
-        modelServiceDB.remove({_id: req.params.id})
-            .then(docs => {
-                res.locals.resData = docs;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    }
-    else {
-        return next(new Error('can\'t find related resource in the database!'));
-    }
-}
-
-export const getModelTools = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    modelServiceDB.find({})
-        .then(docs => {
-            res.locals.resData = docs;
-            res.locals.template = {};
-            res.locals.succeed = true;
-            return next();
-        })
-        .catch(next);
-};
-
-export const convert2Tree = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const models = <Array<any>>res.locals.resData;
+export const convert2Tree = (user, docs): Promise<any> => {
+    const models = <Array<any>>docs;
     // TODO 这里先统一到一个分类下，等有真正的分类方法后在实现
     const category = {
         type: 'root',
@@ -89,39 +29,7 @@ export const convert2Tree = (
             id: ms._id
         });
     });
-    res.locals.resData = [category];
-    res.locals.template = {};
-    res.locals.succeed = true;
-    return next();
-};
-
-export const getModelTool = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    if(req.params.id === 'tree-mode') {
-        // 这里路由不太合理，所以会跳转到这里
-        return next();
-    }
-    if (req.params.id === 'ping') {
-        return next();
-    }
-    
-    modelServiceDB.find({_id: req.params.id})
-        .then(docs => {
-            if(docs.length) {
-                res.locals.resData = docs[0];
-                res.locals.template = {};
-                res.locals.succeed = true;
-            }
-            else {
-                res.locals.resData = undefined;
-                res.locals.template = {};
-                res.locals.succeed = true;
-            }
-        })
-        .catch(next);
+    return Promise.resolve([category]);
 };
 
 export const invokeModelTool = (
