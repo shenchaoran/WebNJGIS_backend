@@ -22,7 +22,7 @@ class CmpTaskDB extends Mongoose {
 export const cmpTaskDB = new CmpTaskDB();
 
 export class CmpTask {
-    _id: mongoose.Schema.Types.ObjectId;
+    _id?: mongoose.Schema.Types.ObjectId;
     meta: {
         name: string,
         desc: string,

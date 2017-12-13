@@ -19,7 +19,9 @@
 import * as _ from 'lodash';
 
 import { GeoDataClass } from './UDX-data.model';
-import { UDXSchema } from './UDX-schema.class';
+import { UDXSchema } from '../models/UDX-schema.class';
+import { ObjectID } from 'mongodb';
+import { SchemaName } from './UDX-schema.class';
 
 export class CmpObj {
     id: string;
@@ -33,17 +35,6 @@ export class CmpObj {
         // data 存放具体比较的配置，如chart的列名，图像处理
         data: any
     }>;
-    schema: UDXSchema;
-    method: string;
-
-    static TYPES = {
-        TABLE_CHART: 'TABLE_CHART',
-        TABLE_STATISTIC: 'TABLE_STATISTIC',
-        ASCII_GRID_VISUALIZATION: 'ASCII_GRID_VISUALIZATION',
-        ASCII_GRID_MIXING: 'ASCII_GRID_MIXING',
-        GIF: 'GIF',
-        SHAPEFILE_VISUALIZATION: 'SHAPEFILE_VISUALIZATION',
-        SHAPEFILE_INTERPOLATION: 'SHAPEFILE_INTERPOLATION',
-    };
-    
+    schemaTypes: string[];
+    methods: any[];
 }

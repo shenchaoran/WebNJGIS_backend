@@ -33,7 +33,7 @@ const initData = (data: GeoDataClass): Promise<any> => {
 
 // const datas = [
 //     {
-//         _id: new mongoose.Types.ObjectId(),
+//         _id?: mongoose.Types.ObjectId(),
 //         gdid: '',
 //         filename: '',
 //         path: '',

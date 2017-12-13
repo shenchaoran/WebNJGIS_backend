@@ -19,7 +19,8 @@ import * as UDXParser from './UDX.parser.controller';
 const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
 import UDXComparators = require('./UDX.compare.control');
-import { UDXSchema, UDXCfg } from '../models/UDX-schema.class';
+import { UDXCfg } from '../models/UDX-cfg.class';
+import { UDXSchema } from '../models/UDX-schema.class';
 import { ResourceSrc } from '../models/resource.enum';
 
 export const find = (

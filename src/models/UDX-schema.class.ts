@@ -1,53 +1,27 @@
-import * as _ from 'lodash';
+/**
+ * TODO 加上schema的详细结构
+ */
 
+import * as _ from 'lodash';
 import { ResourceSrc } from './resource.enum';
 
-export enum ExternalName {
+export enum SchemaName {
     TABLE_RAW,
     SHAPEFILE_RAW,
     ASCII_GRID_RAW
 };
 
-export class UDXCfg {
-    entrance: string;
-    entries?: Array<string>;
-    format?: string;
-    schema$: UDXSchema;
-}
-
 export class UDXSchema {
+    // 外部时为ObjectID，内部时为name
+    id: string;
     src: ResourceSrc;
-    externalName?: string;
-    externalId?: string;
+    type: string;
     description?: string;
-    private static UDX_SCHEMAS = [
-        {
-            src: ResourceSrc.EXTERNAL,
-            externalName: ExternalName[ExternalName.TABLE_RAW],
-            externalId: 'TABLE_RAW',
-            description: ''
-        },
-        {
-            src: ResourceSrc.EXTERNAL,
-            externalName: ExternalName[ExternalName.SHAPEFILE_RAW],
-            externalId: 'SHAPEFILE_RAW',
-            description: ''
-        },
-        {
-            src: ResourceSrc.EXTERNAL,
-            externalName: ExternalName[ExternalName.ASCII_GRID_RAW],
-            externalId: 'ASCII_GRID_RAW',
-            description: ''
-        }
-    ];
-
-    static get schemas() {
-        return UDXSchema.UDX_SCHEMAS;
-    }
-
-    static find(id: string) {
-        return _.find(UDXSchema.UDX_SCHEMAS, schema => {
-            return schema.externalId === id;
-        });
-    }
+    structure?: any[];
+    semantic?: {
+        concepts: any[],
+        spatialRefs: any[],
+        units: any[],
+        dataTemplates: any[]
+    };
 }

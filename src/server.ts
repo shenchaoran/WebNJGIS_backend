@@ -18,6 +18,10 @@ const postRouter = require('./middlewares/post-response.middleware');
 const ResponseModel = require('./models/response.class');
 import { init } from './init/index';
 const port = setting.port;
+
+//////////////////////////////////////test
+import { testFunc } from './controllers/test1';
+testFunc();
 //////////////////////////////////////init operation
 //TODO 创建文件夹 upload/geo-data
 init()

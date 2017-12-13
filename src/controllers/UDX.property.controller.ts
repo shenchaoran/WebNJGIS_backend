@@ -8,14 +8,15 @@ import * as StringUtils from '../utils/string.utils';
 const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
-import { UDXCfg, ExternalName } from '../models/UDX-schema.class';
+import { UDXCfg } from '../models/UDX-cfg.class';
+import { SchemaName } from '../models/UDX-schema.class';
 import * as VisualParser from './UDX.visualization.controller';
 
 
 export const parse = (udxcfg: UDXCfg): Promise<any> => {
     return new Promise((resolve, reject) => {
         let promiseFunc = undefined;
-        if(udxcfg.schema$.externalName === ExternalName[ExternalName.TABLE_RAW]) {
+        if(udxcfg.schema$.id === SchemaName[SchemaName.TABLE_RAW]) {
             promiseFunc = new Promise((resolve, reject) => {
                 Promise.all([
                     parseRAWTableProp(udxcfg),
@@ -30,10 +31,10 @@ export const parse = (udxcfg: UDXCfg): Promise<any> => {
                     .catch(reject);
             });
         }
-        else if(udxcfg.schema$.externalName === ExternalName[ExternalName.ASCII_GRID_RAW]) {
+        else if(udxcfg.schema$.id === SchemaName[SchemaName.ASCII_GRID_RAW]) {
             promiseFunc = parseRAWAsciiProp(udxcfg);
         }
-        else if(udxcfg.schema$.externalName === ExternalName[ExternalName.SHAPEFILE_RAW]) {
+        else if(udxcfg.schema$.id === SchemaName[SchemaName.SHAPEFILE_RAW]) {
             promiseFunc = parseRAWShpProp(udxcfg);
         }
         else {
@@ -43,7 +44,7 @@ export const parse = (udxcfg: UDXCfg): Promise<any> => {
         promiseFunc
             .then(parsed => {
                 return resolve({
-                    type: udxcfg.schema$.externalName,
+                    type: udxcfg.schema$.id,
                     parsed: parsed
                 });
             })

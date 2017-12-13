@@ -6,7 +6,8 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { UDXCfg, ExternalName } from '../models/UDX-schema.class';
+import { UDXCfg } from '../models/UDX-cfg.class';
+import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXParser from './UDX.parser.controller';
 import * as UDXComparators from './UDX.compare.control';

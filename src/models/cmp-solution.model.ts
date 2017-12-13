@@ -11,8 +11,8 @@ class CmpSolutionDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpSolution';
         const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            cfg: mongoose.Schema.Types.Mixed
+            meta: String,
+            cfg: String
         };
 
         super(collectionName, schema);
@@ -22,7 +22,7 @@ class CmpSolutionDB extends Mongoose {
 export const cmpSolutionDB = new CmpSolutionDB();
 
 export class CmpSolution {
-    _id: mongoose.Schema.Types.ObjectId;
+    _id?: mongoose.Schema.Types.ObjectId;
     meta: {
         name: string,
         desc: string,
@@ -30,6 +30,10 @@ export class CmpSolution {
         author: string
     };
     cfg: {
-        cmpObjs: Array<CmpObj>
+        cmpObjs: Array<CmpObj>,
+        keynote: {
+            direction: 'x'|'y',
+            dimension: 'point'|'polygon'
+        }
     };
 }
