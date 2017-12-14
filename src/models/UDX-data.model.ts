@@ -8,13 +8,9 @@ class GeoDataDB extends Mongoose {
     constructor() {
         const collectionName = 'Geo_Data';
         const schema = {
-            filename: String,
-            path: String,
-            udxcfg: mongoose.SchemaTypes.Mixed,
-            permission: String,
-            userId: String,
-            desc: String,
-            src: Number
+            file: mongoose.Schema.Types.Mixed,
+            auth: mongoose.Schema.Types.Mixed,
+            udxcfg: mongoose.Schema.Types.Mixed
         };
 
         super(collectionName, schema);
@@ -25,11 +21,50 @@ export const geoDataDB = new GeoDataDB();
 
 export class GeoDataClass {
     _id?: mongoose.Schema.Types.ObjectId;
-    filename: string;
-    path: string;
+
+    file?: {
+        name: string,
+        path: string,
+    };
+
+    auth: {
+        permission?: string,
+        userId: string,
+        src: ResourceSrc
+    };
+    
     udxcfg: UDXCfg;
-    permission: string;
-    userId: string;
-    desc: string;
-    src: ResourceSrc;
+}
+
+export enum STD_DATA_FEATURE {
+    TA = 0,
+    TMIN,
+    TMAX,
+    CLOUD,
+    RH,
+    PS,
+    PREC,
+    WIND
+}
+
+export const STD_DATA = {
+    temporal: {
+        start: (new Date(1979, 0, 1, 0, 0, 0)).getTime(),
+        end: (new Date(1988, 11, 31, 24, 0, 0)).getTime(),
+        scale: 'DAY'
+    },
+    spatial: {
+        cols: 540,
+        rows: 360
+    },
+    features: [
+        'TA',
+        'TMIN',
+        'TMAX',
+        'CLOUD',
+        'RH',
+        'PS',
+        'PREC',
+        'WIND'
+    ]
 }

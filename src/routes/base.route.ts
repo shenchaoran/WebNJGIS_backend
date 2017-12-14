@@ -67,7 +67,7 @@ module.exports = class MyRouter {
                                 .insert(req.body.doc)
                                 .then(doc => {
                                     res.locals.resData = {
-                                        succeed: true
+                                        doc: doc
                                     };
                                     res.locals.template = {};
                                     res.locals.succeed = true;
@@ -86,9 +86,10 @@ module.exports = class MyRouter {
                         if (req.body.doc) {
                             db
                                 .update({ _id: req.body.id }, req.body.doc)
-                                .then(() => {
+                                .then((doc) => {
+                                    // TODO 此doc非彼doc
                                     res.locals.resData = {
-                                        succeed: true
+                                        doc: doc
                                     };
                                     res.locals.template = {};
                                     res.locals.succeed = true;
@@ -106,9 +107,9 @@ module.exports = class MyRouter {
                     .delete((req: Request, res: Response, next: NextFunction) => {
                         db
                             .remove({ _id: req.params.id })
-                            .then(() => {
+                            .then((doc) => {
                                 res.locals.resData = {
-                                    succeed: true
+                                    doc: doc
                                 };
                                 res.locals.template = {};
                                 res.locals.succeed = true;

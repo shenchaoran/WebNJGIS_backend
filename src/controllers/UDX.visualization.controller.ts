@@ -115,7 +115,7 @@ export const showXMLTable = (udxStr): Promise<UDXTableXML> => {
 
 export const showRAWTable = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
     return new Promise((resolve, reject) => {
-        fs.readFile(udxcfg.entrance, (err, dataBuf) => {
+        fs.readFile(udxcfg.elements.entrance, (err, dataBuf) => {
             if(err) {
                 return reject(err);
             }

@@ -1,4 +1,5 @@
 import * as Promise from 'bluebird';
+import * as _ from 'lodash';
 
 import { cmpSolutionDB } from '../models/cmp-solution.model';
 

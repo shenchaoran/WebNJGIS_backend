@@ -8,8 +8,40 @@ import { UDXSchema } from '../models/UDX-schema.class';
 import { ResourceSrc } from './resource.enum';
 
 export class UDXCfg {
-    entrance: string;
-    entries?: Array<string>;
-    format?: string;
-    schema$: UDXSchema;
+    elements?: {
+        entrance: string,
+        entries: string[]
+    };
+    meta: {
+        desc?: string,
+        isExample: boolean,
+        type: 'point' | 'polygon' | 'multi-point',
+        isOutput?: boolean,
+        spatial?: {
+            // point
+            position?: {
+                lat: string,
+                long: string
+            },
+            // polygon
+            ncols?: number,
+            nrows?: number,
+            yllcorner?: number,
+            xllcorner?: number,
+            cellsize?: number,
+            NODATA_value?: number
+        },
+
+        // point
+        temporal: {
+            start: number,
+            end: number,
+            scale: 'YEAR' | 'DAY'
+        },
+
+        // polygon
+        feature?: string,
+        date?: string
+    };
+    schema$?: UDXSchema;
 }

@@ -26,7 +26,7 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
         }],
         personal: undefined
     };
-    const publicDocs = _.filter(docs, doc => doc.src === ResourceSrc.PUBLIC);
+    const publicDocs = _.filter(docs, doc => doc.auth.src === ResourceSrc.PUBLIC);
     let personalDocs = undefined;
     if(user && user.username !== 'Tourist') {
         trees.personal = [{
@@ -37,7 +37,7 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
             expanded: true,
             items: []
         }];
-        personalDocs = <Array<any>>_.filter(docs, doc => doc.userId === user._id);
+        personalDocs = <Array<any>>_.filter(docs, doc => doc.auth.userId === user._id.toString());
         if(personalDocs) {
             _.map(personalDocs, doc => {
                 trees.personal[0].items.push({

@@ -42,11 +42,11 @@ export class Mongoose {
 
     public find(where): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.model.find(where, (err, rsts) => {
+            this.model.find(where, (err, docs) => {
                 if (err) {
                     return reject(err);
                 } else {
-                    return resolve(rsts);
+                    return resolve(docs);
                 }
             });
         });
@@ -54,11 +54,11 @@ export class Mongoose {
 
     public remove(where): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.model.remove(where, err => {
+            this.model.remove(where, (err, doc) => {
                 if (err) {
                     return reject(err);
                 } else {
-                    return resolve();
+                    return resolve(doc);
                 }
             });
         });

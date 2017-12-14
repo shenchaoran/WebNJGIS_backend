@@ -5,6 +5,7 @@
 
 import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
+import { ResourceSrc } from './resource.enum';
 
 import { CmpTask } from './cmp-task.model';
 
@@ -24,11 +25,14 @@ export const cmpSceneDB = new CmpSceneDB();
 export class CmpScene {
     _id?: mongoose.Schema.Types.ObjectId;
     meta: {
-        name: string;
-        desc: string;
-        time: string;
-        author: string;
+        name: string,
+        desc: string,
+        time: string
     };
+    auth: {
+        userId: string,
+        src: ResourceSrc
+    }
     cfg: {
         cmpTaskIds: Array<string>;
     }

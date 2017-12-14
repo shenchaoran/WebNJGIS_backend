@@ -20,8 +20,8 @@ import { init } from './init/index';
 const port = setting.port;
 
 //////////////////////////////////////test
-import { testFunc } from './controllers/test1';
-testFunc();
+// import { testSplit } from './controllers/test1';
+// testSplit();
 //////////////////////////////////////init operation
 //TODO 创建文件夹 upload/geo-data
 init()

@@ -6,13 +6,15 @@ import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
 
 import { CmpObj } from './cmp-obj.class';
+import { ResourceSrc } from './resource.enum';
 
 class CmpSolutionDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpSolution';
         const schema = {
-            meta: String,
-            cfg: String
+            meta: mongoose.Schema.Types.Mixed,
+            cfg: mongoose.Schema.Types.Mixed,
+            auth: mongoose.Schema.Types.Mixed
         };
 
         super(collectionName, schema);
@@ -26,14 +28,17 @@ export class CmpSolution {
     meta: {
         name: string,
         desc: string,
-        time: string,
-        author: string
+        time: string
     };
     cfg: {
         cmpObjs: Array<CmpObj>,
         keynote: {
             direction: 'x'|'y',
-            dimension: 'point'|'polygon'
+            dimension: 'point' | 'polygon' | 'multi-point'
         }
+    };
+    auth: {
+        userId: string,
+        src: ResourceSrc
     };
 }
