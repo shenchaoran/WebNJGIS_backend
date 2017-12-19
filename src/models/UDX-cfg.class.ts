@@ -19,17 +19,15 @@ export class UDXCfg {
         isOutput?: boolean,
         spatial?: {
             // point
-            position?: {
-                lat: string,
-                long: string
-            },
+            point?: any,
             // polygon
-            ncols?: number,
-            nrows?: number,
-            yllcorner?: number,
-            xllcorner?: number,
-            cellsize?: number,
-            NODATA_value?: number
+            // ncols?: number,
+            // nrows?: number,
+            // yllcorner?: number,
+            // xllcorner?: number,
+            // cellsize?: number,
+            // NODATA_value?: number
+            polygon?: any
         },
 
         // point
@@ -40,8 +38,31 @@ export class UDXCfg {
         },
 
         // polygon
-        feature?: string,
-        date?: string
+        feature?: string
     };
     schema$?: UDXSchema;
+
+    constructor() {
+        this.elements = {
+            entrance: undefined,
+            entries: []
+        };
+        this.meta = {
+            desc: undefined,
+            isExample: false,
+            type: undefined,
+            isOutput: false,
+            spatial: {
+                point: {},
+                polygon: {}
+            },
+            temporal: {
+                start: undefined,
+                end: undefined,
+                scale: 'DAY'
+            },
+            feature: undefined
+        };
+        this.schema$ = undefined;
+    }
 }

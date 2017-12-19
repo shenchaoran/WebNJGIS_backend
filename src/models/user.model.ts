@@ -17,7 +17,7 @@ class UserDB extends Mongoose {
 export const userDB = new UserDB();
 
 export class UserClass {
-    _id?: mongoose.Schema.Types.ObjectId
+    _id?: any
     username: string;
     password: string;
     email?: string;

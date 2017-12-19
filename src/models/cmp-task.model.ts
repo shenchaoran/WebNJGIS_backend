@@ -27,51 +27,56 @@ class CmpTaskDB extends Mongoose {
 export const cmpTaskDB = new CmpTaskDB();
 
 export class CmpTask {
-    _id?: mongoose.Schema.Types.ObjectId;
+    _id?: any;
     meta: {
-        name: string;
-        desc: string;
-        time: string;
+        name: string,
+        desc: string,
+        time: number
     };
     auth: {
-        userId: string;
-        src: ResourceSrc;
+        src: ResourceSrc,
+        userId: string
     };
     cmpCfg: {
-        solutionId: string,
-        // upload
-        dataList?: Array<GeoDataClass>
-        // std  时空
-        stdSrc?: {
-            spatial?: {
-                // point
-                position?: {
-                    lat: string,
-                    long: string
-                },
-                // polygon
-                ncols?: number,
-                nrows?: number,
-                yllcorner?: number,
-                xllcorner?: number,
-                cellsize?: number,
-                NODATA_value?: number
-            },
-            temporal?: {
-                start: number,
-                end: number,
-                scale: 'YEAR' | 'DAY'
-            }
-        }
+        solutionId: string
+        // TODO 相关比较的结果对象
     };
-    calcuCfg: {
-        dataSrc: 'std' | 'upload',
-        // upload
-        dataRefer?: Array<{
-            msId: string,
-            eventName: string,
-            dataId: string
-        }>
-    };
+    calcuCfg: CalcuCfg;
     calcuTasks: Array<string>;
+}
+
+export class CalcuCfg {
+    dataSrc: 'std' | 'upload';
+    // upload
+    dataRefer?: Array<{
+        msId: string,
+        eventName: string,
+        dataId: string
+    }>;
+    // TODO 没必要？
+    dataList?: Array<GeoDataClass>;
+    // std  时空
+    stdSrc?: {
+        spatial?: {
+            dimension?: 'point' | 'polygon' | 'multi-point',
+            // point
+            point?: {
+                lat: string,
+                long: string
+            },
+            // polygon
+            // ncols?: number,
+            // nrows?: number,
+            // yllcorner?: number,
+            // xllcorner?: number,
+            // cellsize?: number,
+            // NODATA_value?: number
+            polygon?: any
+        },
+        temporal?: {
+            start: number,
+            end: number,
+            scale: 'YEAR' | 'DAY'
+        }
+    }
 }

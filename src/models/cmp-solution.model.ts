@@ -24,13 +24,17 @@ class CmpSolutionDB extends Mongoose {
 export const cmpSolutionDB = new CmpSolutionDB();
 
 export class CmpSolution {
-    _id?: mongoose.Schema.Types.ObjectId;
+    _id?: any;
     meta: {
         name: string,
         desc: string,
         time: string
     };
     cfg: {
+        ms: Array<{
+            msId: string,
+            nodeName: string
+        }>,
         cmpObjs: Array<CmpObj>,
         keynote: {
             direction: 'x'|'y',

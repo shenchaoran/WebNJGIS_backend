@@ -23,7 +23,7 @@ class CmpSceneDB extends Mongoose {
 export const cmpSceneDB = new CmpSceneDB();
 
 export class CmpScene {
-    _id?: mongoose.Schema.Types.ObjectId;
+    _id?: any;
     meta: {
         name: string,
         desc: string,

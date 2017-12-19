@@ -30,6 +30,7 @@ module.exports = (app) => {
     });
 
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+        console.log(err);
         const resData = new ResponseModel();
         resData.href = req.originalUrl;
         resData.token = res.locals.token;

@@ -7,16 +7,8 @@ class ModelServiceDB extends Mongoose {
     constructor() {
         const collectionName = 'Model_Service';
         const schema = {
-            service: {
-                host: String,
-                port: String,
-                APIs: {
-                    intro: String,
-                    start: String,
-                    stop: String,
-                    progress: String,
-                    data: String
-                },
+            auth: {
+                nodeName: String,
                 src: Number
             },
             MDL: {
@@ -40,17 +32,9 @@ class ModelServiceDB extends Mongoose {
 export const modelServiceDB = new ModelServiceDB();
 
 export class ModelService {
-    _id?: mongoose.Schema.Types.ObjectId;
-    service: {
-        host: string,
-        port: string,
-        APIs: {
-            intro: string,
-            start: string,
-            stop: string,
-            progress: string,
-            data: string
-        },
+    _id?: any;
+    auth: {
+        nodeName: string,
         src: ResourceSrc
     };
     MDL: {

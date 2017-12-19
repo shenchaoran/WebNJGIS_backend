@@ -6,7 +6,6 @@ import { cmpTaskDB } from '../models/cmp-task.model';
 const db = cmpTaskDB;
 
 const defaultRoutes = [
-    'insert',
     'find',
     'remove',
     'update'
@@ -24,6 +23,35 @@ router.route('/')
             })
             .then(docs => {
                 res.locals.resData = docs;
+                res.locals.template = {};
+                res.locals.succeed = true;
+                return next();
+            })
+            .catch(next);
+    })
+    .post((req: Request, res: Response, next: NextFunction) => {
+        if(req.body.doc) {
+            CmpTaskCtrl.insert(req.body.doc)
+                .then(_doc => {
+                    res.locals.resData = {
+                        doc: _doc
+                    };
+                    res.locals.template = {};
+                    res.locals.succeed = true;
+                    return next();
+                })
+                .catch(next);
+        }
+        else {
+            return next(new Error('invalid request body!'));
+        }
+    });
+
+router.route('/:id/start')
+    .post((req: Request, res: Response, next: NextFunction) => {
+        return CmpTaskCtrl.start(req.params.id)
+            .then(data => {
+                res.locals.resData = undefined;
                 res.locals.template = {};
                 res.locals.succeed = true;
                 return next();
