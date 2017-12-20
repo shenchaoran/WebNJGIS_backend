@@ -179,7 +179,7 @@ export const insert = (req: Request, res: Response, next: NextFunction) => {
                             geoDataDB
                                 .insert(newItem)
                                 .then(doc => {
-                                    res.locals.resData = doc;
+                                    res.locals.resData = {doc: doc};
                                     res.locals.template = {};
                                     res.locals.succeed = true;
                                     return next();

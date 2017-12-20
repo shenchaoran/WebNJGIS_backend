@@ -15,6 +15,7 @@ class CalcuTaskDB extends Mongoose {
             msId: String,
             nodeName: String,
             calcuCfg: mongoose.Schema.Types.Mixed,
+            output: mongoose.Schema.Types.Mixed,
             state: Number
         };
 
@@ -30,7 +31,6 @@ export class CalcuTask {
     nodeName: string;
     calcuCfg: CalcuCfg;
     output: Array<{
-        msId: string;
         eventName: string;
         dataId: string;
     }>;

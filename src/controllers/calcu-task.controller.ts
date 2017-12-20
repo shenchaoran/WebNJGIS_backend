@@ -6,6 +6,18 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { calcuTaskDB, CalcuTaskState } from '../models';
 
+export const getInitTask = (nodeName: string, token?: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        let tasks;
+        calcuTaskDB.find({
+            nodeName: nodeName,
+            state: CalcuTaskState.INIT
+        })
+            .then(resolve)
+            .catch(reject);
+    });
+}
+
 
 export const startMS = (nodeName: string, token?: string): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -44,7 +56,12 @@ export const startMS = (nodeName: string, token?: string): Promise<any> => {
 
 export const updateState = (nodeName: string, taskId: string, oldState: number, newState: number): Promise<any> => {
     return new Promise((resolve, reject) => {
-        if(oldState === CalcuTaskState.START_PENDING) {
+        if(oldState === CalcuTaskState.INIT) {
+            if(newState !== CalcuTaskState.START_PENDING) {
+                return reject(new Error('invalidate state change!'));
+            }
+        }
+        else if(oldState === CalcuTaskState.START_PENDING) {
             if(newState !== CalcuTaskState.START_FAILED
             && newState !== CalcuTaskState.RUNNING) {
                 return reject(new Error('invalidate state change!'));
@@ -65,7 +82,8 @@ export const updateState = (nodeName: string, taskId: string, oldState: number, 
 
         calcuTaskDB.update({
             _id: taskId,
-            nodeName: nodeName
+            nodeName: nodeName,
+            state: oldState
         }, {
             '$set': {
                 state: newState
@@ -82,3 +100,18 @@ export const updateState = (nodeName: string, taskId: string, oldState: number, 
             .catch(reject);
     })
 };
+
+export const updateData = (nodeName: string, taskId: string, output: any[]): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        calcuTaskDB.update({
+            _id: taskId,
+            nodeName: nodeName
+        }, {
+            '$set': {
+                output: output
+            }
+        })
+            .then(resolve)
+            .catch(reject);
+    });
+}

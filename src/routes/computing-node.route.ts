@@ -1,3 +1,7 @@
+/**
+ * 计算节点的路由，包括计算框架和服务框架对接的接口
+ */
+
 import { Response, Request, NextFunction } from 'express';
 const MyRouter = require('./base.route');
 import { ComputingNode, computingNodeDB, calcuTaskDB } from '../models';
@@ -6,21 +10,20 @@ import * as ComputingNodeCtrl from '../controllers/computing-node.controller';
 const db = computingNodeDB;
 
 const defaultRoutes = [
-    'insert',
-    'find'
+    'insert'
 ];
 
 const router = new MyRouter(db, defaultRoutes);
 module.exports = router;
 
-router.route('/:nodeName/tasks/start')
-    .post((req: Request, res: Response, next: NextFunction) => {
+router.route('/:nodeName/tasks')
+    .get((req: Request, res: Response, next: NextFunction) => {
         ComputingNodeCtrl.auth({
             nodeName: req.params.nodeName,
-            token: req.body.token
+            token: req.query.token
         })
             .then(() => {
-                CalcuTaskCtrl.startMS(req.params.nodeName)
+                CalcuTaskCtrl.getInitTask(req.params.nodeName)
                     .then(docs => {
                         res.locals = {
                             resData: {
@@ -35,6 +38,7 @@ router.route('/:nodeName/tasks/start')
             .catch(next);
     });
 
+// 更新状态
 router.route('/:nodeName/tasks/:taskId/state')
     .put((req: Request, res: Response, next: NextFunction) => {
         if(req.body.newState) {
@@ -51,25 +55,30 @@ router.route('/:nodeName/tasks/:taskId/state')
                 })
                 .catch(next);
         }
+        else {
+            return next(new Error('invalidate request body!'));
+        }
     });
 
-router.route('/:nodeName/tasks/:taskId')
-    .put((req: Request, res: Response, next: NextFunction) => {
-
-    });
-
-router.route('/')
+// 更新output
+router.route('/:nodeName/tasks/:taskId/data')
     .post((req: Request, res: Response, next: NextFunction) => {
-        computingNodeDB.insert(req.body.doc)
-            .then(_doc => {
-                res.locals = {
-                    resData: {
+        if(req.body.output) {
+            CalcuTaskCtrl.updateData(req.params.nodeName, req.params.taskId, req.body.output)
+                .then(doc => {
+                    res.locals = {
+                        resData: {
+                            doc: doc
+                        },
+                        template: {},
                         succeed: true
-                    },
-                    template: {},
-                    succeed: true
-                };
-                next();
-            })
-            .catch(next);
+                    };
+                    next();
+                })
+                .catch(next);
+        }
+        else {
+            return next(new Error('invalidate request body!'));
+        }
     });
+
