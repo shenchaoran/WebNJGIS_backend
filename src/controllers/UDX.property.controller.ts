@@ -181,7 +181,7 @@ const parseXMLTableProp = (udxStr): Promise<UDXTableXML> => {
     });
 };
 
-const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
+export const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
     const udxcfg = geodata.udxcfg;
     return new Promise((resolve, reject) => {
         fs.readFile(udxcfg.elements.entrance, (err, dataBuf) => {
@@ -273,10 +273,24 @@ const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
     });
 };
 
-const parseRAWAsciiProp = (geodata: any): Promise<any> => {
+export const parseRAWAsciiProp = (geodata: any): Promise<any> => {
     return;
 };
 
-const parseRAWShpProp = (geodata: any): Promise<any> => {
+export const parseRAWShpProp = (geodata: any): Promise<any> => {
     return;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+export const statisticRAWShp = (doc: any): Promise<any> => {
+    return 
+}
+
+export const statisticRAWAscii = (doc: any): Promise<any> => {
+    return 
+}
+
+export const statisticRAWTable = (doc: any): Promise<any> => {
+    return 
+}

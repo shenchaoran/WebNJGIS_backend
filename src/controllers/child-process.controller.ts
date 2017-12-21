@@ -16,8 +16,8 @@ const getPort = (): Promise<any> => {
     });
 };
 
-export const newVisualProcess = (dataId: string): Promise<any> => {
-    const cpPath = path.join(__dirname, 'UDX.visualization.controller.ts');
+export const newCmpProcess = (dataId: string, methods: string[]): Promise<any> => {
+    const cpPath = path.join(__dirname, 'UDX.compare.controller.ts');
     return new Promise((resolve, reject) => {
         getPort()
             .then(port => {
@@ -25,7 +25,9 @@ export const newVisualProcess = (dataId: string): Promise<any> => {
                     execArgv: ['--debug='+port]
                 });
                 cp.send({
-                    code: ''
+                    code: 'start',
+                    dataId: dataId,
+                    methods: methods
                 });
                 cp.on('message', m => {
                     if(m.code === 'kill') {

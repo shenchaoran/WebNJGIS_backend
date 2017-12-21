@@ -42,13 +42,16 @@ export class CmpObj {
     methods: any[];
 }
 
+/**
+ * 这里将多个比较方法的结果都放在一起了
+ */
 export class CmpReault {
     dataId?: string;
     state: CmpReaultState;
     image?: {
-      position: any,
+      extent: any,
       path: string,
-      name: string
+      title: string
     };
     chart?: {
 

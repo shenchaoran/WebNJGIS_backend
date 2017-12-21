@@ -391,6 +391,9 @@ export const visualization = (
     next: NextFunction
 ) => {};
 
+/**
+ * deprecated 
+ */
 export const compareUDX = (req: Request, res: Response, next: NextFunction) => {
     const leftId = req.params.left;
     const rightId = req.params.right;
@@ -414,7 +417,7 @@ export const compareUDX = (req: Request, res: Response, next: NextFunction) => {
             });
         })
     )
-        .then(UDXComparators.compare)
+        .then(UDXComparators.compare_old)
         .then(rst => {
             res.locals.resData = rst;
             res.locals.template = {};

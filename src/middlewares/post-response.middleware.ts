@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 
 const ResponseModel = require('../models/response.class');
 
-module.exports = (app) => {
+module.exports = app => {
     // unify response
     app.use((req: Request, res: Response, next: NextFunction) => {
         // console.log(res.locals);
@@ -42,4 +42,4 @@ module.exports = (app) => {
         };
         return res.json(resData);
     });
-}
+};

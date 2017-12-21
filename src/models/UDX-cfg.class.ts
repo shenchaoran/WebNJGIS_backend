@@ -27,6 +27,7 @@ export class UDXCfg {
         temporal: {
             start: number,
             end: number,
+            date?: string,
             scale: 'YEAR' | 'DAY'
         },
 
@@ -53,6 +54,7 @@ export class UDXCfg {
             temporal: {
                 start: undefined,
                 end: undefined,
+                date: undefined,
                 scale: 'DAY'
             },
             feature: undefined
