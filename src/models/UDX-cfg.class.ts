@@ -15,19 +15,12 @@ export class UDXCfg {
     meta: {
         desc?: string,
         isExample: boolean,
-        type: 'point' | 'polygon' | 'multi-point',
         isOutput?: boolean,
         spatial?: {
-            // point
+            dimension: 'point' | 'polygon' | 'multi-point',
             point?: any,
-            // polygon
-            // ncols?: number,
-            // nrows?: number,
-            // yllcorner?: number,
-            // xllcorner?: number,
-            // cellsize?: number,
-            // NODATA_value?: number
-            polygon?: any
+            polygon?: any,
+            multiPoint?: any
         },
 
         // point
@@ -50,11 +43,12 @@ export class UDXCfg {
         this.meta = {
             desc: undefined,
             isExample: false,
-            type: undefined,
             isOutput: false,
             spatial: {
+                dimension: undefined,
                 point: {},
-                polygon: {}
+                polygon: {},
+                multiPoint: {}
             },
             temporal: {
                 start: undefined,

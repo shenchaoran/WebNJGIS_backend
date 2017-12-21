@@ -8,7 +8,6 @@ import * as fs from 'fs';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
-import * as UDXParser from './UDX.parser.controller';
 import * as UDXComparators from './UDX.compare.control';
 import { cmpSceneDB } from '../models/cmp-scene.model';
 import { ResourceSrc } from '../models/resource.enum';

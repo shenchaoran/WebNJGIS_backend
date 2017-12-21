@@ -63,8 +63,8 @@ router.route('/:nodeName/tasks/:taskId/state')
 // 更新output
 router.route('/:nodeName/tasks/:taskId/data')
     .post((req: Request, res: Response, next: NextFunction) => {
-        if(req.body.output) {
-            CalcuTaskCtrl.updateData(req.params.nodeName, req.params.taskId, req.body.output)
+        if(req.body.outputs) {
+            CalcuTaskCtrl.updateData(req.params.nodeName, req.params.taskId, req.body.outputs)
                 .then(doc => {
                     res.locals = {
                         resData: {

@@ -51,7 +51,7 @@ router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
         return CmpTaskCtrl.start(req.params.id)
             .then(data => {
-                res.locals.resData = undefined;
+                res.locals.resData = {succeed: true};
                 res.locals.template = {};
                 res.locals.succeed = true;
                 return next();

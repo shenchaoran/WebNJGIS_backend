@@ -13,6 +13,7 @@ class CalcuTaskDB extends Mongoose {
         const collectionName = 'Calcu_Task';
         const schema = {
             msId: String,
+            cmpTaskId: String,
             nodeName: String,
             calcuCfg: mongoose.Schema.Types.Mixed,
             output: mongoose.Schema.Types.Mixed,
@@ -28,9 +29,10 @@ export const calcuTaskDB = new CalcuTaskDB();
 export class CalcuTask {
     _id?: any;
     msId: string;
+    cmpTaskId: string;
     nodeName: string;
     calcuCfg: CalcuCfg;
-    output: Array<{
+    outputs: Array<{
         eventName: string;
         dataId: string;
     }>;

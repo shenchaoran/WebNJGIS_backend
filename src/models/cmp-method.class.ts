@@ -49,3 +49,14 @@ export class CmpMethod {
         return _.get(CmpMethod.METHODS, schemaName);
     }
 }
+
+export enum CmpMethodEnum {
+  TABLE_CHART,
+  TABLE_STATISTIC,
+  SHAPEFILE_VISUALIZATION,
+  SHAPEFILE_STATISTIC,
+  SHAPEFILE_INTERPOLATION,
+  ASCII_GRID_VISUALIZATION,
+  ASCII_GRID_STATISTIC,
+  GIF
+}

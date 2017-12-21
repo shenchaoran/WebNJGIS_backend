@@ -20,19 +20,19 @@ class GeoDataDB extends Mongoose {
 export const geoDataDB = new GeoDataDB();
 
 export class GeoDataClass {
-    _id?: any;
+    _id?: mongoose.Schema.Types.ObjectId;
 
-    file?: {
+    meta?: {
         name: string,
         path: string,
+        desc: string
     };
 
     auth: {
-        permission?: string,
         userId: string,
         src: ResourceSrc
     };
-    
+
     udxcfg: UDXCfg;
 }
 

@@ -30,7 +30,7 @@ export class CmpSolution {
         desc: string,
         time: string
     };
-    cfg: {
+    cmpCfg: {
         ms: Array<{
             msId: string,
             nodeName: string

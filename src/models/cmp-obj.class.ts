@@ -7,14 +7,14 @@
  *      Ascii_grid
  *          visualization (cesium)
  *          // mixing（图层混合） （放在前台处理或许更好？）
- *               
+ *
  *      Gif (Ascii grid with timestamp)
- *          visualization 
- *          
+ *          visualization
+ *
  *      Shp
  *          visualization
  *          插值 -> Ascii_grid
- *      
+ *
  */
 import * as _ from 'lodash';
 
@@ -29,12 +29,40 @@ export class CmpObj {
         name: string,
         desc: string
     };
-    dataRefer: Array<{
+    dataRefers: Array<{
         msId: string,
+        msName?: string,
         eventName: string,
+        dataId?: string,
         // data 存放具体比较的配置，如chart的列名，图像处理
         data: any
     }>;
+    cmpResults?: Array<CmpReault>;
     schemaTypes: string[];
     methods: any[];
+}
+
+export class CmpReault {
+    dataId?: string;
+    state: CmpReaultState;
+    image?: {
+      position: any,
+      path: string,
+      name: string
+    };
+    chart?: {
+
+    };
+    GIF?: {
+
+    };
+    statistic?: {
+
+    };
+}
+
+export enum CmpReaultState {
+  PENDING,
+  SUCCEED,
+  FAILED
 }

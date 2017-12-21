@@ -12,7 +12,6 @@ import { setting } from '../config/setting';
 import { geoDataDB, GeoDataClass, STD_DATA } from '../models/UDX-data.model';
 import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
-import * as UDXParser from './UDX.parser.controller';
 const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
 import UDXComparators = require('./UDX.compare.control');
@@ -166,15 +165,19 @@ export const insert = (req: Request, res: Response, next: NextFunction) => {
                     unzipExtractor.on('error', err => next(err));
                     unzipExtractor.on('close', () => {
                         const cfgPath = path.join(unzipPath, 'index.json');
-                        UDXParser.parseUDXCfg(cfgPath).then(udxcfg => {
+                        parseUDXCfg(cfgPath).then(udxcfg => {
                             const newItem = {
                                 _id: oid,
-                                filename: filename,
-                                path: newName,
-                                schema$: udxcfg.schema$,
-                                permission: fields.permission,
-                                userId: fields.userId,
-                                desc: fields.desc
+                                meta: {
+                                    name: filename,
+                                    path: newName,
+                                    desc: fields.desc
+                                },
+                                auth: {
+                                    userId: fields.userId,
+                                    src: fields.src
+                                },
+                                udxcfg: udxcfg,
                             };
                             geoDataDB
                                 .insert(newItem)
@@ -197,6 +200,7 @@ export const insert = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
+ * deprecated
  * 从数据库中查询数据，并post到模型服务容器中
  */
 export const pushData = (_id: string): Promise<any> => {
@@ -245,6 +249,7 @@ export const pushData = (_id: string): Promise<any> => {
 };
 
 /**
+ * deprecated
  * 从模型服务容器中下载模型计算结果数据，并保存到本地服务器中
  */
 export const pullData = (output): Promise<any> => {
@@ -403,7 +408,7 @@ export const compareUDX = (req: Request, res: Response, next: NextFunction) => {
                             return next(new Error("can't find data!"));
                         }
                     })
-                    .then(UDXParser.parseUDXCfg)
+                    .then(parseUDXCfg)
                     .then(resolve)
                     .catch(reject);
             });
@@ -417,4 +422,23 @@ export const compareUDX = (req: Request, res: Response, next: NextFunction) => {
             return next();
         })
         .catch(next);
+};
+
+export const parseUDXCfg = (cfgPath: string): Promise<UDXCfg> => {
+    const folderPath = cfgPath.substring(0, cfgPath.lastIndexOf('index.json'));
+    return new Promise((resolve, reject) => {
+        fs.readFile(cfgPath, (err, dataBuf) => {
+            if (err) {
+                return reject(err);
+            }
+            try {
+                // const udxcfg = new UDXCfg();
+                const cfgStr = dataBuf.toString();
+                const udxcfg = JSON.parse(cfgStr);
+                return resolve(udxcfg);
+            } catch (e) {
+                return reject(e);
+            }
+        });
+    });
 };

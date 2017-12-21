@@ -1,7 +1,8 @@
 import { Response, Request, NextFunction } from "express";
 
 import * as DataCtrl from '../controllers/data.controller';
-import * as UDXParser from '../controllers/UDX.parser.controller';
+import * as UDXPropParser from '../controllers/UDX.property.controller';
+import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
 const MyRouter = require('./base.route');
 import { geoDataDB, STD_DATA } from '../models/UDX-data.model';
 const db = geoDataDB;
@@ -51,10 +52,32 @@ router.route('/:id')
     });
 
 router.route('/:id/property')
-    .get(UDXParser.parseUDXProp);
+    .get((req: Request, res: Response, next: NextFunction) => {
+        UDXPropParser.parse(req.params.id)
+            .then(prop => {
+                res.locals = {
+                    resData: prop,
+                    template: {},
+                    succeed: true
+                };
+                return next();
+            })
+            .catch(next);
+    });
 
 router.route('/:id/show')
-    .get(UDXParser.parseUDXVisual);
+    .get((req: Request, res: Response, next: NextFunction) => {
+        UDXVisualParser.parse(req.params.id)
+            .then(visual => {
+                res.locals = {
+                    resData: visual,
+                    template: {},
+                    succeed: true
+                };
+                return next();
+            })
+            .catch(next);
+    });
 
 // router.route('/compare/:left/2/:right')
 //     .get(DataCtrl.compareUDX);

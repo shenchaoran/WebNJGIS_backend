@@ -8,6 +8,8 @@ import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 
 import { GeoDataClass } from './UDX-data.model';
+import { CalcuTaskState } from './calcu-task.model';
+import { CmpObj } from './cmp-obj.class';
 
 class CmpTaskDB extends Mongoose {
     constructor() {
@@ -38,45 +40,38 @@ export class CmpTask {
         userId: string
     };
     cmpCfg: {
-        solutionId: string
+        solutionId: string,
+        cmpObjs?: Array<CmpObj>
         // TODO 相关比较的结果对象
     };
     calcuCfg: CalcuCfg;
-    calcuTasks: Array<string>;
+    calcuTasks: Array<{
+      calcuTaskId: string,
+      state: CalcuTaskState
+    }>;
 }
 
+// TODO 纵向比较时，要多份数据，
 export class CalcuCfg {
     dataSrc: 'std' | 'upload';
     // upload
-    dataRefer?: Array<{
-        msId: string,
-        eventName: string,
-        dataId: string
+    dataRefers?: Array<{
+        msId: string;
+        eventName: string;
+        dataId: string;
     }>;
-    // TODO 没必要？
-    dataList?: Array<GeoDataClass>;
     // std  时空
     stdSrc?: {
         spatial?: {
             dimension?: 'point' | 'polygon' | 'multi-point',
-            // point
-            point?: {
-                lat: string,
-                long: string
-            },
-            // polygon
-            // ncols?: number,
-            // nrows?: number,
-            // yllcorner?: number,
-            // xllcorner?: number,
-            // cellsize?: number,
-            // NODATA_value?: number
-            polygon?: any
-        },
+            point?: any,
+            polygon?: any,
+            multiPoint?: any
+        };
         temporal?: {
-            start: number,
-            end: number,
-            scale: 'YEAR' | 'DAY'
-        }
-    }
+            start: number;
+            end: number;
+            scale: 'YEAR' | 'DAY';
+        };
+    };
 }

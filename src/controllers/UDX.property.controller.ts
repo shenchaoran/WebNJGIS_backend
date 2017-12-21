@@ -8,45 +8,57 @@ import * as StringUtils from '../utils/string.utils';
 const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
-import { UDXCfg } from '../models/UDX-cfg.class';
+import { UDXCfg, geoDataDB } from '../models';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as VisualParser from './UDX.visualization.controller';
 
-
-export const parse = (udxcfg: UDXCfg): Promise<any> => {
+export const parse = (dataId: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        let promiseFunc = undefined;
-        if(udxcfg.schema$.id === SchemaName[SchemaName.TABLE_RAW]) {
-            promiseFunc = new Promise((resolve, reject) => {
-                Promise.all([
-                    parseRAWTableProp(udxcfg),
-                    VisualParser.showRAWTable(udxcfg)
-                ])
-                    .then(rsts => {
-                        return resolve ({
-                            prop: rsts[0],
-                            show: rsts[1]
+        geoDataDB.find({ _id: dataId })
+            .then(rsts => {
+                if (rsts.length) {
+                    const doc = rsts[0];
+                    return Promise.resolve(doc);
+                } else {
+                    return reject(new Error("can't find geo-data!"));
+                }
+            })
+            .then(doc => {
+                const udxcfg = doc.udxcfg;
+                let promiseFunc = undefined;
+                if (udxcfg.schema$.type === SchemaName[SchemaName.TABLE_RAW]) {
+                    promiseFunc = new Promise((resolve, reject) => {
+                        Promise.all([
+                            parseRAWTableProp(doc),
+                            VisualParser.showRAWTable(doc)
+                        ])
+                            .then(rsts => {
+                                return resolve({
+                                    prop: rsts[0],
+                                    show: rsts[1]
+                                });
+                            })
+                            .catch(reject);
+                    });
+                } 
+                else if (udxcfg.schema$.type === SchemaName[SchemaName.ASCII_GRID_RAW]) {
+                    promiseFunc = parseRAWAsciiProp(doc);
+                } 
+                else if (udxcfg.schema$.type === SchemaName[SchemaName.SHAPEFILE_RAW]) {
+                    promiseFunc = parseRAWShpProp(doc);
+                } 
+                else {
+                    return resolve(new Error('todo'));
+                }
+        
+                promiseFunc
+                    .then(parsed => {
+                        return resolve({
+                            type: udxcfg.schema$.type,
+                            parsed: parsed
                         });
                     })
                     .catch(reject);
-            });
-        }
-        else if(udxcfg.schema$.id === SchemaName[SchemaName.ASCII_GRID_RAW]) {
-            promiseFunc = parseRAWAsciiProp(udxcfg);
-        }
-        else if(udxcfg.schema$.id === SchemaName[SchemaName.SHAPEFILE_RAW]) {
-            promiseFunc = parseRAWShpProp(udxcfg);
-        }
-        else {
-            new Error('todo');
-        }
-
-        promiseFunc
-            .then(parsed => {
-                return resolve({
-                    type: udxcfg.schema$.id,
-                    parsed: parsed
-                });
             })
             .catch(reject);
     });
@@ -145,8 +157,8 @@ const parseXMLTableProp = (udxStr): Promise<UDXTableXML> => {
                                 break;
                         }
                         mean = _.mean(value);
-                        max = (<number>_.max(value));
-                        min = (<number>_.min(value));
+                        max = <number>_.max(value);
+                        min = <number>_.min(value);
                         sum = _.sum(value);
                         stdDev = ArrayUtils.stdDev(value);
                     }
@@ -169,7 +181,8 @@ const parseXMLTableProp = (udxStr): Promise<UDXTableXML> => {
     });
 };
 
-const parseRAWTableProp = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
+const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
+    const udxcfg = geodata.udxcfg;
     return new Promise((resolve, reject) => {
         fs.readFile(udxcfg.elements.entrance, (err, dataBuf) => {
             if (err) {
@@ -248,8 +261,8 @@ const parseRAWTableProp = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
                 table.data.push({
                     name: ths[0][i],
                     unit: units[0][i],
-                    min: (<number>_.min(row)),
-                    max: (<number>_.max(row)),
+                    min: <number>_.min(row),
+                    max: <number>_.max(row),
                     mean: _.mean(row),
                     stdDev: ArrayUtils.stdDev(row),
                     sum: _.sum(row)
@@ -260,10 +273,10 @@ const parseRAWTableProp = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
     });
 };
 
-const parseRAWAsciiProp = (udxcfg: UDXCfg): Promise<any> => {
-    return ;
-}
+const parseRAWAsciiProp = (geodata: any): Promise<any> => {
+    return;
+};
 
-const parseRAWShpProp = (udxcfg: UDXCfg): Promise<any> => {
-    return ;
-}
+const parseRAWShpProp = (geodata: any): Promise<any> => {
+    return;
+};

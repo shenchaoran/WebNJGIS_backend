@@ -9,33 +9,45 @@ const request = require('request');
 const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
 
-import { UDXTableXML } from '../models/UDX-type.class';
+import { UDXTableXML, geoDataDB } from '../models';
 import * as StringUtils from '../utils/string.utils';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 
-export const parse = (udxcfg: UDXCfg): Promise<any> => {
+export const parse = (dataId: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        let promiseFunc = undefined;
-        if(udxcfg.schema$.id === SchemaName[SchemaName.TABLE_RAW]) {
-            promiseFunc = showRAWTable(udxcfg);
-        }
-        else if(udxcfg.schema$.id === SchemaName[SchemaName.ASCII_GRID_RAW]) {
-            promiseFunc = showRAWAscii(udxcfg);
-        }
-        else if(udxcfg.schema$.id === SchemaName[SchemaName.SHAPEFILE_RAW]) {
-            promiseFunc = showRAWShp(udxcfg);
-        }
-        else {
-
-        }
-
-        promiseFunc
-            .then(parsed => {
-                return resolve({
-                    type: udxcfg.schema$.id,
-                    parsed: parsed
-                });
+        geoDataDB.find({ _id: dataId })
+            .then(rsts => {
+                if (rsts.length) {
+                    const doc = rsts[0];
+                    return Promise.resolve(doc);
+                } else {
+                    return reject(new Error("can't find geo-data!"));
+                }
+            })
+            .then(doc => {
+                let promiseFunc = undefined;
+                if(doc.udxcfg.schema$.type === SchemaName[SchemaName.TABLE_RAW]) {
+                    promiseFunc = showRAWTable(doc);
+                }
+                else if(doc.udxcfg.schema$.type === SchemaName[SchemaName.ASCII_GRID_RAW]) {
+                    promiseFunc = showRAWAscii(doc);
+                }
+                else if(doc.udxcfg.schema$.type === SchemaName[SchemaName.SHAPEFILE_RAW]) {
+                    promiseFunc = showRAWShp(doc);
+                }
+                else {
+                    return reject(new Error('TODO'));
+                }
+        
+                promiseFunc
+                    .then(parsed => {
+                        return resolve({
+                            type: doc.udxcfg.schema$.id,
+                            parsed: parsed
+                        });
+                    })
+                    .catch(reject);
             })
             .catch(reject);
     });
@@ -113,7 +125,8 @@ export const showXMLTable = (udxStr): Promise<UDXTableXML> => {
     });
 };
 
-export const showRAWTable = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
+export const showRAWTable = (doc: any): Promise<UDXTableXML> => {
+    const udxcfg = doc.udxcfg;
     return new Promise((resolve, reject) => {
         fs.readFile(udxcfg.elements.entrance, (err, dataBuf) => {
             if(err) {
@@ -156,10 +169,16 @@ export const showRAWTable = (udxcfg: UDXCfg): Promise<UDXTableXML> => {
     })
 };
 
-export const showRAWAscii = (udxcfg: UDXCfg): Promise<any> => {
+export const showRAWAscii = (doc: any): Promise<any> => {
     return;
 }
 
-export const showRAWShp = (udxcfg: UDXCfg): Promise<any> => {
+export const showRAWShp = (doc: any): Promise<any> => {
     return;
 }
+
+process.on('message', m => {
+    if(m.code === '') {
+        
+    }
+});
