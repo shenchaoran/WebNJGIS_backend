@@ -142,7 +142,7 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                                 // TODO 可能存在并发问题
                                 // 可以通过 $each 解决，一次向数组中插入多个元素
                                 const key = `cmpCfg.cmpObjs.${i}.cmpResults`;
-                                let tempPush = {};
+                                const tempPush = {};
                                 _.set(tempPush, key, {
                                     dataId: dataRefer.dataId,
                                     state: CmpReaultState.PENDING

@@ -9,7 +9,6 @@ import { calcuTaskDB, CalcuTaskState, cmpTaskDB } from '../models';
 
 export const getInitTask = (nodeName: string, token?: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        let tasks;
         calcuTaskDB
             .find({
                 nodeName: nodeName,

@@ -6,7 +6,7 @@ import * as Promise from 'bluebird';
 export const init = () => {
     return new Promise((resolve, reject) => {
         Promise.all([
-            connect2MSC(), 
+            // connect2MSC(), 
             initUser(),
             initFolders()
         ])
