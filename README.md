@@ -3,8 +3,6 @@
 [![Dependency Status](https://david-dm.org/Microsoft/TypeScript-Node-Starter.svg)](https://david-dm.org/Microsoft/TypeScript-Node-Starter) [![Build Status](https://travis-ci.org/Microsoft/TypeScript-Node-Starter.svg?branch=master)](https://travis-ci.org/Microsoft/TypeScript-Node-Starter) 
 
 # Design
-- 与模型服务容器松耦合，依赖于模型服务容器。在运行前要配置依托的服务容器信息。
-- 
 
 # Pre-reqs
 - Install [Node.js](https://nodejs.org/en/)
@@ -40,9 +38,8 @@ Navigate to `http://localhost:9999`
 - 使用应用级中间件对response统一处理：
     - success: status.code = 200, 数据放在data里
     - fail: status.code 和 desc 详细描述错误详情
+- 异步流程全部采用`Promise`
 
-<br>
-<hr>
 <br>
 
 # TypeScript + Node 
@@ -355,75 +352,3 @@ Jest's configuration lives in `package.json`, so let's open it up and add the fo
 ```
 Basically we are telling Jest that we want it to consume all files that match the pattern `"**/test/**/*.test.(ts|js)"` (all `.test.ts`/`.test.js` files in the `test` folder), but we want to preprocess the `.ts` files first. 
 This preprocess step is very flexible, but in our case, we just want to compile our TypeScript to JavaScript using our `tsconfig.json`.
-This all happens in memory when you run the tests, so there are no output `.js` test files for you to manage.   
-
-### Running tests
-
-
-### Writing tests
-Writing tests for web apps has entire books dedicated to it and best practices are strongly influenced by personal style, so I'm deliberately avoiding discussing how or when to write tests in this guide.
-However, if prescriptive guidance on testing is something that you're interested in, [let me know](https://www.surveymonkey.com/r/LN2CV82), I'll do some homework and get back to you.
-
-## TSLint
-TSLint is a code linter which mainly helps catch minor code quality and style issues.
-TSLint is very similar to ESLint or JSLint but is built with TypeScript in mind.
-
-### TSLint rules
-Like most linters, TSLint has a wide set of configurable rules as well as support for custom rule sets.
-All rules are configured through `tslint.json`.
-In this project, we are using a fairly basic set of rules with no additional custom rules.
-The settings are largely based off the TSLint settings that we use to develop TypeScript itself.
-
-### Running TSLint
-Like the rest of our build steps, we use npm scripts to invoke TSLint.
-To run TSLint you can call the main build script or just the TSLint task.
-```
-npm run build   // runs full build including TSLint
-npm run tslint  // runs only TSLint
-```
-Notice that TSLint is not a part of the main watch task.
-It can be annoying for TSLint to clutter the output window while in the middle of writing a function, so I elected to only run it only during the full build.
-If you are interesting in seeing TSLint feedback as soon as possible, I strongly recommend the [TSLint extension in VS Code]().
-
-# Dependencies
-Dependencies are managed through `package.json`.
-In that file you'll find two sections:
-## `dependencies`
-
-| Package                         | Description                                                           |
-| ------------------------------- | --------------------------------------------------------------------- |
-| async                           | Utility library that provides asynchronous control flow.              |
-| bcrypt-nodejs                   | Library for hashing and salting user passwords.                       |
-| body-parser                     | Express 4 middleware.                                                 |
-| compression                     | Express 4 middleware.                                                 |
-| connect-mongo                   | MongoDB session store for Express.                                    |
-| dotenv                          | Loads environment variables from .env file.                           |
-| errorhandler                    | Express 4 middleware.                                                 |
-| express                         | Node.js web framework.                                                |
-| express-flash                   | Provides flash messages for Express.                                  |
-| express-session                 | Express 4 middleware.                                                 |
-| express-validator               | Easy form validation for Express.                                     |
-| fbgraph                         | Facebook Graph API library.                                           |
-| lusca                           | CSRF middleware.                                                      |
-| mongoose                        | MongoDB ODM.                                                          |
-| morgan                          | Express 4 middleware.                                                 |
-| nodemailer                      | Node.js library for sending emails.                                   |
-| passport                        | Simple and elegant authentication library for node.js                 |
-| passport-facebook               | Sign-in with Facebook plugin.                                         |
-| passport-local                  | Sign-in with Username and Password plugin.                            |
-| pug (jade)				      | Template engine for Express.                                          |
-| request                         | Simplified HTTP request library.                                      |
-
-## `devDependencies`
-
-| Package                         | Description                                                           |
-| ------------------------------- | --------------------------------------------------------------------- |
-| concurrently                    | Utility that manages multiple concurrent tasks. Used with npm scripts |
-| jest                            | Testing library for JavaScript.                                       |
-| node-sass                       | Allows to compile .scss files to .css                                 |
-| supertest                       | HTTP assertion library.                                               |
-| ts-test                         | A preprocessor with sourcemap support to help use TypeScript wit Jest.|
-| tslint                          | Linter (similar to ESLint) for TypeScript files                       |
-| typescript                      | JavaScript compiler/type checker that boosts JavaScript productivity  |
-
-To install or update these dependencies you can use `npm install` or `npm update`.
