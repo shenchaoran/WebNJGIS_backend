@@ -45,10 +45,17 @@ export class CmpTask {
         // TODO 相关比较的结果对象
     };
     calcuCfg: CalcuCfg;
+    cmpState: CmpState;
     calcuTasks: Array<{
       calcuTaskId: string,
       state: CalcuTaskState
     }>;
+}
+
+export enum CmpState {
+    RUNNING = 0,
+    SUCCEED,
+    FAILED
 }
 
 // TODO 纵向比较时，要多份数据，

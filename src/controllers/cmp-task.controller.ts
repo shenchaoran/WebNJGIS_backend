@@ -18,7 +18,8 @@ import {
     CalcuTaskState,
     SchemaName,
     CmpMethodEnum,
-    CmpReaultState
+    CmpResultState,
+    CmpState,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
@@ -91,7 +92,7 @@ export const start = (id: string): Promise<any> => {
             })
             .then(doc => {
                 // TODO
-                dispatchCalcuTask(doc)
+                insertCalcuTask(doc)
                     .then(_doc => {
                         return resolve();
                     })
@@ -112,6 +113,10 @@ export const insert = (doc: any): Promise<any> => {
     });
 };
 
+/**
+ * 更新cmpTask的比较结果
+ * 从dataRefer中取数据，如果该data没有做过cmp，就让他去参与比较，并将比较结果更新到数据库中
+ */
 export const updateCmpResult = (cmpTask: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         _.map(Array<any>(cmpTask.cmpCfg.cmpObjs), (cmpObj, i) => {
@@ -139,7 +144,7 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                         const pushObj = {};
                         _.set(pushObj, key, {
                             dataId: dataRefer.dataId,
-                            state: CmpReaultState.PENDING
+                            state: CmpResultState.PENDING
                         });
                         cmpTaskDB
                             .update(
@@ -147,7 +152,10 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                                     _id: cmpTask._id
                                 },
                                 {
-                                    $push: pushObj
+                                    $push: pushObj,
+                                    $set: {
+                                        cmpState: 0
+                                    }
                                 }
                             )
                             .then(updateRst => {
@@ -165,7 +173,7 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                                             );
                                             const setObj = {};
                                             cmpRst.dataId = dataRefer.dataId;
-                                            cmpRst.state = CmpReaultState.SUCCEED;
+                                            cmpRst.state = CmpResultState.SUCCEED;
                                             _.set(
                                                 setObj,
                                                 `cmpCfg.cmpObjs.${i}.cmpResults.$`,
@@ -176,29 +184,31 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                                                     $set: setObj
                                                 })
                                                 .then(updateRst => {
-                                                    if (
-                                                        updateRst.ok &&
-                                                        updateRst.writeErrors.length === 0
-                                                    ) {
-                                                    } else {
-                                                        const setObj = {};
-                                                        _.set(
-                                                            setObj,
-                                                            `cmpCfg.cmpObjs.${i}.cmpResults.$.state`,
-                                                            CmpReaultState.FAILED
-                                                        );
-                                                        cmpTaskDB.update(
-                                                            findObj,
-                                                            {
-                                                                $set: setObj
-                                                            }
-                                                        );
-                                                        console.log(
-                                                            new Error(
-                                                                'update comparison task failed'
-                                                            )
-                                                        );
-                                                    }
+                                                    updateTaskState(cmpTask);
+                                                    cmpTaskDB.update(findObj, cmpTask);
+                                                    // if (
+                                                    //     updateRst.ok &&
+                                                    //     updateRst.writeErrors.length === 0
+                                                    // ) {
+                                                    // } else {
+                                                    //     const setObj = {};
+                                                    //     _.set(
+                                                    //         setObj,
+                                                    //         `cmpCfg.cmpObjs.${i}.cmpResults.$.state`,
+                                                    //         CmpResultState.FAILED
+                                                    //     );
+                                                    //     cmpTaskDB.update(
+                                                    //         findObj,
+                                                    //         {
+                                                    //             $set: setObj
+                                                    //         }
+                                                    //     );
+                                                    //     console.log(
+                                                    //         new Error(
+                                                    //             'update comparison task failed'
+                                                    //         )
+                                                    //     );
+                                                    // }
                                                 });
                                         })
                                         .catch(err => {
@@ -224,7 +234,10 @@ const parseRegion = (): Promise<any> => {
     return;
 };
 
-const dispatchCalcuTask = (taskDoc: any): Promise<any> => {
+/**
+ * 根据cmp-sln中涉及到的ms，插入calcu-task条目
+ */
+const insertCalcuTask = (taskDoc: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         cmpSolutionDB
             .find({ _id: taskDoc.cmpCfg.solutionId })
@@ -302,4 +315,50 @@ const dispatchCalcuTask = (taskDoc: any): Promise<any> => {
             })
             .catch(reject);
     });
+};
+
+/**
+ * 更新cmp-task的比较结果状态
+ * 同步函数，没有保存到数据库中
+ */
+const updateTaskState = (cmpTask: any) => {
+    const setIsRunning = () => {
+        cmpTask.cmpState = CmpState.RUNNING;
+    };
+    // 有没有完成分为两部分：calcuTask-state, cmpResult-state
+    _.map((cmpTask.calcuTasks) as Array<any>, calcuTask => {
+            if(calcuTask.state === CalcuTaskState.INIT
+                || calcuTask.state === CalcuTaskState.RUNNING
+                || calcuTask.state === CalcuTaskState.START_PENDING
+            ) {
+                setIsRunning();
+                return;
+            }
+    });
+    _.map((cmpTask.cmpCfg.cmpObjs) as Array<any>, cmpObj => {
+        _.map((cmpObj.cmpResults) as Array<any>, cmpResult => {
+            if(cmpResult.state === CmpResultState.PENDING) {
+                setIsRunning();
+                return;
+            }
+        });
+    });
+}
+
+/**
+ * 更新cmpObj的dataRefer的dataId，更新的只是内存引用，没有保存到数据库中
+ * 当calcu-task计算完成时调用
+ * 同步函数
+ */
+export const updateDataRefer = (calcuTask, cmpTask) => {
+    _.map(Array<any>(calcuTask.outputs), output => {
+        _.map(cmpTask.cmpCfg.cmpObjs, cmpObj => {
+            _.map(Array<any>((<any>cmpObj).dataRefers), dataRefer => {
+                if(calcuTask.msId === dataRefer.msId && output.eventName === dataRefer.eventName) {
+                    dataRefer.dataId = output.dataId;
+                }
+            })
+        })
+    });
+    updateTaskState(cmpTask);
 };

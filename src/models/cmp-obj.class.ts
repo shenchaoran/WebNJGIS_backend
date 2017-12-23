@@ -30,14 +30,16 @@ export class CmpObj {
         desc: string
     };
     dataRefers: Array<{
-        msId: string,
+        // 独立上传的，不是模型算出来的数据
+        independent?: boolean,
+        msId?: string,
         msName?: string,
-        eventName: string,
+        eventName?: string,
         dataId?: string,
         // data 存放具体比较的配置，如chart的列名，图像处理
         data: any
     }>;
-    cmpResults?: Array<CmpReault>;
+    cmpResults?: Array<CmpResult>;
     schemaTypes: string[];
     methods: any[];
 }
@@ -45,9 +47,9 @@ export class CmpObj {
 /**
  * 这里将多个比较方法的结果都放在一起了
  */
-export class CmpReault {
+export class CmpResult {
     dataId?: string;
-    state: CmpReaultState;
+    state: CmpResultState;
     image?: {
       extent: any,
       path: string,
@@ -64,7 +66,7 @@ export class CmpReault {
     };
 }
 
-export enum CmpReaultState {
+export enum CmpResultState {
   PENDING,
   SUCCEED,
   FAILED

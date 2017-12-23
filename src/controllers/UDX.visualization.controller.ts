@@ -229,11 +229,11 @@ export const showRAWAscii = (doc: any): Promise<any> => {
             }
             
             const imgUrl = canvas.toDataURL('imag/png', 1);
-            let WSCorner = [
+            const WSCorner = [
                 spatial.xllcorner,
                 spatial.yllcorner - spatial.ysize * canvasH
             ];
-            let ENCorner = [
+            const ENCorner = [
                 spatial.xllcorner + spatial.xsize * canvasW,
                 spatial.yllcorner
             ];

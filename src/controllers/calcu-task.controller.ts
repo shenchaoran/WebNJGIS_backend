@@ -63,6 +63,12 @@ export const startMS = (nodeName: string, token?: string): Promise<any> => {
     });
 };
 
+/**
+ * 更新calcu-task记录的状态
+ * 如果计算成功，更新cmp-task，包括两部分：
+ *     把calcu-task的output的dataId插入到cmpObj对应的dataRefer中
+ *     开始进行output数据的比较
+ */
 export const updateState = (
     nodeName: string,
     taskId: string,
@@ -125,6 +131,9 @@ export const updateState = (
     });
 };
 
+/**
+ * 更新calcu-task 数据库中存的output字段
+ */
 export const updateData = (
     nodeName: string,
     taskId: string,
@@ -148,6 +157,10 @@ export const updateData = (
     });
 };
 
+/**
+ *     把calcu-task的output的dataId插入到cmpObj对应的dataRefer中
+ *     开始进行output数据的比较
+ */
 export const updateCmpTask = (calcuTaskId: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         let calcuTask, cmpTask;
@@ -180,18 +193,7 @@ export const updateCmpTask = (calcuTaskId: any): Promise<any> => {
                 });
             })
             .then(() => {
-                _.map(Array<any>(calcuTask.outputs), output => {
-                    _.map(cmpTask.cmpCfg.cmpObjs, cmpObj => {
-                        _.map(Array<any>((<any>cmpObj).dataRefers), dataRefer => {
-                            if(calcuTask.msId === dataRefer.msId 
-                                && output.eventName === dataRefer.eventName
-                            ) {
-                                dataRefer.dataId = output.dataId;
-                            }
-                        })
-                    })
-                });
-                
+                CmpTaskCtrl.updateDataRefer(calcuTask, cmpTask);
                 cmpTaskDB.update({_id: cmpTask._id}, cmpTask)
                     .then(rst => {
                         if(rst.ok && rst.writeErrors.length === 0) {
