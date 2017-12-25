@@ -10,8 +10,8 @@ const CmpTaskRouter = require('./cmp-task.route');
 const CmpSceneRouter = require('./cmp-scene.route');
 const NodeRouter = require('./computing-node.route');
 
-const router = new MyRouter();
-module.exports = router;
+export const router = new MyRouter();
+
 
 router.use('/auth', LoginRouter);
 router.use('/data', DataRouter);

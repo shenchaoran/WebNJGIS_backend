@@ -31,6 +31,7 @@ export class CmpSolution {
         time: string
     };
     cmpCfg: {
+        // ms数组用于分发计算任务，所以直接上传数据参与比较的模型就不用存在这里了
         ms: Array<{
             msId: string,
             nodeName: string

@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as CmpTaskCtrl from './cmp-task.controller';
 import { calcuTaskDB, CalcuTaskState, cmpTaskDB } from '../models';
 
-export const getInitTask = (nodeName: string, token?: string): Promise<any> => {
+export const getInitTask = (nodeName: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         calcuTaskDB
             .find({
@@ -22,7 +22,7 @@ export const getInitTask = (nodeName: string, token?: string): Promise<any> => {
 /**
  * deprecated
  */
-export const startMS = (nodeName: string, token?: string): Promise<any> => {
+export const startMS = (nodeName: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         let tasks;
         calcuTaskDB

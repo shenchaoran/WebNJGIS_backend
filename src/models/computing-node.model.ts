@@ -27,7 +27,7 @@ export class ComputingNode {
     port: string;
     auth: {
         nodeName: string,
-        token: string,
+        password: string,
         src: ResourceSrc
     }
 }

@@ -35,7 +35,7 @@ export class CmpObj {
         msId?: string,
         msName?: string,
         eventName?: string,
-        dataId?: string,
+        dataId: string,
         // data 存放具体比较的配置，如chart的列名，图像处理
         data: any
     }>;
@@ -46,6 +46,7 @@ export class CmpObj {
 
 /**
  * 这里将多个比较方法的结果都放在一起了
+ * 每一个比较方法里都有state
  */
 export class CmpResult {
     dataId?: string;
@@ -53,16 +54,17 @@ export class CmpResult {
     image?: {
       extent: any,
       path: string,
-      title: string
+      title: string,
+      state: CmpResultState
     };
     chart?: {
-
+        state: CmpResultState
     };
     GIF?: {
-
+        state: CmpResultState
     };
     statistic?: {
-
+        state: CmpResultState
     };
 }
 

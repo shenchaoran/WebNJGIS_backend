@@ -13,7 +13,7 @@ import * as proj4x from 'proj4';
 import { setting } from '../config/setting';
 const proj4 = (proj4x as any).proj4;
 
-import { UDXTableXML, geoDataDB, CmpMethodEnum } from '../models';
+import { UDXTableXML, geoDataDB, CmpMethodEnum, CmpResultState } from '../models';
 import * as StringUtils from '../utils/string.utils';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
@@ -250,7 +250,8 @@ export const showRAWAscii = (doc: any): Promise<any> => {
                     return resolve({
                         title: doc.meta.name,
                         path: imgUrl,
-                        extent: [WSCorner[0], WSCorner[1], ENCorner[0], ENCorner[1]]
+                        extent: [WSCorner[0], WSCorner[1], ENCorner[0], ENCorner[1]],
+                        state: CmpResultState.SUCCEED
                     });
                 }
             });

@@ -10,9 +10,9 @@ const jwt = require('jwt-simple');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
-import { userDB } from '../models/user.model';
+import { computingNodeDB } from '../models/user.model';
 
-module.exports = (app) => {
+export const preReqMid = (app) => {
     // 私钥
     app.set('jwtTokenSecret', setting.jwt_secret)
     // 压缩网页
@@ -92,7 +92,7 @@ module.exports = (app) => {
         }
         else {
             const err = <any>new Error(
-                'No authorization, please login in first!'
+                'No user authorization, please login in first!'
             );
             err.status = 403;
             return next(err);
@@ -107,7 +107,7 @@ module.exports = (app) => {
                     err.status = 406;
                     return next(err);
                 } else {
-                    userDB.find({ username: decoded.iss })
+                    computingNodeDB.find({ username: decoded.iss })
                         .then(users => {
                             if (users.length === 0) {
                                 const err = <any>new Error(

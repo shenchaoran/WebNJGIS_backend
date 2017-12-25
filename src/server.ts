@@ -7,16 +7,14 @@ const http = require('http');
 import { Response, Request, NextFunction } from 'express';
 //////////////////////////////////////use for debug
 const debug = require('debug');
-// (<any>global).debug = debug;
 const serverDebug = debug('WebNJGIS: Server');
 const initDebug = debug('WebNJGIS: Init');
 
 import { setting } from './config/setting';
-const router = require('./routes/index.route');
-const preRouter = require('./middlewares/pre-request.middleware');
-const postRouter = require('./middlewares/post-response.middleware');
-const ResponseModel = require('./models/response.class');
+import { router } from './routes/index.route';
+import { preReqMid, postResMid } from './middlewares';
 import { init } from './init/index';
+
 const port = setting.port;
 
 //////////////////////////////////////test
@@ -33,11 +31,11 @@ init()
         // app.set("view engine", "ejs");
 
         // pre-request
-        preRouter(app);
+        preReqMid(app);
         // request/response
         app.use('/', router);
         // post-response
-        postRouter(app);
+        postResMid(app);
         //////////////////////////////////////
         const server = http.createServer(app);
         server.listen(app.get('port'));
