@@ -13,7 +13,7 @@ class CmpSolutionDB extends Mongoose {
         const collectionName = 'CmpSolution';
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
-            cfg: mongoose.Schema.Types.Mixed,
+            cmpCfg: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed
         };
 
@@ -34,7 +34,8 @@ export class CmpSolution {
         // ms数组用于分发计算任务，所以直接上传数据参与比较的模型就不用存在这里了
         ms: Array<{
             msId: string,
-            nodeName: string
+            nodeName: string,
+            participate: boolean
         }>,
         cmpObjs: Array<CmpObj>,
         keynote: {

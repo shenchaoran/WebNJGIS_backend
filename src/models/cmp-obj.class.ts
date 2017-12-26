@@ -29,6 +29,8 @@ export class CmpObj {
         name: string,
         desc: string
     };
+    // 此处的数据参考是比较对象的数据参考，可能是输入，但绝大多数都是输出
+    // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<{
         // 独立上传的，不是模型算出来的数据
         independent?: boolean,

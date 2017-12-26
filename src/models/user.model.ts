@@ -14,7 +14,7 @@ class UserDB extends Mongoose {
     }
 }
 
-export const computingNodeDB = new UserDB();
+export const userDB = new UserDB();
 
 export class UserClass {
     _id?: any

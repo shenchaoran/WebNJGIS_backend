@@ -107,6 +107,8 @@ export const insert = (doc: any): Promise<any> => {
         cmpTaskDB
             .insert(doc)
             .then(_doc => {
+                // TODO 没有管then
+                updateCmpResult(_doc);
                 return resolve(_doc);
             })
             .catch(reject);
@@ -114,6 +116,8 @@ export const insert = (doc: any): Promise<any> => {
 };
 
 /**
+ * 开始比较的入口
+ * 在两处调用：calculate-task计算完成后，开始结算结果的比较；插入cmp-task时，开始上传数据的比较
  * 更新cmpTask的比较结果
  * 从dataRefer中取数据，如果该data没有做过cmp，就让他去参与比较，并将比较结果更新到数据库中
  */
@@ -346,7 +350,7 @@ const updateTaskState = (cmpTask: any) => {
 }
 
 /**
- * 更新cmpObj的dataRefer的dataId，更新的只是内存引用，没有保存到数据库中
+ * 更新cmpObj的dataRefer的dataId（模型计算结果的dataId），更新的只是内存引用，没有保存到数据库中
  * 当calcu-task计算完成时调用
  * 同步函数
  */

@@ -44,6 +44,7 @@ export class CmpTask {
         cmpObjs?: Array<CmpObj>
         // TODO 相关比较的结果对象
     };
+    // 计算配置，即输入数据
     calcuCfg: CalcuCfg;
     cmpState: CmpState;
     calcuTasks: Array<{
@@ -62,6 +63,7 @@ export enum CmpState {
 export class CalcuCfg {
     dataSrc: 'std' | 'upload';
     // upload
+    // 此处为输入数据的引用参考，和cmpObj中的不同，后者是比较对象中的数据引用，大多数是输出文件
     dataRefers?: Array<{
         msId: string;
         eventName: string;
@@ -74,7 +76,7 @@ export class CalcuCfg {
             point?: any,
             polygon?: any,
             multiPoint?: any
-        };
+        },
         temporal?: {
             start: number;
             end: number;
