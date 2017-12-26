@@ -9,8 +9,8 @@ import { ResourceSrc } from './resource.enum';
 
 export class UDXCfg {
     elements?: {
-        entrance: string,
-        entries: string[]
+        entrance?: string,
+        entries?: string[]
     };
     meta: {
         desc?: string,
