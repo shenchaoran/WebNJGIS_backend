@@ -59,7 +59,9 @@ export const compare = (dataId: string, methods: string[]): Promise<any> => {
                         case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_STATISTIC]:
                             return PropCtrl.statisticRAWAscii(doc); 
                         case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_VISUALIZATION]:
-                            return VisualCtrl.showRAWAscii(doc);
+                            // TODO
+                            // return VisualCtrl.showRAWAscii(doc);
+                            return VisualCtrl.showRAWAsciiBatch(doc);
                         case CmpMethodEnum[CmpMethodEnum.GIF]:
                             return VisualCtrl.showGIF(doc);
                         case CmpMethodEnum[CmpMethodEnum.SHAPEFILE_INTERPOLATION]:
@@ -76,15 +78,17 @@ export const compare = (dataId: string, methods: string[]): Promise<any> => {
                             throw new Error('Error comparison method!');
                     }
                 });
-                return Promise.all(promises)
-                    .then(rsts => {
-                        let cmpRst = {};
-                        _.map(rsts, rst => (cmpRst = {...rst, ...cmpRst}));
-                        return Promise.resolve(cmpRst);
-                    })
-                    .catch(err => {
-                        return Promise.reject(err);
-                    });
+                return new Promise((resolve, reject) => {
+                    Promise.all(promises)
+                        .then(rsts => {
+                            let cmpRst = {};
+                            _.map(rsts, rst => (cmpRst = {...rst, ...cmpRst}));
+                            return resolve(cmpRst);
+                        })
+                        .catch(err => {
+                            return reject(err);
+                        });
+                });
             })
             .then(rsts => {
                 resolve(rsts);

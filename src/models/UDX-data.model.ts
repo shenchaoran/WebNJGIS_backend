@@ -8,7 +8,7 @@ class GeoDataDB extends Mongoose {
     constructor() {
         const collectionName = 'Geo_Data';
         const schema = {
-            file: mongoose.Schema.Types.Mixed,
+            meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             udxcfg: mongoose.Schema.Types.Mixed
         };

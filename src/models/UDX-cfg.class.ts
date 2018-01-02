@@ -14,24 +14,14 @@ export class UDXCfg {
     };
     meta: {
         desc?: string,
-        isExample: boolean,
-        isOutput?: boolean,
-        spatial?: {
-            dimension: 'point' | 'polygon' | 'multi-point',
-            point?: any,
-            polygon?: any,
-            multiPoint?: any
-        },
-
-        // point
+        isExample?: boolean,
+        spatial?: any,
         temporal: {
-            start: number,
-            end: number,
-            date?: string,
+            // [start, end]
+            start?: string,
+            end?: string,
             scale: 'YEAR' | 'DAY'
         },
-
-        // polygon
         feature?: string
     };
     schema$?: UDXSchema;
@@ -44,17 +34,10 @@ export class UDXCfg {
         this.meta = {
             desc: undefined,
             isExample: false,
-            isOutput: false,
-            spatial: {
-                dimension: undefined,
-                point: {},
-                polygon: {},
-                multiPoint: {}
-            },
+            spatial: {},
             temporal: {
                 start: undefined,
                 end: undefined,
-                date: undefined,
                 scale: 'DAY'
             },
             feature: undefined

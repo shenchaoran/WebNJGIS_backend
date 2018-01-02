@@ -21,4 +21,4 @@ router.use('/visualization', VisualizationRouter);
 router.use('/comparison/solutions', CmpSolutionRouter);
 router.use('/comparison/tasks', CmpTaskRouter);
 router.use('/comparison/scenes', CmpSceneRouter);
-router.use('/nodes', NodeRouter)
+router.use('/nodes', NodeRouter);

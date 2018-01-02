@@ -34,5 +34,8 @@ export const setting = {
         parse: {
             maxSize: 10000
         }
+    },
+    debug: {
+        child_process: true
     }
 };

@@ -38,6 +38,7 @@ router.route('/login')
                     succeed: true,
                     template: {}
                 };
+                return next();
             })
             .catch(next);
     });
@@ -64,7 +65,7 @@ router
                 }
             })
                 .then(updateRst => {
-                    if(updateRst.writeErrors.length === 0 && updateRst.ok) {
+                    // if(updateRst.writeErrors.length === 0 && updateRst.ok) {
                         res.locals = {
                             resData: {
                                 succeed: true
@@ -73,7 +74,7 @@ router
                             template: {}
                         };
                         return next();
-                    }
+                    // }
                 })
                 .catch(next);
         }

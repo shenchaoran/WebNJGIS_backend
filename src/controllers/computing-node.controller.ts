@@ -14,10 +14,8 @@ export const login = (authInfo: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         computingNodeDB
             .find({
-                auth: {
-                    nodeName: authInfo.nodeName,
-                    password: authInfo.password
-                }
+                    "auth.nodeName": authInfo.nodeName,
+                    "auth.password": authInfo.password
             })
             .then(docs => {
                 if (docs.length) {

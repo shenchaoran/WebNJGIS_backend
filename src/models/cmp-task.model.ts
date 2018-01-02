@@ -19,7 +19,8 @@ class CmpTaskDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             cmpCfg: mongoose.Schema.Types.Mixed,
             calcuCfg: mongoose.Schema.Types.Mixed,
-            calcuTasks: mongoose.Schema.Types.Mixed
+            calcuTasks: mongoose.Schema.Types.Mixed,
+            cmpState: Number
         };
 
         super(collectionName, schema);
@@ -54,7 +55,8 @@ export class CmpTask {
 }
 
 export enum CmpState {
-    RUNNING = 0,
+    INIT = 0,
+    RUNNING,
     SUCCEED,
     FAILED
 }

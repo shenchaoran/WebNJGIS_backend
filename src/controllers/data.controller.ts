@@ -14,7 +14,7 @@ import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
 const debug = require('debug');
 const dataDebug = debug('WebNJGIS: Data');
-import UDXComparators = require('./UDX.compare.control');
+import * as UDXComparators from './UDX.compare.controller';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { UDXSchema } from '../models/UDX-schema.class';
 import { ResourceSrc } from '../models/resource.enum';
@@ -85,7 +85,7 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
             _.map(personalDocs, doc => {
                 trees.personal[0].items.push({
                     type: 'leaf',
-                    label: (<any>doc).file.name,
+                    label: (<any>doc).meta.name,
                     value: doc,
                     id: (<any>doc)._id
                 });
@@ -95,7 +95,7 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     // _.map(stdDocs, doc => {
     //     trees.std[0].items.push({
     //         type: 'leaf',
-    //         label: doc.file.name,
+    //         label: doc.meta.name,
     //         value: doc,
     //         id: doc._id
     //     });
@@ -103,7 +103,7 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     _.map(publicDocs, doc => {
         trees.public[0].items.push({
             type: 'leaf',
-            label: doc.file.name,
+            label: doc.meta.name,
             value: doc,
             id: doc._id
         });
@@ -160,36 +160,46 @@ export const insert = (req: Request, res: Response, next: NextFunction) => {
                         'geo-data',
                         oid.toHexString()
                     );
-                    const unzipExtractor = unzip.Extract({ path: unzipPath });
-                    fs.createReadStream(newPath).pipe(unzipExtractor);
-                    unzipExtractor.on('error', err => next(err));
-                    unzipExtractor.on('close', () => {
-                        const cfgPath = path.join(unzipPath, 'index.json');
-                        parseUDXCfg(cfgPath).then(udxcfg => {
-                            const newItem = {
-                                _id: oid,
-                                meta: {
-                                    name: filename,
-                                    path: newName,
-                                    desc: fields.desc
-                                },
-                                auth: {
-                                    userId: fields.userId,
-                                    src: fields.src
-                                },
-                                udxcfg: udxcfg,
-                            };
-                            geoDataDB
-                                .insert(newItem)
-                                .then(doc => {
-                                    res.locals.resData = {doc: doc};
-                                    res.locals.template = {};
-                                    res.locals.succeed = true;
-                                    return next();
-                                })
-                                .catch(next);
+                    try {
+                        fs.createReadStream(newPath).pipe(unzip.Extract({ path: unzipPath }))
+                        .on('error', err => next(err))
+                        .on('close', () => {
+                            const cfgPath = path.join(unzipPath, 'index.json');
+                            
+                            // res.locals.resData = {doc: {}};
+                            // res.locals.template = {};
+                            // res.locals.succeed = true;
+                            // return next();
+                            parseUDXCfg(cfgPath).then(udxcfg => {
+                                const newItem = {
+                                    _id: oid,
+                                    meta: {
+                                        name: filename,
+                                        path: oid.toHexString(),
+                                        desc: fields.desc
+                                    },
+                                    auth: {
+                                        userId: fields.userId,
+                                        src: fields.src
+                                    },
+                                    udxcfg: udxcfg,
+                                };
+                                geoDataDB
+                                    .insert(newItem)
+                                    .then(doc => {
+                                        res.locals.resData = {doc: doc};
+                                        res.locals.template = {};
+                                        res.locals.succeed = true;
+                                        return next();
+                                    })
+                                    .catch(next);
+                            });
                         });
-                    });
+                    }
+                    catch(e) {
+                        console.log(e);
+                        return next(e);
+                    }
                 } else {
                     dataDebug('Upload data type error!');
                     return next(new Error('Upload data type error!'));
@@ -370,7 +380,7 @@ export const download = (id: string): Promise<any> => {
                                 } else {
                                     return resolve({
                                         length: data.length,
-                                        filename: doc.file.name,
+                                        filename: doc.meta.name,
                                         data: data
                                     });
                                 }

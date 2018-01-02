@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 import * as Promise from 'bluebird';
 const jwt = require('jwt-simple');
 const moment = require('moment');
+import * as _ from 'lodash';
 
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
@@ -34,6 +35,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
                     setting.jwt_secret
                 );
 
+                user.password = 'u guess!';
                 res.locals.resData = {
                     succeed: true,
                     jwt: {

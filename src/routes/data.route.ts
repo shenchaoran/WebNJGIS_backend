@@ -10,6 +10,11 @@ const db = geoDataDB;
 const router = new MyRouter();
 module.exports = router;
 
+// region auth
+import { userAuthMid } from '../middlewares/user-auth.middleware';
+userAuthMid(router);
+// endregion
+
 router.route('/')
     .post(DataCtrl.insert)
     .get((req: Request, res: Response, next: NextFunction) => {

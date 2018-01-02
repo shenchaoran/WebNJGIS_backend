@@ -9,7 +9,7 @@ import * as mongoose from 'mongoose';
 
 import { UDXCfg } from '../models/UDX-cfg.class';
 import * as PropParser from './UDX.property.controller';
-import * as UDXComparators from './UDX.compare.control';
+import * as UDXComparators from './UDX.compare.controller';
 import {
     cmpTaskDB,
     cmpSolutionDB,
@@ -19,7 +19,7 @@ import {
     SchemaName,
     CmpMethodEnum,
     CmpResultState,
-    CmpState,
+    CmpState
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
@@ -85,15 +85,16 @@ export const start = (id: string): Promise<any> => {
             .then(docs => {
                 if (docs.length) {
                     const doc = docs[0];
-                    return resolve(doc);
+                    return Promise.resolve(doc);
                 } else {
-                    return reject(new Error("Can't find this task!"));
+                    return Promise.reject(new Error("Can't find this task!"));
                 }
             })
             .then(doc => {
-                // TODO
+                // TODO 没有管then
+                updateCmpResult(doc);
                 insertCalcuTask(doc)
-                    .then(_doc => {
+                    .then(() => {
                         return resolve();
                     })
                     .catch(reject);
@@ -107,8 +108,6 @@ export const insert = (doc: any): Promise<any> => {
         cmpTaskDB
             .insert(doc)
             .then(_doc => {
-                // TODO 没有管then
-                updateCmpResult(_doc);
                 return resolve(_doc);
             })
             .catch(reject);
@@ -117,26 +116,26 @@ export const insert = (doc: any): Promise<any> => {
 
 /**
  * 开始比较的入口
- * 在两处调用：calculate-task计算完成后，开始结算结果的比较；插入cmp-task时，开始上传数据的比较
+ * 在两处调用：calculate-task计算完成后，开始结算结果的比较；start cmp-task时，开始上传数据的比较
  * 更新cmpTask的比较结果
  * 从dataRefer中取数据，如果该data没有做过cmp，就让他去参与比较，并将比较结果更新到数据库中
  */
 export const updateCmpResult = (cmpTask: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        _.map(Array<any>(cmpTask.cmpCfg.cmpObjs), (cmpObj, i) => {
+        _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, (cmpObj, i) => {
             const methods = [];
-            _.map(Array<any>(cmpObj.methods), method => {
+            _.map(cmpObj.methods as Array<any>, method => {
                 if (method.checked === true) {
                     methods.push(method.value);
                 }
             });
-            if (methods.length !== 1) {
+            if (methods.length < 1) {
                 return reject(new Error('invalidate comparison solution!'));
             }
-            _.map(Array<any>(cmpObj.dataRefers), (dataRefer, j) => {
+            _.map(cmpObj.dataRefers as Array<any>, (dataRefer, j) => {
                 if (dataRefer.dataId) {
                     let hasCreated = false;
-                    _.find(Array<any>(cmpObj.cmpResults), cmpResult => {
+                    _.find(cmpObj.cmpResults as Array<any>, cmpResult => {
                         if (cmpResult.dataId === dataRefer.dataId) {
                             hasCreated = true;
                         }
@@ -146,10 +145,10 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                         // 可以通过 $each 解决，一次向数组中插入多个元素
                         const key = `cmpCfg.cmpObjs.${i}.cmpResults`;
                         const pushObj = {};
-                        _.set(pushObj, key, {
-                            dataId: dataRefer.dataId,
-                            state: CmpResultState.PENDING
-                        });
+                        pushObj[key] = {
+                            state: CmpResultState.RUNNING,
+                            dataId: dataRefer.dataId
+                        };
                         cmpTaskDB
                             .update(
                                 {
@@ -158,73 +157,75 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                                 {
                                     $push: pushObj,
                                     $set: {
-                                        cmpState: 0
+                                        cmpState: CmpState.RUNNING
                                     }
                                 }
                             )
                             .then(updateRst => {
-                                if (updateRst.ok && updateRst.writeErrors.length === 0) {
-                                    ChildProcessCtrl.newCmpProcess(dataRefer.dataId, methods)
-                                        .then(cmpRst => {
-                                            // TODO
-                                            const findObj = {
-                                                _id: cmpTask._id
-                                            };
-                                            _.set(
-                                                findObj,
-                                                `cmpCfg.cmpObjs.${i}.cmpResults.dataId`,
-                                                dataRefer.dataId
-                                            );
-                                            const setObj = {};
-                                            cmpRst.dataId = dataRefer.dataId;
-                                            cmpRst.state = CmpResultState.SUCCEED;
-                                            _.set(
-                                                setObj,
-                                                `cmpCfg.cmpObjs.${i}.cmpResults.$`,
-                                                cmpRst
-                                            );
-                                            cmpTaskDB
-                                                .update(findObj, {
-                                                    $set: setObj
-                                                })
-                                                .then(updateRst => {
-                                                    updateTaskState(cmpTask);
-                                                    cmpTaskDB.update(findObj, cmpTask);
-                                                    // if (
-                                                    //     updateRst.ok &&
-                                                    //     updateRst.writeErrors.length === 0
-                                                    // ) {
-                                                    // } else {
-                                                    //     const setObj = {};
-                                                    //     _.set(
-                                                    //         setObj,
-                                                    //         `cmpCfg.cmpObjs.${i}.cmpResults.$.state`,
-                                                    //         CmpResultState.FAILED
-                                                    //     );
-                                                    //     cmpTaskDB.update(
-                                                    //         findObj,
-                                                    //         {
-                                                    //             $set: setObj
-                                                    //         }
-                                                    //     );
-                                                    //     console.log(
-                                                    //         new Error(
-                                                    //             'update comparison task failed'
-                                                    //         )
-                                                    //     );
-                                                    // }
-                                                });
-                                        })
-                                        .catch(err => {
-                                            console.log(err);
-                                        });
-                                } else {
-                                    console.log(
-                                        new Error(
-                                            'update comparison task failed'
-                                        )
-                                    );
-                                }
+                                ChildProcessCtrl.newCmpProcess(
+                                    dataRefer.dataId,
+                                    methods
+                                )
+                                    .then(cmpRst => {
+                                        // TODO
+                                        const findKey = `cmpCfg.cmpObjs.${i}.cmpResults.dataId`;
+                                        const findObj = {
+                                            _id: cmpTask._id
+                                        };
+                                        findObj[findKey] = dataRefer.dataId;
+                                        const setObj = {};
+                                        setObj[
+                                            `cmpCfg.cmpObjs.${i}.cmpResults.$`
+                                        ] = {
+                                            dataId: dataRefer.dataId,
+                                            state: CmpResultState.SUCCEED,
+                                            image: cmpRst.image,
+                                            chart: cmpRst.chart,
+                                            GIF: cmpRst.GIF,
+                                            statistic: cmpRst.statistic
+                                        };
+                                        cmpTaskDB
+                                            .update(findObj, {
+                                                $set: setObj
+                                            })
+                                            .then(updateRst => {
+                                                        // updateTaskState(
+                                                        //     cmpTask
+                                                        // );
+
+                                                        // cmpTaskDB.update(
+                                                        //     findObj,
+                                                        //     cmpTask
+                                                        // );
+
+                                                        // if (
+                                                        //     updateRst.ok &&
+                                                        //     updateRst.writeErrors.length === 0
+                                                        // ) {
+                                                        // } else {
+                                                        //     const setObj = {};
+                                                        //     _.set(
+                                                        //         setObj,
+                                                        //         `cmpCfg.cmpObjs.${i}.cmpResults.$.state`,
+                                                        //         CmpResultState.FAILED
+                                                        //     );
+                                                        //     cmpTaskDB.update(
+                                                        //         findObj,
+                                                        //         {
+                                                        //             $set: setObj
+                                                        //         }
+                                                        //     );
+                                                        //     console.log(
+                                                        //         new Error(
+                                                        //             'update comparison task failed'
+                                                        //         )
+                                                        //     );
+                                                        // }
+                                            });
+                                    })
+                                    .catch(err => {
+                                        console.log(err);
+                                    });
                             })
                             .catch(console.log);
                     }
@@ -241,48 +242,57 @@ const parseRegion = (): Promise<any> => {
 /**
  * 根据cmp-sln中涉及到的ms，插入calcu-task条目
  */
-const insertCalcuTask = (taskDoc: any): Promise<any> => {
+const insertCalcuTask = (cmpTask: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         cmpSolutionDB
-            .find({ _id: taskDoc.cmpCfg.solutionId })
+            .find({ _id: cmpTask.cmpCfg.solutionId })
             .then(docs => {
                 if (docs.length) {
                     const solution = docs[0];
                     return Promise.resolve(solution);
                 } else {
-                    return reject(
+                    return Promise.reject(
                         new Error("can't find related comparison solution")
                     );
                 }
             })
             .then(sln => {
-                const msList = <Array<any>>sln.cfg.ms;
-                const calcuTasks = _.map(msList, ms => {
-                    if (taskDoc.calcuCfg.dataSrc === 'std') {
-                        return {
-                            _id: new ObjectID(),
-                            msId: ms.msId,
-                            cmpTaskId: taskDoc._id,
-                            nodeName: ms.nodeName,
-                            calcuCfg: taskDoc.calcuCfg,
-                            state: CalcuTaskState.INIT
-                        } as CalcuTask;
-                    } else if (taskDoc.calcuCfg.dataSrc === 'upload') {
-                        const calcuCfg = _.cloneDeep(taskDoc.calcuCfg);
-                        calcuCfg.dataRefers = _.filter(
-                            calcuCfg.dataRefers,
-                            refer => {
-                                return (<any>refer).msId === ms.msId;
-                            }
-                        );
-                        return {
-                            _id: new ObjectID(),
-                            msId: ms.msId,
-                            cmpTaskId: taskDoc._id,
-                            nodeName: ms.nodeName,
-                            calcuCfg: calcuCfg,
-                            state: CalcuTaskState.INIT
-                        } as CalcuTask;
+                const msList = sln.cmpCfg.ms as Array<any>;
+                const tempMSStarted = {};
+                const calcuTasks = [];
+                _.map(msList, ms => {
+                    if (
+                        ms.participate &&
+                        tempMSStarted[ms.msId] === undefined
+                    ) {
+                        // 避免重复插入计算任务
+                        tempMSStarted[ms.msId] = true;
+                        if (cmpTask.calcuCfg.dataSrc === 'std') {
+                            calcuTasks.push({
+                                _id: new ObjectID(),
+                                msId: ms.msId,
+                                cmpTaskId: cmpTask._id,
+                                nodeName: ms.nodeName,
+                                calcuCfg: cmpTask.calcuCfg,
+                                state: CalcuTaskState.INIT
+                            } as CalcuTask);
+                        } else if (cmpTask.calcuCfg.dataSrc === 'upload') {
+                            const calcuCfg = _.cloneDeep(cmpTask.calcuCfg);
+                            calcuCfg.dataRefers = _.filter(
+                                calcuCfg.dataRefers,
+                                refer => {
+                                    return (<any>refer).msId === ms.msId;
+                                }
+                            );
+                            calcuTasks.push({
+                                _id: new ObjectID(),
+                                msId: ms.msId,
+                                cmpTaskId: cmpTask._id,
+                                nodeName: ms.nodeName,
+                                calcuCfg: calcuCfg,
+                                state: CalcuTaskState.INIT
+                            } as CalcuTask);
+                        }
                     }
                 });
                 return Promise.all(
@@ -305,18 +315,18 @@ const insertCalcuTask = (taskDoc: any): Promise<any> => {
                     })
                 )
                     .then(rsts => {
-                        return Promise.resolve(sln);
+                        return resolve();
                     })
                     .catch(reject);
             })
-            .then(sln => {
-                cmpTaskDB
-                    .insert(sln)
-                    .then(_doc => {
-                        return resolve(_doc);
-                    })
-                    .catch(reject);
-            })
+            // .then(sln => {
+            //     cmpTaskDB
+            //         .insert(sln)
+            //         .then(_doc => {
+            //             return resolve(_doc);
+            //         })
+            //         .catch(reject);
+            // })
             .catch(reject);
     });
 };
@@ -330,24 +340,25 @@ const updateTaskState = (cmpTask: any) => {
         cmpTask.cmpState = CmpState.RUNNING;
     };
     // 有没有完成分为两部分：calcuTask-state, cmpResult-state
-    _.map((cmpTask.calcuTasks) as Array<any>, calcuTask => {
-            if(calcuTask.state === CalcuTaskState.INIT
-                || calcuTask.state === CalcuTaskState.RUNNING
-                || calcuTask.state === CalcuTaskState.START_PENDING
-            ) {
-                setIsRunning();
-                return;
-            }
+    _.map(cmpTask.calcuTasks as Array<any>, calcuTask => {
+        if (
+            calcuTask.state === CalcuTaskState.INIT ||
+            calcuTask.state === CalcuTaskState.RUNNING ||
+            calcuTask.state === CalcuTaskState.START_PENDING
+        ) {
+            setIsRunning();
+            return;
+        }
     });
-    _.map((cmpTask.cmpCfg.cmpObjs) as Array<any>, cmpObj => {
-        _.map((cmpObj.cmpResults) as Array<any>, cmpResult => {
-            if(cmpResult.state === CmpResultState.PENDING) {
+    _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
+        _.map(cmpObj.cmpResults as Array<any>, cmpResult => {
+            if (cmpResult.state === CmpResultState.RUNNING) {
                 setIsRunning();
                 return;
             }
         });
     });
-}
+};
 
 /**
  * 更新cmpObj的dataRefer的dataId（模型计算结果的dataId），更新的只是内存引用，没有保存到数据库中
@@ -357,12 +368,15 @@ const updateTaskState = (cmpTask: any) => {
 export const updateDataRefer = (calcuTask, cmpTask) => {
     _.map(Array<any>(calcuTask.outputs), output => {
         _.map(cmpTask.cmpCfg.cmpObjs, cmpObj => {
-            _.map(Array<any>((<any>cmpObj).dataRefers), dataRefer => {
-                if(calcuTask.msId === dataRefer.msId && output.eventName === dataRefer.eventName) {
+            _.map((<any>cmpObj).dataRefers as Array<any>, dataRefer => {
+                if (
+                    calcuTask.msId === dataRefer.msId &&
+                    output.eventName === dataRefer.eventName
+                ) {
                     dataRefer.dataId = output.dataId;
                 }
-            })
-        })
+            });
+        });
     });
     updateTaskState(cmpTask);
 };

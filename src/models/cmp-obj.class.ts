@@ -33,7 +33,7 @@ export class CmpObj {
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<{
         // 独立上传的，不是模型算出来的数据
-        independent?: boolean,
+        independent?: boolean,// 暂时还没用到这个字段，默认认为ms的participate为false时是独立上传的
         msId?: string,
         msName?: string,
         eventName?: string,
@@ -53,12 +53,12 @@ export class CmpObj {
 export class CmpResult {
     dataId?: string;
     state: CmpResultState;
-    image?: {
+    image?: [{
       extent: any,
       path: string,
       title: string,
       state: CmpResultState
-    };
+    }];
     chart?: {
         state: CmpResultState
     };
@@ -71,7 +71,7 @@ export class CmpResult {
 }
 
 export enum CmpResultState {
-  PENDING,
+  RUNNING,
   SUCCEED,
   FAILED
 }

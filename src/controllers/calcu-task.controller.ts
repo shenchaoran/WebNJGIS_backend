@@ -51,13 +51,13 @@ export const startMS = (nodeName: string): Promise<any> => {
                 );
             })
             .then(updateRst => {
-                if (updateRst.ok && updateRst.writeErrors.length === 0) {
+                // if (updateRst.ok && updateRst.writeErrors.length === 0) {
                     return resolve(tasks);
-                } else {
-                    return reject(
-                        new Error('error in update calculate tasks!')
-                    );
-                }
+                // } else {
+                //     return reject(
+                //         new Error('error in update calculate tasks!')
+                //     );
+                // }
             })
             .catch(reject);
     });
@@ -115,17 +115,17 @@ export const updateState = (
                 }
             )
             .then(rst => {
-                if (rst.ok && rst.writeErrors.length === 0) {
+                // if (rst.ok && rst.writeErrors.length === 0) {
                     if (newState === CalcuTaskState.RUN_SUCCEED) {
                         // TODO 更新cmp-task
                         updateCmpTask(taskId);
                     }
                     return resolve();
-                } else {
-                    return reject(
-                        new Error('update calculate task state failed!')
-                    );
-                }
+                // } else {
+                //     return reject(
+                //         new Error('update calculate task state failed!')
+                //     );
+                // }
             })
             .catch(reject);
     });
@@ -196,12 +196,12 @@ export const updateCmpTask = (calcuTaskId: any): Promise<any> => {
                 CmpTaskCtrl.updateDataRefer(calcuTask, cmpTask);
                 cmpTaskDB.update({_id: cmpTask._id}, cmpTask)
                     .then(rst => {
-                        if(rst.ok && rst.writeErrors.length === 0) {
+                        // if(rst.ok && rst.writeErrors.length === 0) {
                             return Promise.resolve();
-                        }
-                        else {
-                            return Promise.reject(new Error('update comparison task error!'));
-                        }
+                        // }
+                        // else {
+                        //     return Promise.reject(new Error('update comparison task error!'));
+                        // }
                     })
                     .catch(reject);
             })

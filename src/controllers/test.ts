@@ -91,3 +91,15 @@ console.log({
     ...c,
     ...d
 });
+
+////////////////////////////// proj4 test
+const proj4 = require('proj4');
+const coor = proj4('EPSG:3857').forward([180, -89]);
+console.log(coor);
+//////////////////////////////
+
+////////////////////////////// canvas test
+const Canvas = require('canvas');
+const canvas = new Canvas(200, 200);
+const ctx = canvas.getContext('2d');
+//////////////////////////////
