@@ -103,3 +103,16 @@ const Canvas = require('canvas');
 const canvas = new Canvas(200, 200);
 const ctx = canvas.getContext('2d');
 //////////////////////////////
+
+// 
+enum SchemaName {
+    TABLE_RAW = 'TABLE_RAW',
+    SHAPEFILE_RAW = 'SHAPEFILE_RAW',
+    ASCII_GRID_RAW = 'ASCII_GRID_RAW',
+    ASCII_GRID_RAW_BATCH = 'ASCII_GRID_RAW_BATCH'
+}
+
+_.forIn(SchemaName, (v, k) => {
+    console.log(k);
+});
+//

@@ -4,6 +4,7 @@ const app = express();
 const path = require('path');
 const util = require('util');
 const http = require('http');
+import * as _ from 'lodash';
 import { Response, Request, NextFunction } from 'express';
 //////////////////////////////////////use for debug
 const debug = require('debug');
@@ -18,8 +19,7 @@ import { init } from './init/index';
 const port = setting.port;
 
 //////////////////////////////////////test
-// import { testSplit } from './controllers/test1';
-// testSplit();
+
 //////////////////////////////////////init operation
 //TODO 创建文件夹 upload/geo-data
 init()

@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import { ResourceSrc } from './resource.enum';
 
 export enum SchemaName {
-    TABLE_RAW,
+    TABLE_RAW = 0,
     SHAPEFILE_RAW,
     ASCII_GRID_RAW,
     ASCII_GRID_RAW_BATCH

@@ -3,7 +3,7 @@
  */
 
 export enum ResourceSrc {
-    INTERNAL= 0,
+    INTERNAL = 0,
     EXTERNAL,
     PUBLIC,
     PRIVATE,

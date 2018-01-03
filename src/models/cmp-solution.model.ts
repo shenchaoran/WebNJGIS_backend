@@ -1,5 +1,5 @@
 /**
- * 比较方案只是比较对象的集合
+ * 比较方案用来描述比较对象的schema和比较方法
  */
 
 import { Mongoose } from './mongoose.base';
@@ -28,17 +28,18 @@ export class CmpSolution {
     meta: {
         name: string,
         desc: string,
-        time: string
+        time: number
     };
     cmpCfg: {
-        // ms数组用于分发计算任务，所以直接上传数据参与比较的模型就不用存在这里了
-        ms: Array<{
-            msId: string,
-            msName: string,
-            nodeName: string,
-            participate: boolean
+        cmpObjs: Array<{
+            id: string,
+            meta: {
+                name: string,
+                desc: string
+            },
+            schemaName: string,
+            methods: string[]
         }>,
-        cmpObjs: Array<CmpObj>,
         keynote: {
             direction: 'x'|'y',
             dimension: 'point' | 'polygon' | 'multi-point'
