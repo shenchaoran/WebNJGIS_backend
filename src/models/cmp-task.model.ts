@@ -68,26 +68,29 @@ export class CmpTask {
                 msId?: string,
                 msName?: string,
                 eventName?: string,
-                dataId: string,
+                dataId?: string,
                 // data 存放具体比较的配置，如chart的列名，图像处理
                 data: any,
-                cmpResult: {
-                    state: CmpResultState,
+                cmpResult?: {
+                    state: CmpState,
                     image?: [{
                       extent: any,
                       path: string,
                       title: string,
-                      state: CmpResultState
+                      state: CmpState
                     }],
                     chart?: {
-                        state: CmpResultState
+                        state: CmpState
                     },
                     GIF?: {
-                        state: CmpResultState
+                        state: CmpState
                     },
                     statistic?: {
-                        state: CmpResultState
+                        state: CmpState
                     },
+                },
+                attached: {
+                    src: ''
                 }
             }>,
             attached: any
@@ -105,12 +108,6 @@ export class CmpTask {
 export enum CmpState {
     INIT = 0,
     RUNNING,
-    SUCCEED,
-    FAILED
-}
-
-export enum CmpResultState {
-    RUNNING = 0,
     SUCCEED,
     FAILED
 }

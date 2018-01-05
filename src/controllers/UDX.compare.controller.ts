@@ -60,7 +60,8 @@ export const compare = (dataId: string, methods: string[]): Promise<any> => {
                             return PropCtrl.statisticRAWAscii(doc); 
                         case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_VISUALIZATION]:
                             // TODO
-                            // return VisualCtrl.showRAWAscii(doc);
+                            return VisualCtrl.showRAWAscii(doc);
+                        case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_BATCH_VISUALIZATION]:
                             return VisualCtrl.showRAWAsciiBatch(doc);
                         case CmpMethodEnum[CmpMethodEnum.GIF]:
                             return VisualCtrl.showGIF(doc);

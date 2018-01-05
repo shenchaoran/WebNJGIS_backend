@@ -18,8 +18,8 @@ import {
     CalcuTaskState,
     SchemaName,
     CmpMethodEnum,
-    CmpResultState,
-    CmpState
+    CmpState,
+    
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
@@ -123,69 +123,52 @@ export const insert = (doc: any): Promise<any> => {
 export const updateCmpResult = (cmpTask: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, (cmpObj, i) => {
-            const methods = [];
-            _.map(cmpObj.methods as Array<any>, method => {
-                if (method.checked === true) {
-                    methods.push(method.value);
-                }
-            });
-            if (methods.length < 1) {
+            if (cmpObj.methods.length < 1) {
                 return reject(new Error('invalidate comparison solution!'));
             }
             _.map(cmpObj.dataRefers as Array<any>, (dataRefer, j) => {
                 if (dataRefer.dataId) {
-                    let hasCreated = false;
-                    _.find(cmpObj.cmpResults as Array<any>, cmpResult => {
-                        if (cmpResult.dataId === dataRefer.dataId) {
-                            hasCreated = true;
-                        }
-                    });
-                    if (!hasCreated) {
+                    if (dataRefer.cmpResult === undefined || 
+                        dataRefer.cmpResult.state === CmpState.INIT
+                    ) {
                         // TODO 可能存在并发问题
                         // 可以通过 $each 解决，一次向数组中插入多个元素
-                        const key = `cmpCfg.cmpObjs.${i}.cmpResults`;
-                        const pushObj = {};
-                        pushObj[key] = {
-                            state: CmpResultState.RUNNING,
-                            dataId: dataRefer.dataId
+                        const key = `cmpCfg.cmpObjs.${i}.dataRefers.${j}.cmpResult`;
+                        const setObj = {};
+                        setObj[key] = {
+                            state: CmpState.RUNNING
                         };
+                        setObj['cmpState'] = CmpState.INIT;
                         cmpTaskDB
                             .update(
                                 {
                                     _id: cmpTask._id
                                 },
                                 {
-                                    $push: pushObj,
-                                    $set: {
-                                        cmpState: CmpState.RUNNING
-                                    }
+                                    $set: setObj
                                 }
                             )
                             .then(updateRst => {
                                 ChildProcessCtrl.newCmpProcess(
                                     dataRefer.dataId,
-                                    methods
+                                    cmpObj.methods
                                 )
                                     .then(cmpRst => {
                                         // TODO
-                                        const findKey = `cmpCfg.cmpObjs.${i}.cmpResults.dataId`;
-                                        const findObj = {
-                                            _id: cmpTask._id
-                                        };
-                                        findObj[findKey] = dataRefer.dataId;
                                         const setObj = {};
-                                        setObj[
-                                            `cmpCfg.cmpObjs.${i}.cmpResults.$`
-                                        ] = {
-                                            dataId: dataRefer.dataId,
-                                            state: CmpResultState.SUCCEED,
+                                        setObj[key] = {
+                                            state: CmpState.SUCCEED,
                                             image: cmpRst.image,
                                             chart: cmpRst.chart,
                                             GIF: cmpRst.GIF,
                                             statistic: cmpRst.statistic
                                         };
                                         cmpTaskDB
-                                            .update(findObj, {
+                                            .update(
+                                            {
+                                                _id: cmpTask._id
+                                            }, 
+                                            {
                                                 $set: setObj
                                             })
                                             .then(updateRst => {
@@ -207,7 +190,7 @@ export const updateCmpResult = (cmpTask: any): Promise<any> => {
                                                         //     _.set(
                                                         //         setObj,
                                                         //         `cmpCfg.cmpObjs.${i}.cmpResults.$.state`,
-                                                        //         CmpResultState.FAILED
+                                                        //         CmpState.FAILED
                                                         //     );
                                                         //     cmpTaskDB.update(
                                                         //         findObj,
@@ -244,29 +227,24 @@ const parseRegion = (): Promise<any> => {
  */
 const insertCalcuTask = (cmpTask: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        cmpSolutionDB
-            .find({ _id: cmpTask.cmpCfg.solutionId })
-            .then(docs => {
-                if (docs.length) {
-                    const solution = docs[0];
-                    return Promise.resolve(solution);
-                } else {
-                    return Promise.reject(
-                        new Error("can't find related comparison solution")
-                    );
-                }
-            })
-            .then(sln => {
-                const msList = sln.cmpCfg.ms as Array<any>;
-                const tempMSStarted = {};
+        // cmpSolutionDB
+        //     .find({ _id: cmpTask.cmpCfg.solutionId })
+        //     .then(docs => {
+        //         if (docs.length) {
+        //             const solution = docs[0];
+        //             return Promise.resolve(solution);
+        //         } else {
+        //             return Promise.reject(
+        //                 new Error("can't find related comparison solution")
+        //             );
+        //         }
+        //     })
+        //     .then(sln => {
+                // const msList = sln.cmpCfg.ms as Array<any>;
+                // const tempMSStarted = {};
                 const calcuTasks = [];
-                _.map(msList, ms => {
-                    if (
-                        ms.participate &&
-                        tempMSStarted[ms.msId] === undefined
-                    ) {
-                        // 避免重复插入计算任务
-                        tempMSStarted[ms.msId] = true;
+                _.map((cmpTask.cmpCfg.ms) as Array<any>, ms => {
+                    if (ms.participate) {
                         if (cmpTask.calcuCfg.dataSrc === 'std') {
                             calcuTasks.push({
                                 _id: new ObjectID(),
@@ -301,10 +279,10 @@ const insertCalcuTask = (cmpTask: any): Promise<any> => {
                             calcuTaskDB
                                 .insert(task)
                                 .then(calTask => {
-                                    if (sln.calcuTasks === undefined) {
-                                        sln.calcuTasks = [];
+                                    if (cmpTask.calcuTasks === undefined) {
+                                        cmpTask.calcuTasks = [];
                                     }
-                                    sln.calcuTasks.push({
+                                    cmpTask.calcuTasks.push({
                                         calcuTaskId: task._id,
                                         state: CalcuTaskState.INIT
                                     });
@@ -318,16 +296,8 @@ const insertCalcuTask = (cmpTask: any): Promise<any> => {
                         return resolve();
                     })
                     .catch(reject);
-            })
-            // .then(sln => {
-            //     cmpTaskDB
-            //         .insert(sln)
-            //         .then(_doc => {
-            //             return resolve(_doc);
-            //         })
-            //         .catch(reject);
             // })
-            .catch(reject);
+            // .catch(reject);
     });
 };
 
@@ -352,7 +322,7 @@ const updateTaskState = (cmpTask: any) => {
     });
     _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
         _.map(cmpObj.cmpResults as Array<any>, cmpResult => {
-            if (cmpResult.state === CmpResultState.RUNNING) {
+            if (cmpResult.state === CmpState.RUNNING) {
                 setIsRunning();
                 return;
             }
