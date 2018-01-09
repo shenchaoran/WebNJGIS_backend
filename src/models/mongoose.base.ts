@@ -40,6 +40,23 @@ export class Mongoose {
         this.model = mongoose.model(collectionName, this.schema);
     }
 
+    public findOne(where): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.model.find(where, (err, docs) => {
+                if (err) {
+                    return reject(err);
+                } else {
+                    if(docs.length) {
+                        return resolve(docs[0]);
+                    }
+                    else {
+                        return reject(new Error('Can\'t find data by ' + JSON.stringify(where)));
+                    }
+                }
+            });
+        });
+    }
+
     public find(where): Promise<any> {
         return new Promise((resolve, reject) => {
             this.model.find(where, (err, docs) => {

@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 
-import * as DataCtrl from '../controllers/data.controller';
+import DataCtrl from '../controllers/data.controller';
 import * as UDXPropParser from '../controllers/UDX.property.controller';
 import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
 const MyRouter = require('./base.route');

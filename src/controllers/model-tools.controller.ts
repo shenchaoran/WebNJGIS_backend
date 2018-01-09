@@ -7,7 +7,7 @@ const dom = require('xmldom').DOMParser;
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
-import * as DataCtrl from '../controllers/data.controller';
+import DataCtrl from '../controllers/data.controller';
 import { modelServiceDB } from '../models/model-service.model';
 
 export const convert2Tree = (user, docs): Promise<any> => {
@@ -37,36 +37,36 @@ export const invokeModelTool = (
     res: Response,
     next: NextFunction
 ) => {
-    const url = APIModel.getAPIUrl('model-invoke', req.params);
-    const form: any = req.query;
-    const inputs = JSON.parse(form.inputdata);
-    const inputsId = _.map(inputs, input => (<any>input).DataId);
+    // const url = APIModel.getAPIUrl('model-invoke', req.params);
+    // const form: any = req.query;
+    // const inputs = JSON.parse(form.inputdata);
+    // const inputsId = _.map(inputs, input => (<any>input).DataId);
 
-    const postDataPromises = _.map(inputsId, DataCtrl.pushData);
-    Promise.all(postDataPromises)
-        .then(rsts => {
-            // console.log(rsts);
-            _.map(inputs, (input, i) => {
-                (<any>input).DataId = rsts[i];
-            });
-            form.inputdata = JSON.stringify(inputs);
+    // const postDataPromises = _.map(inputsId, DataCtrl.pushData);
+    // Promise.all(postDataPromises)
+    //     .then(rsts => {
+    //         // console.log(rsts);
+    //         _.map(inputs, (input, i) => {
+    //             (<any>input).DataId = rsts[i];
+    //         });
+    //         form.inputdata = JSON.stringify(inputs);
 
-            return RequestCtrl.getByServer(url, form);
-        })
-        .then((response: any) => {
-            response = JSON.parse(response);
-            if (response.res === 'suc') {
-                res.locals.resData = {
-                    msrid: response.msr_id
-                };
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            } else {
-                return next(new Error('model service invoke failed!'));
-            }
-        })
-        .catch(next);
+    //         return RequestCtrl.getByServer(url, form);
+    //     })
+    //     .then((response: any) => {
+    //         response = JSON.parse(response);
+    //         if (response.res === 'suc') {
+    //             res.locals.resData = {
+    //                 msrid: response.msr_id
+    //             };
+    //             res.locals.template = {};
+    //             res.locals.succeed = true;
+    //             return next();
+    //         } else {
+    //             return next(new Error('model service invoke failed!'));
+    //         }
+    //     })
+    //     .catch(next);
 };
 
 export const getInvokeRecord = (
@@ -74,40 +74,40 @@ export const getInvokeRecord = (
     res: Response,
     next: NextFunction
 ) => {
-    const url = APIModel.getAPIUrl('invoke-record', req.params);
-    RequestCtrl.getByServer(url, {})
-        .then(response => {
-            response = JSON.parse(response);
-            if (response.result === 'suc') {
-                const msr = response.data;
-                if (msr.msr_time === 0) {
-                    res.locals.resData = {
-                        finished: false
-                    };
-                    res.locals.template = {};
-                    res.locals.succeed = true;
-                    return next();
-                } else {
-                    const outputs = msr.msr_output;
-                    Promise.all(_.map(outputs, DataCtrl.pullData))
-                        .then(rsts => {
-                            res.locals.resData = {
-                                finished: true,
-                                outputs: rsts
-                            };
-                            res.locals.template = {};
-                            res.locals.succeed = true;
-                            return next();
-                        })
-                        .catch(next);
-                }
-            } else {
-                const err: any = new Error('get msr failed!');
-                err.code = '500';
-                return next(err);
-            }
-        })
-        .catch(next);
+    // const url = APIModel.getAPIUrl('invoke-record', req.params);
+    // RequestCtrl.getByServer(url, {})
+    //     .then(response => {
+    //         response = JSON.parse(response);
+    //         if (response.result === 'suc') {
+    //             const msr = response.data;
+    //             if (msr.msr_time === 0) {
+    //                 res.locals.resData = {
+    //                     finished: false
+    //                 };
+    //                 res.locals.template = {};
+    //                 res.locals.succeed = true;
+    //                 return next();
+    //             } else {
+    //                 const outputs = msr.msr_output;
+    //                 Promise.all(_.map(outputs, DataCtrl.pullData))
+    //                     .then(rsts => {
+    //                         res.locals.resData = {
+    //                             finished: true,
+    //                             outputs: rsts
+    //                         };
+    //                         res.locals.template = {};
+    //                         res.locals.succeed = true;
+    //                         return next();
+    //                     })
+    //                     .catch(next);
+    //             }
+    //         } else {
+    //             const err: any = new Error('get msr failed!');
+    //             err.code = '500';
+    //             return next(err);
+    //         }
+    //     })
+    //     .catch(next);
 };
 
 ///////////////////////// processer

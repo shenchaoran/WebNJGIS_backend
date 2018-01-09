@@ -163,50 +163,14 @@ export const updateData = (
  */
 export const updateCmpTask = (calcuTaskId: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        let calcuTask, cmpTask;
-        calcuTaskDB.find({ _id: calcuTaskId })
-            .then(docs => {
-                if (docs.length) {
-                    calcuTask = docs[0];
-                    return Promise.resolve(docs[0]);
-                } else {
-                    return reject(
-                        new Error(
-                            "can't find calculate task of id: " + calcuTaskId
-                        )
-                    );
-                }
+        let cmpTaskId;
+        calcuTaskDB.findOne({ _id: calcuTaskId })
+            .then(calcuTask => {
+                    cmpTaskId = calcuTask.cmpTaskId;
+                return CmpTaskCtrl.updateDataRefer(calcuTask);
             })
             .then(() => {
-                cmpTaskDB.find({ _id: calcuTask.cmpTaskId }).then(docs => {
-                    if (docs.length) {
-                        cmpTask = docs[0];
-                        return Promise.resolve();
-                    } else {
-                        return reject(
-                            new Error(
-                                "can't find comparison task of id: " +
-                                    calcuTaskId
-                            )
-                        );
-                    }
-                });
-            })
-            .then(() => {
-                CmpTaskCtrl.updateDataRefer(calcuTask, cmpTask);
-                cmpTaskDB.update({_id: cmpTask._id}, cmpTask)
-                    .then(rst => {
-                        // if(rst.ok && rst.writeErrors.length === 0) {
-                            return Promise.resolve();
-                        // }
-                        // else {
-                        //     return Promise.reject(new Error('update comparison task error!'));
-                        // }
-                    })
-                    .catch(reject);
-            })
-            .then(() => {
-                CmpTaskCtrl.updateCmpResult(cmpTask);
+                return CmpTaskCtrl.updateCmpResult(cmpTaskId);
                 // TODO 这里没有管回调
             })
             .catch(reject);

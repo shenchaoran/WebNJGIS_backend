@@ -346,7 +346,7 @@ const drawAscii = (
 				}
 			});
 		} catch (e) {
-            console.log(e);
+			console.log(e);
 			reject(e);
 		}
 	});

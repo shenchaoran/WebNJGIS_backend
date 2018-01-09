@@ -116,3 +116,26 @@ _.forIn(SchemaName, (v, k) => {
     console.log(k);
 });
 //
+
+// Promise.all
+Promise.all([
+    Promise.resolve(1),
+    Promise.reject(2),
+    Promise.resolve(3)
+])
+    .then(console.log)
+    .catch(console.log);
+
+
+const aPromise = new Promise(function (resolve) {
+    resolve(100);
+});
+aPromise.then((value) => {
+    return (value as number) * 2;
+});
+aPromise.then((value) => {
+    return 2*(value as number);
+});
+aPromise.then(function (value) {
+    console.log("1: " + value); // => 100
+});

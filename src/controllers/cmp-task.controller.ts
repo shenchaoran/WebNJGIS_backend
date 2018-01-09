@@ -19,7 +19,6 @@ import {
     SchemaName,
     CmpMethodEnum,
     CmpState,
-    
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
@@ -92,7 +91,7 @@ export const start = (id: string): Promise<any> => {
             })
             .then(doc => {
                 // TODO 没有管then
-                updateCmpResult(doc);
+                updateCmpResult(doc._id);
                 insertCalcuTask(doc)
                     .then(() => {
                         return resolve();
@@ -120,101 +119,76 @@ export const insert = (doc: any): Promise<any> => {
  * 更新cmpTask的比较结果
  * 从dataRefer中取数据，如果该data没有做过cmp，就让他去参与比较，并将比较结果更新到数据库中
  */
-export const updateCmpResult = (cmpTask: any): Promise<any> => {
+export const updateCmpResult = (cmpTaskId: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, (cmpObj, i) => {
-            if (cmpObj.methods.length < 1) {
-                return reject(new Error('invalidate comparison solution!'));
-            }
-            _.map(cmpObj.dataRefers as Array<any>, (dataRefer, j) => {
-                if (dataRefer.dataId) {
-                    if (dataRefer.cmpResult === undefined || 
-                        dataRefer.cmpResult.state === CmpState.INIT
-                    ) {
-                        // TODO 可能存在并发问题
-                        // 可以通过 $each 解决，一次向数组中插入多个元素
-                        const key = `cmpCfg.cmpObjs.${i}.dataRefers.${j}.cmpResult`;
-                        const setObj = {};
-                        setObj[key] = {
-                            state: CmpState.RUNNING
-                        };
-                        setObj['cmpState'] = CmpState.INIT;
-                        cmpTaskDB
-                            .update(
-                                {
-                                    _id: cmpTask._id
-                                },
-                                {
-                                    $set: setObj
-                                }
-                            )
-                            .then(updateRst => {
-                                ChildProcessCtrl.newCmpProcess(
-                                    dataRefer.dataId,
-                                    cmpObj.methods
-                                )
-                                    .then(cmpRst => {
-                                        // TODO
-                                        const setObj = {};
-                                        setObj[key] = {
-                                            state: CmpState.SUCCEED,
-                                            image: cmpRst.image,
-                                            chart: cmpRst.chart,
-                                            GIF: cmpRst.GIF,
-                                            statistic: cmpRst.statistic
-                                        };
-                                        cmpTaskDB
-                                            .update(
-                                            {
-                                                _id: cmpTask._id
-                                            }, 
-                                            {
-                                                $set: setObj
-                                            })
-                                            .then(updateRst => {
-                                                        // updateTaskState(
-                                                        //     cmpTask
-                                                        // );
-
-                                                        // cmpTaskDB.update(
-                                                        //     findObj,
-                                                        //     cmpTask
-                                                        // );
-
-                                                        // if (
-                                                        //     updateRst.ok &&
-                                                        //     updateRst.writeErrors.length === 0
-                                                        // ) {
-                                                        // } else {
-                                                        //     const setObj = {};
-                                                        //     _.set(
-                                                        //         setObj,
-                                                        //         `cmpCfg.cmpObjs.${i}.cmpResults.$.state`,
-                                                        //         CmpState.FAILED
-                                                        //     );
-                                                        //     cmpTaskDB.update(
-                                                        //         findObj,
-                                                        //         {
-                                                        //             $set: setObj
-                                                        //         }
-                                                        //     );
-                                                        //     console.log(
-                                                        //         new Error(
-                                                        //             'update comparison task failed'
-                                                        //         )
-                                                        //     );
-                                                        // }
-                                            });
-                                    })
-                                    .catch(err => {
-                                        console.log(err);
-                                    });
-                            })
-                            .catch(console.log);
+        cmpTaskDB.findOne({_id: cmpTaskId})
+            .then(cmpTask => {
+                _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, (cmpObj, i) => {
+                    if (cmpObj.methods.length < 1) {
+                        return reject(new Error('invalidate comparison solution!'));
                     }
-                }
-            });
-        });
+                    _.map(cmpObj.dataRefers as Array<any>, (dataRefer, j) => {
+                        if (dataRefer.dataId) {
+                            if (
+                                dataRefer.cmpResult === undefined ||
+                                dataRefer.cmpResult.state === undefined ||
+                                dataRefer.cmpResult.state === CmpState.INIT
+                            ) {
+                                // TODO 可能存在并发问题
+                                // 可以通过 $each 解决，一次向数组中插入多个元素
+                                const key = `cmpCfg.cmpObjs.${i}.dataRefers.${j}.cmpResult`;
+                                const setObj = {};
+                                setObj[key] = { state: CmpState.RUNNING };
+                                setObj['cmpState'] = CmpState.RUNNING;
+                                // TODO 这里其实可以用一次更新就行了
+                                cmpTaskDB
+                                    .update(
+                                        {
+                                            _id: cmpTask._id
+                                        },
+                                        {
+                                            $set: setObj
+                                        }
+                                    )
+                                    .then(updateRst => {
+                                        ChildProcessCtrl.newCmpProcess(
+                                            dataRefer.dataId,
+                                            cmpObj.methods
+                                        )
+                                            .then(cmpRst => {
+                                                // TODO
+                                                const setObj = {};
+                                                setObj[key] = {
+                                                    state: CmpState.SUCCEED,
+                                                    image: cmpRst.image,
+                                                    chart: cmpRst.chart,
+                                                    GIF: cmpRst.GIF,
+                                                    statistic: cmpRst.statistic
+                                                };
+                                                cmpTaskDB.update(
+                                                    {
+                                                        _id: cmpTask._id
+                                                    }, 
+                                                    {
+                                                        $set: setObj
+                                                    }
+                                                )
+                                                    .then(updateRst => {
+                                                        updateTaskState(cmpTask._id);
+                                                    });
+                                            });
+                                            // 此处不会出现reject
+                                            // .catch(err => {
+                                            //     console.log(err);
+                                            // });
+                                    })
+                                    .catch(console.log);
+                            }
+                        }
+                    });
+                });
+            })
+            .catch(reject);
     });
 };
 
@@ -227,126 +201,153 @@ const parseRegion = (): Promise<any> => {
  */
 const insertCalcuTask = (cmpTask: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        // cmpSolutionDB
-        //     .find({ _id: cmpTask.cmpCfg.solutionId })
-        //     .then(docs => {
-        //         if (docs.length) {
-        //             const solution = docs[0];
-        //             return Promise.resolve(solution);
-        //         } else {
-        //             return Promise.reject(
-        //                 new Error("can't find related comparison solution")
-        //             );
-        //         }
-        //     })
-        //     .then(sln => {
-                // const msList = sln.cmpCfg.ms as Array<any>;
-                // const tempMSStarted = {};
-                const calcuTasks = [];
-                _.map((cmpTask.cmpCfg.ms) as Array<any>, ms => {
-                    if (ms.participate) {
-                        if (cmpTask.calcuCfg.dataSrc === 'std') {
-                            calcuTasks.push({
-                                _id: new ObjectID(),
-                                msId: ms.msId,
-                                cmpTaskId: cmpTask._id,
-                                nodeName: ms.nodeName,
-                                calcuCfg: cmpTask.calcuCfg,
+        const calcuTasks = [];
+        _.map((cmpTask.cmpCfg.ms) as Array<any>, ms => {
+            if (ms.participate) {
+                if (cmpTask.calcuCfg.dataSrc === 'std') {
+                    calcuTasks.push({
+                        _id: new ObjectID(),
+                        msId: ms.msId,
+                        cmpTaskId: cmpTask._id,
+                        nodeName: ms.nodeName,
+                        calcuCfg: cmpTask.calcuCfg,
+                        state: CalcuTaskState.INIT
+                    } as CalcuTask);
+                } else if (cmpTask.calcuCfg.dataSrc === 'upload') {
+                    const calcuCfg = _.cloneDeep(cmpTask.calcuCfg);
+                    calcuCfg.dataRefers = _.filter(
+                        calcuCfg.dataRefers,
+                        refer => {
+                            return (<any>refer).msId === ms.msId;
+                        }
+                    );
+                    calcuTasks.push({
+                        _id: new ObjectID(),
+                        msId: ms.msId,
+                        cmpTaskId: cmpTask._id,
+                        nodeName: ms.nodeName,
+                        calcuCfg: calcuCfg,
+                        state: CalcuTaskState.INIT
+                    } as CalcuTask);
+                }
+            }
+        });
+        return Promise.all(
+            _.map(calcuTasks, task => {
+                return new Promise((resolve, reject) => {
+                    calcuTaskDB
+                        .insert(task)
+                        .then(calTask => {
+                            if (cmpTask.calcuTasks === undefined) {
+                                cmpTask.calcuTasks = [];
+                            }
+                            cmpTask.calcuTasks.push({
+                                calcuTaskId: task._id,
                                 state: CalcuTaskState.INIT
-                            } as CalcuTask);
-                        } else if (cmpTask.calcuCfg.dataSrc === 'upload') {
-                            const calcuCfg = _.cloneDeep(cmpTask.calcuCfg);
-                            calcuCfg.dataRefers = _.filter(
-                                calcuCfg.dataRefers,
-                                refer => {
-                                    return (<any>refer).msId === ms.msId;
-                                }
-                            );
-                            calcuTasks.push({
-                                _id: new ObjectID(),
-                                msId: ms.msId,
-                                cmpTaskId: cmpTask._id,
-                                nodeName: ms.nodeName,
-                                calcuCfg: calcuCfg,
-                                state: CalcuTaskState.INIT
-                            } as CalcuTask);
+                            });
+                            return resolve(calTask);
+                        })
+                        .catch(reject);
+                });
+            })
+        )
+            .then(rsts => {
+                return resolve();
+            })
+            .catch(reject);
+    });
+};
+
+/**
+ * 更新cmpState 字段
+ */
+const updateTaskState = (cmpTaskId: any): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        return cmpTaskDB.findOne({_id: cmpTaskId})
+            .then(cmpTask => {
+                let state = CmpState.RUNNING;
+                // 有没有完成分为两部分：calcuTask-state, cmpResult-state
+                let allFinished = true;
+                _.map(cmpTask.calcuTasks as Array<any>, calcuTask => {
+                    if(allFinished) {
+                        if (
+                            calcuTask.state === CalcuTaskState.RUN_FAILED ||
+                            calcuTask.state === CalcuTaskState.RUN_SUCCEED
+                        ) {
+                            allFinished = false;
                         }
                     }
                 });
-                return Promise.all(
-                    _.map(calcuTasks, task => {
-                        return new Promise((resolve, reject) => {
-                            calcuTaskDB
-                                .insert(task)
-                                .then(calTask => {
-                                    if (cmpTask.calcuTasks === undefined) {
-                                        cmpTask.calcuTasks = [];
-                                    }
-                                    cmpTask.calcuTasks.push({
-                                        calcuTaskId: task._id,
-                                        state: CalcuTaskState.INIT
-                                    });
-                                    return resolve(calTask);
-                                })
-                                .catch(reject);
+                if(allFinished) {
+
+                }
+                else {
+                    
+                }
+                _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
+                    _.map(cmpObj.cmpResults as Array<any>, cmpResult => {
+                        if(state === CmpState.RUNNING) {
+                            if (cmpResult.state === CmpState.RUNNING) {
+                                state = CmpState.RUNNING;
+                            }
+                        }
+                    });
+                });
+
+            })
+            .then(state => {
+                return cmpTaskDB.update(
+                    {
+                        _id: cmpTaskId
+                    },
+                    {
+                        $set: {
+                            cmpState: state
+                        }
+                    }
+                );
+            })
+            .catch(reject);
+    });
+};
+
+/**
+ * 更新cmpObj的dataRefer的dataId 字段
+ * 当calcu-task计算完成时调用
+ */
+export const updateDataRefer = (calcuTask): Promise<any> => {
+    const cmpTaskId = calcuTask.cmpTaskId;
+    return new Promise((resolve, reject) => {
+        return cmpTaskDB.findOne({_id: cmpTaskId})
+            .then(cmpTask => {
+                const setObj = {};
+                _.map((calcuTask.outputs) as Array<any>, output => {
+                    _.map((cmpTask.cmpCfg.cmpObjs) as Array<any>, (cmpObj, i) => {
+                        _.map((cmpObj.dataRefers) as Array<any>, (dataRefer, j) => {
+                            if(
+                                dataRefer.msId === calcuTask.msId &&
+                                dataRefer.eventName === output.eventName
+                            ) {
+                                setObj[`cmpCfg.cmpObjs.${i}.dataRefers.${j}.dataId`] = output.dataId;
+                            }
                         });
-                    })
+                    });
+                });
+                cmpTaskDB.update(
+                    {
+                        _id: cmpTaskId
+                    }, 
+                    {
+                        $set: setObj
+                    }
                 )
-                    .then(rsts => {
+                    .then(updateRst => {
                         return resolve();
                     })
-                    .catch(reject);
-            // })
-            // .catch(reject);
+                    .catch(e => {
+                        return reject(e);
+                    });
+            })
+            .catch(reject);
     });
-};
-
-/**
- * 更新cmp-task的比较结果状态
- * 同步函数，没有保存到数据库中
- */
-const updateTaskState = (cmpTask: any) => {
-    const setIsRunning = () => {
-        cmpTask.cmpState = CmpState.RUNNING;
-    };
-    // 有没有完成分为两部分：calcuTask-state, cmpResult-state
-    _.map(cmpTask.calcuTasks as Array<any>, calcuTask => {
-        if (
-            calcuTask.state === CalcuTaskState.INIT ||
-            calcuTask.state === CalcuTaskState.RUNNING ||
-            calcuTask.state === CalcuTaskState.START_PENDING
-        ) {
-            setIsRunning();
-            return;
-        }
-    });
-    _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
-        _.map(cmpObj.cmpResults as Array<any>, cmpResult => {
-            if (cmpResult.state === CmpState.RUNNING) {
-                setIsRunning();
-                return;
-            }
-        });
-    });
-};
-
-/**
- * 更新cmpObj的dataRefer的dataId（模型计算结果的dataId），更新的只是内存引用，没有保存到数据库中
- * 当calcu-task计算完成时调用
- * 同步函数
- */
-export const updateDataRefer = (calcuTask, cmpTask) => {
-    _.map(Array<any>(calcuTask.outputs), output => {
-        _.map(cmpTask.cmpCfg.cmpObjs, cmpObj => {
-            _.map((<any>cmpObj).dataRefers as Array<any>, dataRefer => {
-                if (
-                    calcuTask.msId === dataRefer.msId &&
-                    output.eventName === dataRefer.eventName
-                ) {
-                    dataRefer.dataId = output.dataId;
-                }
-            });
-        });
-    });
-    updateTaskState(cmpTask);
 };

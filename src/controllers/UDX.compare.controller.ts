@@ -8,7 +8,8 @@ import {
     geoDataDB,
     CmpMethodEnum,
     SchemaName,
-    UDXCfg
+    UDXCfg,
+    CmpState,
 } from '../models';
 import * as PropCtrl from './UDX.property.controller';
 import * as VisualCtrl from './UDX.visualization.controller';
@@ -55,29 +56,57 @@ export const compare = (dataId: string, methods: string[]): Promise<any> => {
             })
             .then(doc => {
                 const promises = _.map(methods, method => {
+                    let promise;
+                    let key;
                     switch(method) {
                         case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_STATISTIC]:
-                            return PropCtrl.statisticRAWAscii(doc); 
+                            promise = PropCtrl.statisticRAWAscii(doc); 
+                            key = 'statistic';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_VISUALIZATION]:
                             // TODO
-                            return VisualCtrl.showRAWAscii(doc);
+                            promise = VisualCtrl.showRAWAscii(doc);
+                            key = 'image';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.ASCII_GRID_BATCH_VISUALIZATION]:
-                            return VisualCtrl.showRAWAsciiBatch(doc);
+                            promise = VisualCtrl.showRAWAsciiBatch(doc);
+                            key = 'image';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.GIF]:
-                            return VisualCtrl.showGIF(doc);
+                            promise =  VisualCtrl.showGIF(doc);
+                            key = 'GIF';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.SHAPEFILE_INTERPOLATION]:
-                            return VisualCtrl.showRAWShp_INTERPOLATION(doc);
+                            promise =  VisualCtrl.showRAWShp_INTERPOLATION(doc);
+                            key = '';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.SHAPEFILE_STATISTIC]:
-                            return PropCtrl.statisticRAWShp(doc);
+                            promise =  PropCtrl.statisticRAWShp(doc);
+                            key = 'statistic';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.SHAPEFILE_VISUALIZATION]:
-                            return VisualCtrl.showRAWShp(doc);
+                            promise =  VisualCtrl.showRAWShp(doc);
+                            key = '';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.TABLE_CHART]:
-                            return VisualCtrl.showRAWTable(doc);
+                            promise =  VisualCtrl.showRAWTable(doc);
+                            key = 'chart';
+                            break;
                         case CmpMethodEnum[CmpMethodEnum.TABLE_STATISTIC]:
-                            return PropCtrl.statisticRAWTable(doc);
-                        default:
-                            throw new Error('Error comparison method!');
+                            promise =  PropCtrl.statisticRAWTable(doc);
+                            key = 'statistic';
+                            break;
                     }
+                    return new Promise((resolve, reject) => {
+                        return promise
+                            .then(resolve)
+                            .catch(e => {
+                               console.log(e);
+                               const rst = {};
+                               rst[key] = {state: CmpState.FAILED};
+                               return resolve(rst);
+                           });
+                    });
                 });
                 return new Promise((resolve, reject) => {
                     Promise.all(promises)
@@ -85,10 +114,11 @@ export const compare = (dataId: string, methods: string[]): Promise<any> => {
                             let cmpRst = {};
                             _.map(rsts, rst => (cmpRst = {...rst, ...cmpRst}));
                             return resolve(cmpRst);
-                        })
-                        .catch(err => {
-                            return reject(err);
                         });
+                        // 这里不会出现reject ，出错的情况全部将state 设置为Failed 了
+                        // .catch(err => {
+                        //     return reject(err);
+                        // });
                 });
             })
             .then(rsts => {

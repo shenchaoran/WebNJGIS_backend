@@ -72,12 +72,12 @@ export class CmpTask {
                 // data 存放具体比较的配置，如chart的列名，图像处理
                 data: any,
                 cmpResult?: {
-                    state: CmpState,
+                    state: CmpState,                // undefined/INIT, RUNNING, SUCCEED, FAILED
                     image?: [{
                       extent: any,
                       path: string,
                       title: string,
-                      state: CmpState
+                      state: CmpState                // SUCCEED, FAILED
                     }],
                     chart?: {
                         state: CmpState
