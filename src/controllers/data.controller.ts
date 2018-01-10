@@ -169,8 +169,8 @@ export default class DataCtrl {
 							oid.toHexString()
 						);
 						try {
-                            console.log(newPath);
-                            console.log(unzipPath);
+                            // console.log(newPath);
+                            // console.log(unzipPath);
 							fs
 								.createReadStream(newPath)
 								.pipe(unzip.Extract({ path: unzipPath }))
