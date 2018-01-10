@@ -25,26 +25,33 @@ export const cmpSolutionDB = new CmpSolutionDB();
 
 export class CmpSolution {
     _id?: any;
+    // 方案描述
     meta: {
         name: string,
         desc: string,
         time: number
     };
+    // 比较配置
     cmpCfg: {
+        // 比较对象
         cmpObjs: Array<{
             id: string,
+            // 比较对象描述
             meta: {
                 name: string,
                 desc: string
             },
+            // 比较对象配置
             schemaName: string,
             methods: string[]
         }>,
+        // 比较基调
         keynote: {
             direction: 'x'|'y',
             dimension: 'point' | 'polygon' | 'multi-point'
         }
     };
+    // 权限管理
     auth: {
         userId: string,
         src: ResourceSrc

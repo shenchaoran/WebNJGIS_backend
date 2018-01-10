@@ -7,7 +7,7 @@ export const setting = {
         name: 'WebNJGIS',
         version: 'v0.01'
     },
-    auth: true,
+    auth: false,
     port: '9999',
     // session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',

@@ -31,23 +31,26 @@ export const cmpTaskDB = new CmpTaskDB();
 
 export class CmpTask {
     _id?: any;
+    // 任务描述
     meta: {
         name: string,
         desc: string,
         time: number
     };
+    // 权限管理
     auth: {
         src: ResourceSrc,
         userId: string
     };
+    // 比较配置
     cmpCfg: {
         solutionId: string,
-        // ms数组用于分发计算任务，所以直接上传数据参与比较的模型就不用存在这里了
+        // ms数组用于分发计算任务
         ms: Array<{
             msId: string,
             msName: string,
             nodeName: string,
-            participate: boolean
+            participate: boolean       // deprecated 目前所有的都是 true
         }>,
         // 这里暂时先把sln的所有字段复制过来了，避免了多表查询
         keynote: {
@@ -98,7 +101,9 @@ export class CmpTask {
     };
     // 计算配置，即输入数据
     calcuCfg: CalcuCfg;
+    // 比较结果状态
     cmpState: CmpState;
+    // 计算实例
     calcuTasks: Array<{
       calcuTaskId: string,
       state: CalcuTaskState
@@ -114,6 +119,7 @@ export enum CmpState {
 
 // TODO 纵向比较时，要多份数据，
 export class CalcuCfg {
+    // TODO 目前认为只能二选一，其实是可以混合计算的
     dataSrc: 'std' | 'upload';
     // upload
     // 此处为输入数据的引用参考，和cmpObj中的不同，后者是比较对象中的数据引用，大多数是输出文件

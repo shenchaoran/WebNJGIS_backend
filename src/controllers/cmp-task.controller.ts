@@ -104,6 +104,7 @@ export const start = (id: string): Promise<any> => {
 
 export const insert = (doc: any): Promise<any> => {
     return new Promise((resolve, reject) => {
+        doc = changeParticipate(doc);
         cmpTaskDB
             .insert(doc)
             .then(_doc => {
@@ -112,6 +113,29 @@ export const insert = (doc: any): Promise<any> => {
             .catch(reject);
     });
 };
+
+// cmp-task.cmpCfg.ms.participate属性不准，这里根据比较对象是否需要计算得到，来更新该字段
+const changeParticipate = (cmpTask: any) => {
+    _.map(cmpTask.cmpCfg.ms as Array<any>, ms => {
+        ms.participate = false;
+        _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
+            _.map(cmpObj.dataRefers as Array<any>, dataRefer => {
+                if(ms.participate === false) {
+                    if(dataRefer.msId === ms.msId) {
+                        if(
+                            dataRefer.eventName !== '' && 
+                            dataRefer.eventName !== undefined &&
+                            (dataRefer.dataId === undefined || dataRefer.dataId === '')
+                        ) {
+                            ms.participate = true;
+                        }
+                    }
+                }
+            });
+        });
+    });
+    return cmpTask;
+}
 
 /**
  * 开始比较的入口
