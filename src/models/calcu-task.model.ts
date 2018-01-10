@@ -16,7 +16,7 @@ class CalcuTaskDB extends Mongoose {
             cmpTaskId: String,
             nodeName: String,
             calcuCfg: mongoose.Schema.Types.Mixed,
-            output: mongoose.Schema.Types.Mixed,
+            outputs: mongoose.Schema.Types.Mixed,
             state: Number
         };
 
