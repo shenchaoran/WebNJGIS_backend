@@ -40,7 +40,8 @@ export class CmpTask {
     // 权限管理
     auth: {
         src: ResourceSrc,
-        userId: string
+        userId: string,
+        userName: string
     };
     // 比较配置
     cmpCfg: {

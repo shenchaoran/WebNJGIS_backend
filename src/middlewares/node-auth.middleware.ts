@@ -73,7 +73,7 @@ export const nodeAuthMid = app => {
                                 const err = <any>new Error(
                                     'Please login in first!'
                                 );
-                                err.status = 406;
+                                err.status = 404;
                                 return next(err);
                             } else {
                                 const node = docs[0];

@@ -27,7 +27,9 @@ module.exports = class MyRouter {
                         db
                             .find({})
                             .then(docs => {
-                                res.locals.resData = docs;
+                                res.locals.resData = {
+                                    docs: docs
+                                };
                                 res.locals.template = {};
                                 res.locals.succeed = true;
                                 return next();
@@ -46,7 +48,9 @@ module.exports = class MyRouter {
                                     if (docs.length === 0) {
                                         res.locals.resData = undefined;
                                     } else {
-                                        res.locals.resData = docs[0];
+                                        res.locals.resData = {
+                                            doc: docs[0]
+                                        };
                                     }
                                     res.locals.template = {};
                                     res.locals.succeed = true;

@@ -48,7 +48,7 @@ export const userAuthMid = app => {
 				const err = <any>new Error(
 					'No user authorization, please login in first!'
 				);
-				err.status = 403;
+				err.status = 401;
 				return next(err);
 			}
 		}
@@ -62,7 +62,7 @@ export const userAuthMid = app => {
 						return next();
 					} else {
 						const err = <any>new Error('Access token has expired');
-						err.status = 406;
+						err.status = 402;
 						return next(err);
 					}
 				} else {
@@ -76,7 +76,7 @@ export const userAuthMid = app => {
 									const err = <any>new Error(
 										'Please login in first!'
 									);
-									err.status = 406;
+									err.status = 402;
 									return next(err);
 								}
 							} else {

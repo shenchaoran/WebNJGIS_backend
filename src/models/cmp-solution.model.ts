@@ -54,6 +54,7 @@ export class CmpSolution {
     // 权限管理
     auth: {
         userId: string,
+        userName: string,
         src: ResourceSrc
     };
 }
