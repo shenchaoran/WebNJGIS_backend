@@ -89,12 +89,12 @@ export const updateState = (
             }
         } else if (oldState === CalcuTaskState.RUNNING) {
             if (
-                newState !== CalcuTaskState.RUN_FAILED &&
-                newState !== CalcuTaskState.RUN_SUCCEED
+                newState !== CalcuTaskState.FINISHED_FAILED &&
+                newState !== CalcuTaskState.FINISHED_SUCCEED
             ) {
                 return reject(new Error('invalidate state change!'));
             }
-            if (newState === CalcuTaskState.RUN_SUCCEED) {
+            if (newState === CalcuTaskState.FINISHED_SUCCEED) {
                 // TODO 更新cmp-task
             }
         } else if (oldState === CalcuTaskState.PAUSE) {
@@ -116,7 +116,7 @@ export const updateState = (
             )
             .then(rst => {
                 // if (rst.ok && rst.writeErrors.length === 0) {
-                    if (newState === CalcuTaskState.RUN_SUCCEED) {
+                    if (newState === CalcuTaskState.FINISHED_SUCCEED) {
                         // TODO 更新cmp-task
                         updateCmpTask(taskId);
                     }
@@ -168,6 +168,9 @@ export const updateCmpTask = (calcuTaskId: any): Promise<any> => {
             .then(calcuTask => {
                     cmpTaskId = calcuTask.cmpTaskId;
                 return CmpTaskCtrl.updateDataRefer(calcuTask);
+            })
+            .then(() => {
+                return CmpTaskCtrl.updateTaskState(cmpTaskId);
             })
             .then(() => {
                 return CmpTaskCtrl.updateCmpResult(cmpTaskId);

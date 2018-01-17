@@ -103,7 +103,7 @@ export const compare = (dataId: string, methods: string[]): Promise<any> => {
                             .catch(e => {
                                console.log(e);
                                const rst = {};
-                               rst[key] = {state: CmpState.FAILED};
+                               rst[key] = {state: CmpState.FINISHED_FAILED};
                                return resolve(rst);
                            });
                     });

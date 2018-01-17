@@ -45,6 +45,6 @@ export enum CalcuTaskState {
     START_PENDING,
     START_FAILED,
     RUNNING,
-    RUN_FAILED,
-    RUN_SUCCEED
+    FINISHED_FAILED,
+    FINISHED_SUCCEED
 }

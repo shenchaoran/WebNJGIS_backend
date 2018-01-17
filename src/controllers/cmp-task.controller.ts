@@ -139,9 +139,11 @@ const changeParticipate = (cmpTask: any) => {
 
 /**
  * 开始比较的入口
- * 在两处调用：calculate-task计算完成后，开始结算结果的比较；start cmp-task时，开始上传数据的比较
  * 更新cmpTask的比较结果
  * 从dataRefer中取数据，如果该data没有做过cmp，就让他去参与比较，并将比较结果更新到数据库中
+ * 在两处调用：
+ *      calculate-task计算完成后，开始计算结果的比较；
+ *      start cmp-task时，开始上传数据的比较
  */
 export const updateCmpResult = (cmpTaskId: any): Promise<any> => {
     return new Promise((resolve, reject) => {
@@ -183,7 +185,7 @@ export const updateCmpResult = (cmpTaskId: any): Promise<any> => {
                                                 // TODO
                                                 const setObj = {};
                                                 setObj[key] = {
-                                                    state: CmpState.SUCCEED,
+                                                    state: CmpState.FINISHED,
                                                     image: cmpRst.image,
                                                     chart: cmpRst.chart,
                                                     GIF: cmpRst.GIF,
@@ -285,7 +287,7 @@ const insertCalcuTask = (cmpTask: any): Promise<any> => {
 /**
  * 更新cmpState 字段
  */
-const updateTaskState = (cmpTaskId: any): Promise<any> => {
+export const updateTaskState = (cmpTaskId: any): Promise<any> => {
     return new Promise((resolve, reject) => {
         return cmpTaskDB.findOne({_id: cmpTaskId})
             .then(cmpTask => {
@@ -295,29 +297,35 @@ const updateTaskState = (cmpTaskId: any): Promise<any> => {
                 _.map(cmpTask.calcuTasks as Array<any>, calcuTask => {
                     if(allFinished) {
                         if (
-                            calcuTask.state === CalcuTaskState.RUN_FAILED ||
-                            calcuTask.state === CalcuTaskState.RUN_SUCCEED
+                            calcuTask.state !== CalcuTaskState.FINISHED_FAILED &&
+                            calcuTask.state !== CalcuTaskState.FINISHED_SUCCEED
                         ) {
                             allFinished = false;
                         }
                     }
                 });
                 if(allFinished) {
-
+                    _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
+                        _.map(cmpObj.dataRefers as Array<any>, dataRefer => {
+                            if(allFinished) {
+                                if(
+                                    dataRefer.cmpResult === undefined ||
+                                    dataRefer.cmpResult.state !== CmpState.FINISHED
+                                ) {
+                                    allFinished = false;
+                                }
+                            }
+                        });
+                    });
+                }
+                
+                if(allFinished) {
+                    state = CmpState.FINISHED;
                 }
                 else {
-                    
+                    state = CmpState.RUNNING;
                 }
-                _.map(cmpTask.cmpCfg.cmpObjs as Array<any>, cmpObj => {
-                    _.map(cmpObj.cmpResults as Array<any>, cmpResult => {
-                        if(state === CmpState.RUNNING) {
-                            if (cmpResult.state === CmpState.RUNNING) {
-                                state = CmpState.RUNNING;
-                            }
-                        }
-                    });
-                });
-
+                return Promise.resolve(state);
             })
             .then(state => {
                 return cmpTaskDB.update(

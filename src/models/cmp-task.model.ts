@@ -76,12 +76,12 @@ export class CmpTask {
                 // data 存放具体比较的配置，如chart的列名，图像处理
                 data: any,
                 cmpResult?: {
-                    state: CmpState,                // undefined/INIT, RUNNING, SUCCEED, FAILED
+                    state: CmpState,                // undefined/INIT, RUNNING, FINISHED
                     image?: [{
                       extent: any,
                       path: string,
                       title: string,
-                      state: CmpState                // SUCCEED, FAILED
+                      state: CmpState                // FINISHED_SUCCEED, FINISHED_FAILED
                     }],
                     chart?: {
                         state: CmpState
@@ -103,7 +103,7 @@ export class CmpTask {
     // 计算配置，即输入数据
     calcuCfg: CalcuCfg;
     // 比较结果状态
-    cmpState: CmpState;
+    cmpState: CmpState;             // undefined/INIT, RUNNING, FINISHED
     // 计算实例
     calcuTasks: Array<{
       calcuTaskId: string,
@@ -114,8 +114,9 @@ export class CmpTask {
 export enum CmpState {
     INIT = 0,
     RUNNING,
-    SUCCEED,
-    FAILED
+    FINISHED_SUCCEED,
+    FINISHED_FAILED,
+    FINISHED
 }
 
 // TODO 纵向比较时，要多份数据，

@@ -341,7 +341,7 @@ const drawAscii = (
 							ENCorner[0],
 							ENCorner[1]
 						],
-						state: CmpState.SUCCEED
+						state: CmpState.FINISHED_SUCCEED
 					});
 				}
 			});
