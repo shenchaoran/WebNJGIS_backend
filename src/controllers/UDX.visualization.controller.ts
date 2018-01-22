@@ -157,47 +157,70 @@ export const showXMLTable = (udxStr): Promise<UDXTableXML> => {
 	});
 };
 
-export const showRAWTable = (doc: any): Promise<UDXTableXML> => {
+export const showRAWTable = (doc: any): Promise<any> => {
 	const udxcfg = doc.udxcfg;
 	return new Promise((resolve, reject) => {
-		// fs.readFile(udxcfg.elements.entrance, (err, dataBuf) => {
-		//     if (err) {
-		//         return reject(err);
-		//     }
-		//     const dataStr = dataBuf.toString();
-		//     const rowsStr = dataStr.split('\n');
-		//     const rows = [];
-		//     const rowsObj = [];
-		//     const cols = [];
-		//     _.map(rowsStr, (rowStr, i) => {
-		//         if (rowStr.trim() !== '') {
-		//             rows.push(rowStr.split(','));
-		//         }
-		//     });
-		//     _.map(rows[0], (th, i) => {
-		//         if (rows[1][i].trim() !== '') {
-		//             rows[0][i] = `${th} (${rows[i][i]})`;
-		//         }
-		//         cols.push({
-		//             data: rows[0][i],
-		//             title: StringUtils.upper1st(rows[0][i]),
-		//             readOnly: true
-		//         });
-		//     });
-		//     _.map(rows, (row, i) => {
-		//         if (i !== 0 && i !== 1) {
-		//             const obj: any = {};
-		//             _.map(rows[0], (th, j) => {
-		//                 _.set(obj, th, _.get(row, j));
-		//             });
-		//             rowsObj.push(obj);
-		//         }
-		//     });
-		//     return resolve({
-		//         data: rowsObj,
-		//         columns: cols
-		//     });
-		// });
+        const fPath = path.join(
+            setting.uploadPath,
+            'geo-data',
+            doc.meta.path,
+            udxcfg.elements.entrance
+        );
+        fs.readFile(fPath, (err, buf) => {
+            if(err) {
+                return reject(err);
+            }
+            else {
+                const dataStr = buf.toString();
+                const rowsStr = dataStr.split('\n');
+                const rows = [];
+                const rowsObj = [];
+                const cols = [];
+                _.map(rowsStr, (rowStr, i) => {
+                    if (rowStr.trim() !== '') {
+                        rows.push(rowStr.split(','));
+                    }
+                });
+                
+                // 列名
+                _.map(rows[0], (th, i) => {
+                    // if (rows[1][i].trim() !== '') {
+                    //     rows[0][i] = `${th} (${rows[i][i]})`;
+                    // }
+                    cols.push({
+                        data: rows[0][i],
+                        title: StringUtils.upper1st(rows[0][i]),
+                        readOnly: true
+                    });
+                });
+                
+                const ths = _.remove(rows, (row, i) => i === 0);
+
+
+                // _.map(rows, (row, i) => {
+                //     if (i !== 0) {
+                //         const obj: {
+                //             [key: string]: any
+                //         } = {};
+                //         _.map(rows[0], (th, j) => {
+                //             _.set(obj, th as any, _.get(row, j));
+                //             // obj[th] = _.get(row, j);
+                //         });
+                //         rowsObj.push(obj);
+                //     }
+                // });
+                
+                return resolve({
+                    chart: {
+                        tableSrc: {
+                            data: rows,
+                            columns: cols
+                        },
+                        state: CmpState.FINISHED_SUCCEED
+                    }
+                });
+            }
+        });
 	});
 };
 

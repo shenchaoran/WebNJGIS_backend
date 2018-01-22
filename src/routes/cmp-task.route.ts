@@ -6,7 +6,6 @@ import { cmpTaskDB } from '../models/cmp-task.model';
 const db = cmpTaskDB;
 
 const defaultRoutes = [
-    'find',
     'remove',
     'update'
 ];
@@ -21,15 +20,13 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        db
-            .find({})
+        CmpTaskCtrl.findAll(req.query.user)
             .then(docs => {
-                return CmpTaskCtrl.convert2Tree(req.query.user, docs);
-            })
-            .then(docs => {
-                res.locals.resData = docs;
-                res.locals.template = {};
-                res.locals.succeed = true;
+                res.locals = {
+                    resData: docs,
+                    template: {},
+                    succeed: true
+                };
                 return next();
             })
             .catch(next);
@@ -52,6 +49,23 @@ router.route('/')
         }
     });
 
+router.route('/:id')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        CmpTaskCtrl.findOne(req.params.id)
+            .then(doc => {
+                res.locals = {
+                    resData: {
+                        doc: doc
+                    },
+                    template: {},
+                    succeed: true
+                };
+                return next();
+            })
+            .catch(next);
+    });
+
+
 router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
         return CmpTaskCtrl.start(req.params.id)
@@ -60,6 +74,15 @@ router.route('/:id/start')
                 res.locals.template = {};
                 res.locals.succeed = true;
                 return next();
+            })
+            .catch(next);
+    });
+
+router.route('/:id/cmpResult')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        CmpTaskCtrl.getCmpResult(req.params.id, req.query.type)
+            .then(rst => {
+
             })
             .catch(next);
     });

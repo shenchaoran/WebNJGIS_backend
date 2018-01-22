@@ -25,7 +25,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
             user = user[0];
             if (user.password === password) {
                 const expires = moment()
-                    .add('days', 7)
+                    .add(7, 'days')
                     .valueOf();
                 const token = jwt.encode(
                     {

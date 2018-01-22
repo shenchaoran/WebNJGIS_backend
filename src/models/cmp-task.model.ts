@@ -84,13 +84,15 @@ export class CmpTask {
                       state: CmpState                // FINISHED_SUCCEED, FINISHED_FAILED
                     }],
                     chart?: {
-                        state: CmpState
+                        state: CmpState,
+                        tableSrc: any               // 不能放在
                     },
                     GIF?: {
                         state: CmpState
                     },
                     statistic?: {
-                        state: CmpState
+                        state: CmpState,
+                        tableSrc: any
                     },
                 },
                 attached: {

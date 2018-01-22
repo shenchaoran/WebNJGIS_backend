@@ -2,13 +2,15 @@ import * as _ from 'lodash';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 import * as fs from 'fs';
+import * as path from 'path';
+import { setting } from '../config/setting';
 
 import { UDXType, UDXTableXML } from '../models/UDX-type.class';
 import * as StringUtils from '../utils/string.utils';
 const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
-import { UDXCfg, geoDataDB } from '../models';
+import { UDXCfg, geoDataDB, CmpState } from '../models';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as VisualParser from './UDX.visualization.controller';
 
@@ -245,7 +247,7 @@ export const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
             });
             // 转置 table body
             const ths = _.remove(rows, (row, i) => i === 0);
-            const units = _.remove(rows, (row, i) => i === 0);
+            // const units = _.remove(rows, (row, i) => i === 0);
             const transed = [];
             for (let i = 0; i < rows.length; i++) {
                 for (let j = 0; j < rows[i].length; j++) {
@@ -260,7 +262,7 @@ export const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
             _.map(transed, (row, i) => {
                 table.data.push({
                     name: ths[0][i],
-                    unit: units[0][i],
+                    // unit: units[0][i],
                     min: <number>_.min(row),
                     max: <number>_.max(row),
                     mean: _.mean(row),
@@ -292,5 +294,108 @@ export const statisticRAWAscii = (doc: any): Promise<any> => {
 }
 
 export const statisticRAWTable = (doc: any): Promise<any> => {
-    return 
+    const udxcfg = doc.udxcfg;
+    return new Promise((resolve, reject) => {
+        const fPath = path.join(
+            setting.uploadPath,
+            'geo-data',
+            doc.meta.path,
+            udxcfg.elements.entrance
+        );
+        fs.readFile(fPath, (err, dataBuf) => {
+            if (err) {
+                return reject(err);
+            }
+            const table = new UDXTableXML();
+            table.columns = [
+                {
+                    data: 'name',
+                    title: 'Name',
+                    readOnly: true
+                },
+                {
+                    data: 'unit',
+                    title: 'Unit',
+                    readOnly: true
+                },
+                {
+                    data: 'min',
+                    title: 'Minimum',
+                    readOnly: true
+                },
+                {
+                    data: 'max',
+                    title: 'Maximum',
+                    readOnly: true
+                },
+                {
+                    data: 'mean',
+                    title: 'Mean',
+                    readOnly: true
+                },
+                {
+                    data: 'stdDev',
+                    title: 'Standard Deviation',
+                    readOnly: true
+                },
+                {
+                    data: 'sum',
+                    title: 'Sum',
+                    readOnly: true
+                }
+            ];
+            table.data = [];
+            const dataStr = dataBuf.toString();
+            const rowsStr = dataStr.split('\n');
+            const rows = [];
+            const rowObj = [];
+            // th + unit
+            _.map(rowsStr, (rowStr, i) => {
+                if (rowStr.trim() !== '') {
+                    rows.push(rowStr.split(','));
+                }
+            });
+            // th
+            // _.map(rows[0], (th, i) => {
+            //     if (rows[1][i].trim() !== '') {
+            //         rows[0][i] = `${th} (${rows[i][i]})`;
+            //     }
+            // });
+
+            // 移除表头
+            const ths = _.remove(rows, (row, i) => i === 0);
+            // const units = _.remove(rows, (row, i) => i === 0);
+
+            // 转置 table body
+            const transed = [];
+            for (let i = 0; i < rows.length; i++) {
+                for (let j = 0; j < rows[i].length; j++) {
+                    if (transed.length <= j) {
+                        transed.push([]);
+                    }
+
+                    transed[j].push(parseFloat(rows[i][j]));
+                }
+            }
+            // 统计
+            _.map(transed, (row, i) => {
+                table.data.push({
+                    name: ths[0][i],
+                    // unit: unit[0][i],
+                    unit: '',
+                    min: <number>_.min(row),
+                    max: <number>_.max(row),
+                    mean: _.mean(row),
+                    stdDev: ArrayUtils.stdDev(row),
+                    sum: _.sum(row)
+                });
+            });
+            return resolve({
+                statistic: {
+                    tableSrc: table,
+                    state: CmpState.FINISHED_SUCCEED
+                }
+            });
+        });
+    });
 }

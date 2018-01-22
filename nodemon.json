@@ -1,7 +1,11 @@
 {
     "verbose": true,
     "ignore": [
-        "node_modules/**/*",
-        "dist/upload/**/*"
+        "node_modules",
+        "dist/upload",
+        "dist/public",
+        ".vscode",
+        "test",
+        "upload"
     ]
 }

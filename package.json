@@ -9,7 +9,7 @@
     "author": "Bowden Kelly",
     "license": "MIT",
     "scripts": {
-        "start": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=1 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1 && npm run build && npm run watch",
+        "start": "npm run debugcfg && npm run build && npm run watch",
         "debugcfg": "set DEBUG=WebNJGIS:*,-not_this && set DEBUG_COLORS=5 && set DEBUG_HIDE_DATE=true && set DEBUG_FD=1",
         "build": "npm run build-ts && npm run tslint",
         "serve": "nodemon --inspect=0.0.0.0:65535 dist/server.js",

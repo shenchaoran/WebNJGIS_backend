@@ -23,6 +23,61 @@ import {
 import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
 
+export const findAll = (user): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        cmpTaskDB
+            .find({})
+            .then(docs => {
+                docs = _.map(docs as any[], doc => {
+                    return reduceDoc(doc._doc, '2');
+                });
+                return Promise.resolve(docs);
+            })
+            .then(docs => {
+                return convert2Tree(user, docs);
+            })
+            .then(resolve)
+            .catch(reject);
+    });
+}
+
+export const findOne = (id: string): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        cmpTaskDB.findOne({_id: id})
+            .then(doc => {
+                doc = reduceDoc(doc._doc, '1');
+                return resolve(doc);
+            })
+            .catch(reject);
+    });
+}
+
+const reduceDoc = (doc, level?: '1' | '2') => {
+    if(level === undefined || level === '1') {
+        _.map(doc.cmpCfg.cmpObjs as any[], cmpObj => {
+            _.map(cmpObj.dataRefers as any[], dataRefer => {
+                if(
+                    dataRefer.cmpResult &&
+                    dataRefer.cmpResult.chart &&
+                    dataRefer.cmpResult.chart.state === CmpState.FINISHED_SUCCEED
+                ) {
+                    // 数据量太大，这里单独请求
+                    dataRefer.cmpResult.chart.tableSrc = undefined;
+                }
+            })
+        });
+    }
+    else if(level === '2') {
+        doc.cmpCfg.cmpObjs = undefined;
+    }
+    return doc;
+}
+
+export const getCmpResult = (taskId, rstType): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        
+    });
+};
 export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     const trees = {
         public: [

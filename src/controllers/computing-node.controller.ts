@@ -21,7 +21,7 @@ export const login = (authInfo: any): Promise<any> => {
                 if (docs.length) {
                     const node = docs[0];
                     const expires = moment()
-                        .add('days', 7)
+                        .add(7, 'days')
                         .valueOf();
                     const token = jwt.encode(
                         {
