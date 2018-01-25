@@ -73,7 +73,11 @@ const reduceDoc = (doc, level?: '1' | '2') => {
     return doc;
 }
 
-export const getCmpResult = (taskId, rstType): Promise<any> => {
+/**
+ * 根据taskId和请求的数据类型返回cmp-data的详情
+ * 没有直接放在task中是因为太大了
+ */
+export const getCmpResult = (taskId, rstType: 'chart' | 'TODO'): Promise<any> => {
     return new Promise((resolve, reject) => {
         
     });

@@ -136,6 +136,7 @@ export class CalcuCfg {
     stdSrc?: {
         spatial?: {
             dimension?: 'point' | 'polygon' | 'multi-point',
+            geojson: any,
             point?: any,
             polygon?: any,
             multiPoint?: any
