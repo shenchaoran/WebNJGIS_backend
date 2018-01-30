@@ -77,11 +77,64 @@ const reduceDoc = (doc, level?: '1' | '2') => {
  * 根据taskId和请求的数据类型返回cmp-data的详情
  * 没有直接放在task中是因为太大了
  */
-export const getCmpResult = (taskId, rstType: 'chart' | 'TODO'): Promise<any> => {
+export const getCmpResult = (taskId, cmpObjId, msId): Promise<any> => {
     return new Promise((resolve, reject) => {
-        
+        let cmpRst;
+        cmpTaskDB.findOne({_id: taskId})
+            .then(cmpTask => {
+                _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
+                    if(cmpObj.id === cmpObjId) {
+                        _.map(cmpObj.dataRefers as any[], dataRefer => {
+                            if(dataRefer.msId === msId) {
+                                if(dataRefer.cmpResult) {
+                                    cmpRst = {
+                                        cmpObjId: cmpObj.id,
+                                        msId: dataRefer.msId,
+                                        done: true,
+                                        cmpResult: dataRefer.cmpResult
+                                    };
+                                }
+                                else {
+                                    cmpRst = {
+                                        cmpObjId: cmpObj.id,
+                                        msId: dataRefer.msId,
+                                        done: false
+                                    };
+                                }
+                            }
+                        });
+                    }
+                });
+                return resolve(cmpRst);
+            })
+            .catch(reject);
     });
 };
+
+
+/**
+ * 返回标准结果，目前没有标准结果集，只能返回和计算结果相同的数据
+ *      table数据返回table
+ *      ascii grid 数据返回 cmpResult-> image里的结构
+ *      statistic 返回 hot table 的数据源
+ */
+export const getStdResult = (cmpTaskId): Promise<any> => {
+    return new Promise((resolve, reject) => {
+        const stdResult = [];
+        cmpTaskDB.findOne({_id: cmpTaskId})
+            .then(cmpTask => {
+                // TODO
+                _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
+                    _.map(cmpObj.methods as any[], method => {
+
+                    });
+                });
+
+            })
+            .catch(reject);
+    });
+}
+
 export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     const trees = {
         public: [

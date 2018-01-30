@@ -78,9 +78,31 @@ router.route('/:id/start')
             .catch(next);
     });
 
+/**
+ * return {
+ *  cmpObjId: cmpObj.id,
+ *  msId: dataRefer.msId,
+ *  done: true,
+ *  cmpResult: dataRefer.cmpResult
+ * }
+ */
 router.route('/:id/cmpResult')
     .get((req: Request, res: Response, next: NextFunction) => {
-        CmpTaskCtrl.getCmpResult(req.params.id, req.query.type)
+        CmpTaskCtrl.getCmpResult(req.params.id, req.query.cmpObjId, req.query.msId)
+            .then(rst => {
+                res.locals = {
+                    template: {},
+                    succeed: true,
+                    resData: rst
+                };
+                return next();
+            })
+            .catch(next);
+    });
+
+router.route('/:id/stdResult')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        CmpTaskCtrl.getStdResult(req.params.id)
             .then(rst => {
 
             })
