@@ -34,9 +34,12 @@ export const findAll = (user): Promise<any> => {
                 return Promise.resolve(docs);
             })
             .then(docs => {
-                return convert2Tree(user, docs);
+                return resolve({
+                    docs: docs
+                });
+                // return convert2Tree(user, docs);
             })
-            .then(resolve)
+            // .then(resolve)
             .catch(reject);
     });
 }

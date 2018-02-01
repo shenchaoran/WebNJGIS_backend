@@ -6,7 +6,7 @@
 import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { CalcuCfg } from './cmp-task.model';
+import { CalcuCfg } from './calcu-cfg.class';
 
 class CalcuTaskDB extends Mongoose {
     constructor() {

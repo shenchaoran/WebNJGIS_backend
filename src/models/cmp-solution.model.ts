@@ -7,6 +7,7 @@ import * as mongoose from 'mongoose';
 
 import { CmpObj } from './cmp-obj.class';
 import { ResourceSrc } from './resource.enum';
+import { DataRefer } from './dataRefer.class';
 
 class CmpSolutionDB extends Mongoose {
     constructor() {
@@ -31,8 +32,25 @@ export class CmpSolution {
         desc: string,
         time: number
     };
+    // 权限管理
+    auth: {
+        userId: string,
+        userName: string,
+        src: ResourceSrc
+    };
     // 比较配置
     cmpCfg: {
+        issueId: string,
+        ms: Array<{
+            msId: string,
+            msName: string,
+            participate: boolean
+        }>,
+        // 比较基调
+        keynote: {
+            direction: 'x'|'y',
+            dimension: 'point' | 'polygon' | 'multi-point'
+        },
         // 比较对象
         cmpObjs: Array<{
             id: string,
@@ -43,18 +61,9 @@ export class CmpSolution {
             },
             // 比较对象配置
             schemaName: string,
-            methods: string[]
-        }>,
-        // 比较基调
-        keynote: {
-            direction: 'x'|'y',
-            dimension: 'point' | 'polygon' | 'multi-point'
-        }
-    };
-    // 权限管理
-    auth: {
-        userId: string,
-        userName: string,
-        src: ResourceSrc
+            methods: string[],
+            dataRefers: DataRefer[],
+            attached: any
+        }>
     };
 }

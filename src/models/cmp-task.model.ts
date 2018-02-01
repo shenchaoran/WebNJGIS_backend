@@ -10,6 +10,9 @@ import { ResourceSrc } from './resource.enum';
 import { GeoDataClass } from './UDX-data.model';
 import { CalcuTaskState } from './calcu-task.model';
 import { CmpObj } from './cmp-obj.class';
+import { CmpState } from './cmp-state.enum';
+import { CalcuCfg } from './calcu-cfg.class';
+import { DataRefer } from './dataRefer.class';
 
 class CmpTaskDB extends Mongoose {
     constructor() {
@@ -17,8 +20,10 @@ class CmpTaskDB extends Mongoose {
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
-            cmpCfg: mongoose.Schema.Types.Mixed,
-            calcuCfg: mongoose.Schema.Types.Mixed,
+            solutionId: String,
+            parameters: mongoose.Schema.Types.Mixed,
+            // cmpCfg: mongoose.Schema.Types.Mixed,
+            // calcuCfg: mongoose.Schema.Types.Mixed,
             calcuTasks: mongoose.Schema.Types.Mixed,
             cmpState: Number
         };
@@ -43,67 +48,13 @@ export class CmpTask {
         userId: string,
         userName: string
     };
-    // 比较配置
-    cmpCfg: {
-        solutionId: string,
-        // ms数组用于分发计算任务
-        ms: Array<{
-            msId: string,
-            msName: string,
-            nodeName: string,
-            participate: boolean       // deprecated 目前所有的都是 true
-        }>,
-        // 这里暂时先把sln的所有字段复制过来了，避免了多表查询
-        keynote: {
-            direction: 'x'|'y',
-            dimension: 'point' | 'polygon' | 'multi-point'
-        },
-        cmpObjs: Array<{
-            id: string,
-            meta: {
-                name: string,
-                desc: string
-            },
-            schemaName: string,
-            methods: string[],
-            dataRefers: Array<{
-                // 独立上传的，不是模型算出来的数据
-                independent?: boolean,
-                msId?: string,
-                msName?: string,
-                eventName?: string,
-                dataId?: string,
-                // data 存放具体比较的配置，如chart的列名，图像处理
-                data: any,
-                cmpResult?: {
-                    state: CmpState,                // undefined/INIT, RUNNING, FINISHED
-                    image?: [{
-                      extent: any,
-                      path: string,
-                      title: string,
-                      state: CmpState                // FINISHED_SUCCEED, FINISHED_FAILED
-                    }],
-                    chart?: {
-                        state: CmpState,
-                        tableSrc: any               // 不能放在
-                    },
-                    GIF?: {
-                        state: CmpState
-                    },
-                    statistic?: {
-                        state: CmpState,
-                        tableSrc: any
-                    },
-                },
-                attached: {
-                    src: ''
-                }
-            }>,
-            attached: any
-        }>
-    };
-    // 计算配置，即输入数据
-    calcuCfg: CalcuCfg;
+    solutionId: string;
+    // 配置参数，时空参数在Issue中有
+    parameters: {
+        msId: string,
+        eventName: string,
+        dataId: string
+    }[];
     // 比较结果状态
     cmpState: CmpState;             // undefined/INIT, RUNNING, FINISHED
     // 计算实例
@@ -111,40 +62,4 @@ export class CmpTask {
       calcuTaskId: string,
       state: CalcuTaskState
     }>;
-}
-
-export enum CmpState {
-    INIT = 0,
-    RUNNING,
-    FINISHED_SUCCEED,
-    FINISHED_FAILED,
-    FINISHED
-}
-
-// TODO 纵向比较时，要多份数据，
-export class CalcuCfg {
-    // TODO 目前认为只能二选一，其实是可以混合计算的
-    dataSrc: 'std' | 'upload';
-    // upload
-    // 此处为输入数据的引用参考，和cmpObj中的不同，后者是比较对象中的数据引用，大多数是输出文件
-    dataRefers?: Array<{
-        msId: string;
-        eventName: string;
-        dataId: string;
-    }>;
-    // std  时空
-    stdSrc?: {
-        spatial?: {
-            dimension?: 'point' | 'polygon' | 'multi-point',
-            geojson: any,
-            point?: any,
-            polygon?: any,
-            multiPoint?: any
-        },
-        temporal?: {
-            start: number;
-            end: number;
-            scale: 'YEAR' | 'DAY';
-        };
-    };
 }
