@@ -48,7 +48,7 @@ export class CmpSolution {
         }>,
         // 比较基调
         keynote: {
-            direction: 'x'|'y',
+            direction: 'multi'|'single',
             dimension: 'point' | 'polygon' | 'multi-point'
         },
         // 比较对象

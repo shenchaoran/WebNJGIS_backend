@@ -1,8 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
 const MyRouter = require('./base.route');
-import * as CmpSolutionCtrl from '../controllers/cmp-solution.controller';
-import { cmpSolutionDB } from '../models/cmp-solution.model';
-const db = cmpSolutionDB;
+import CmpIssueCtrl from '../controllers/cmp-issue.controller';
+import { cmpIssueDB } from '../models';
+const db = cmpIssueDB;
 
 const defaultRoutes = [
     'insert',
@@ -11,7 +11,7 @@ const defaultRoutes = [
     'update'
 ];
 
-const router = new MyRouter(cmpSolutionDB, defaultRoutes);
+const router = new MyRouter(cmpIssueDB, defaultRoutes);
 module.exports = router;
 
 // region auth
@@ -19,11 +19,9 @@ import { userAuthMid } from '../middlewares/user-auth.middleware';
 userAuthMid(router);
 // endregion
 
-// router.route('/:id').get(cmpSolutionDB.find);
-
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        CmpSolutionCtrl.findAll()
+        CmpIssueCtrl.findAll()
             .then(docs => {
                 res.locals.resData = {
                     docs: docs

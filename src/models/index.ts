@@ -15,3 +15,8 @@ export * from './UDX-data.model';
 export * from './UDX-schema.class';
 export * from './UDX-type.class';
 export * from './user.model';
+export * from './calcu-cfg.class';
+export * from './cmp-issue.model';
+export * from './cmp-result.class';
+export * from './cmp-state.enum';
+export * from './dataRefer.class';

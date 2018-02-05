@@ -22,6 +22,7 @@ import { GeoDataClass } from './UDX-data.model';
 import { UDXSchema } from '../models/UDX-schema.class';
 import { ObjectID } from 'mongodb';
 import { SchemaName } from './UDX-schema.class';
+import { CmpResult } from './cmp-result.class';
 
 export class CmpObj {
     id: string;
@@ -44,34 +45,4 @@ export class CmpObj {
     cmpResults?: Array<CmpResult>;
     schemaTypes: string[];
     methods: any[];
-}
-
-/**
- * 这里将多个比较方法的结果都放在一起了
- * 每一个比较方法里都有state
- */
-export class CmpResult {
-    dataId?: string;
-    state: CmpResultState;
-    image?: [{
-      extent: any,
-      path: string,
-      title: string,
-      state: CmpResultState
-    }];
-    chart?: {
-        state: CmpResultState
-    };
-    GIF?: {
-        state: CmpResultState
-    };
-    statistic?: {
-        state: CmpResultState
-    };
-}
-
-export enum CmpResultState {
-  RUNNING,
-  SUCCEED,
-  FAILED
 }

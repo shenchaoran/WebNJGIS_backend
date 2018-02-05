@@ -20,10 +20,12 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        CmpTaskCtrl.findAll(req.query.user)
+        CmpTaskCtrl.findAll()
             .then(docs => {
                 res.locals = {
-                    resData: docs,
+                    resData: {
+                        docs: docs
+                    },
                     template: {},
                     succeed: true
                 };

@@ -23,36 +23,26 @@ import {
 import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
 
-export const findAll = (user): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        cmpTaskDB
+const db = cmpTaskDB;
+export const findAll = (): Promise<any> => {
+        return db
             .find({})
             .then(docs => {
-                docs = _.map(docs as any[], doc => {
-                    return reduceDoc(doc._doc, '2');
-                });
+                // docs = _.map(docs as any[], doc => {
+                //     return reduceDoc(doc._doc, '2');
+                // });
                 return Promise.resolve(docs);
             })
-            .then(docs => {
-                return resolve({
-                    docs: docs
-                });
-                // return convert2Tree(user, docs);
-            })
-            // .then(resolve)
-            .catch(reject);
-    });
+            .catch(Promise.reject);
 }
 
 export const findOne = (id: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        cmpTaskDB.findOne({_id: id})
+        return cmpTaskDB.findOne({_id: id})
             .then(doc => {
                 doc = reduceDoc(doc._doc, '1');
-                return resolve(doc);
+                return Promise.resolve(doc);
             })
-            .catch(reject);
-    });
+            .catch(Promise.reject);
 }
 
 const reduceDoc = (doc, level?: '1' | '2') => {
@@ -81,9 +71,8 @@ const reduceDoc = (doc, level?: '1' | '2') => {
  * 没有直接放在task中是因为太大了
  */
 export const getCmpResult = (taskId, cmpObjId, msId): Promise<any> => {
-    return new Promise((resolve, reject) => {
         let cmpRst;
-        cmpTaskDB.findOne({_id: taskId})
+        return cmpTaskDB.findOne({_id: taskId})
             .then(cmpTask => {
                 _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
                     if(cmpObj.id === cmpObjId) {
@@ -108,10 +97,9 @@ export const getCmpResult = (taskId, cmpObjId, msId): Promise<any> => {
                         });
                     }
                 });
-                return resolve(cmpRst);
+                return Promise.resolve(cmpRst);
             })
-            .catch(reject);
-    });
+            .catch(Promise.reject);
 };
 
 
@@ -122,9 +110,8 @@ export const getCmpResult = (taskId, cmpObjId, msId): Promise<any> => {
  *      statistic 返回 hot table 的数据源
  */
 export const getStdResult = (cmpTaskId): Promise<any> => {
-    return new Promise((resolve, reject) => {
         const stdResult = [];
-        cmpTaskDB.findOne({_id: cmpTaskId})
+        return cmpTaskDB.findOne({_id: cmpTaskId})
             .then(cmpTask => {
                 // TODO
                 _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
@@ -134,8 +121,7 @@ export const getStdResult = (cmpTaskId): Promise<any> => {
                 });
 
             })
-            .catch(reject);
-    });
+            .catch(Promise.reject);
 }
 
 export const convert2Tree = (user, docs: Array<any>): Promise<any> => {

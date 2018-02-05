@@ -12,6 +12,15 @@ import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
 import { cmpSolutionDB } from '../models/cmp-solution.model';
 import { ResourceSrc } from '../models/resource.enum';
+const db = cmpSolutionDB;
+
+export const findAll = (): Promise<any> => {
+    return db.find({})
+        .then(docs => {
+            return Promise.resolve(docs);
+        })
+        .catch(Promise.reject);
+}
 
 export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     const trees = {
