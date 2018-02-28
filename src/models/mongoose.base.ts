@@ -47,7 +47,7 @@ export class Mongoose {
                     return reject(err);
                 } else {
                     if(docs.length) {
-                        return resolve(docs[0]);
+                        return resolve(docs[0]._doc);
                     }
                     else {
                         return reject(new Error('Can\'t find data by ' + JSON.stringify(where)));
@@ -67,6 +67,52 @@ export class Mongoose {
                 }
             });
         });
+    }
+
+    /**
+     * 分页查询
+     * return 
+     *      {
+     *          count: number,
+     *          docs: any[]
+     *      }
+     */
+    public findByPage(where, pageOpt: {
+        pageSize: number,
+        pageNum: number
+    }): Promise<any> {
+        return Promise.all([
+            new Promise((resolve, reject) => {
+                this.model
+                    .find()
+                    .count((err, count) => {
+                        if (err) {
+                            return reject(err)
+                        } else {
+                            return resolve(count);
+                        }
+                    });
+            }),
+            new Promise((resolve, reject) => {
+                this.model
+                    .find(where, (err, docs) => {
+                        if (err) {
+                            return reject(err);
+                        } else {
+                            return resolve(docs);
+                        }
+                    })
+                    .limit(pageOpt.pageSize)
+                    .skip(pageOpt.pageSize* (pageOpt.pageNum- 1));
+            })
+        ])
+            .then(rsts => {
+                return Promise.resolve({
+                    count: rsts[0],
+                    docs: rsts[1]
+                });
+            })
+            .catch(Promise.reject);
     }
 
     public remove(where): Promise<any> {

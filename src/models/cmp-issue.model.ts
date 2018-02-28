@@ -16,7 +16,8 @@ class CmpIssueDB extends Mongoose {
             cmpCfg: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             spatial: mongoose.Schema.Types.Mixed,
-            temporal: mongoose.Schema.Types.Mixed
+            temporal: mongoose.Schema.Types.Mixed,
+            solutionIds: mongoose.Schema.Types.Mixed
         };
 
         super(collectionName, schema);
@@ -46,4 +47,5 @@ export class CmpIssue {
         end: number;
         scale: 'YEAR' | 'DAY';
     };
+    solutionIds: string[]
 }

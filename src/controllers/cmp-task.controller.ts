@@ -39,7 +39,7 @@ export const findAll = (): Promise<any> => {
 export const findOne = (id: string): Promise<any> => {
         return cmpTaskDB.findOne({_id: id})
             .then(doc => {
-                doc = reduceDoc(doc._doc, '1');
+                doc = reduceDoc(doc, '1');
                 return Promise.resolve(doc);
             })
             .catch(Promise.reject);

@@ -10,11 +10,13 @@ const CmpTaskRouter = require('./cmp-task.route');
 const CmpSceneRouter = require('./cmp-scene.route');
 const NodeRouter = require('./computing-node.route');
 const CmpIssueRouter = require('./cmp-issue.route');
+const SearchRouter = require('./search.route');
 
 export const router = new MyRouter();
 
 
 router.use('/auth', LoginRouter);
+router.use('/search', SearchRouter);
 router.use('/data', DataRouter);
 router.use('/model-tools', ModelToolsRouter);
 router.use('/data-tools', DataToolsRouter);

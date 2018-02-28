@@ -15,7 +15,9 @@ class CmpSolutionDB extends Mongoose {
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             cmpCfg: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed
+            auth: mongoose.Schema.Types.Mixed,
+            issueId: String,
+            taskIds: mongoose.Schema.Types.Mixed
         };
 
         super(collectionName, schema);
@@ -38,9 +40,10 @@ export class CmpSolution {
         userName: string,
         src: ResourceSrc
     };
+    issueId: string;
+    taskIds: string[];
     // 比较配置
     cmpCfg: {
-        issueId: string,
         ms: Array<{
             msId: string,
             msName: string,

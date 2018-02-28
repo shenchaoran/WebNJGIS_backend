@@ -10,14 +10,64 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import { cmpSolutionDB } from '../models/cmp-solution.model';
-import { ResourceSrc } from '../models/resource.enum';
+import { cmpSolutionDB, cmpTaskDB, cmpIssueDB, ResourceSrc } from '../models';
 const db = cmpSolutionDB;
 
 export const findAll = (): Promise<any> => {
     return db.find({})
         .then(docs => {
             return Promise.resolve(docs);
+        })
+        .catch(Promise.reject);
+}
+
+export const findByPage = (pageOpt): Promise<any> => {
+    return db.findByPage({}, pageOpt)
+        .then(rst => {
+            return Promise.resolve(rst);
+        })
+        .catch(Promise.reject);
+}
+
+export const getSlnDetail = (id): Promise<any> => {
+    return db.findOne({_id: id})
+        .then(expandDoc)
+        .then(Promise.resolve)
+        .catch(Promise.reject);
+}
+
+/**
+ * 多表查询，像doc中添加字段 issue: any 和 tasks: any[]
+ */
+const expandDoc = (doc): Promise<any> => {
+    return Promise.all(_.concat(
+        cmpIssueDB.findOne({_id: doc.issueId})
+            .then(issue => {
+                doc.issue = issue;
+                return Promise.resolve();
+            })
+            .catch(Promise.reject),
+        _.map(doc.taskIds, id => {
+            return cmpTaskDB.findOne({_id: id});
+        })
+    ))
+        .then(rsts => {
+            _.map(rsts as any[], (rst, i) => {
+                if(i === 0) {
+                    return ;
+                }
+                else {
+                    if(doc.tasks === undefined) {
+                        doc.tasks = [];
+                    }
+                    doc.tasks.push({
+                        _id: rst._id,
+                        meta: rst.meta,
+                        auth: rst.auth
+                    });
+                }
+            });
+            return Promise.resolve(doc);   
         })
         .catch(Promise.reject);
 }
