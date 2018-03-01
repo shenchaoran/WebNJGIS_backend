@@ -9,7 +9,7 @@ const request = require('request');
 const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
 // import * as Canvas from 'canvas';
-const Canvas = require('canvas');
+// const Canvas = require('canvas');
 import * as proj4x from 'proj4';
 import { setting } from '../config/setting';
 const proj4 = (proj4x as any).proj4;
@@ -308,66 +308,66 @@ const drawAscii = (
 ): Promise<any> => {
 	return new Promise((resolve, reject) => {
 		try {
-			const rowsStr = _.split(gridStr, '\n');
-			const cells = _.map(_.split(_.join(rowsStr, ' '), ' '), parseFloat);
-			const max = _.max(cells);
-			const min = _.min(cells);
+		// 	const rowsStr = _.split(gridStr, '\n');
+		// 	const cells = _.map(_.split(_.join(rowsStr, ' '), ' '), parseFloat);
+		// 	const max = _.max(cells);
+		// 	const min = _.min(cells);
 
-			const canvasH = spatial.nrows;
-			const canvasW = spatial.ncols;
-			const canvas = new Canvas(canvasW, canvasH);
-			const ctx = canvas.getContext('2d');
-			for (let i = 0; i < canvasH; i++) {
-				for (let j = 0; j < canvasW; j++) {
-					let pixelV = cells[i * canvasH + j];
-					if (pixelV === spatial.NODATA_value) {
-						ctx.fillStyle = 'rgba(0,0,0,1)';
-						ctx.fillRect(j, i, 1, 1);
-						continue;
-					}
-					pixelV = Math.floor((pixelV - min) / (max - min) * 255);
-					ctx.fillStyle =
-						'rgba(' + pixelV + ',' + pixelV + ',' + pixelV + ',1)';
-					ctx.fillRect(j, i, 1, 1);
-				}
-			}
+		// 	const canvasH = spatial.nrows;
+		// 	const canvasW = spatial.ncols;
+		// 	const canvas = new Canvas(canvasW, canvasH);
+		// 	const ctx = canvas.getContext('2d');
+		// 	for (let i = 0; i < canvasH; i++) {
+		// 		for (let j = 0; j < canvasW; j++) {
+		// 			let pixelV = cells[i * canvasH + j];
+		// 			if (pixelV === spatial.NODATA_value) {
+		// 				ctx.fillStyle = 'rgba(0,0,0,1)';
+		// 				ctx.fillRect(j, i, 1, 1);
+		// 				continue;
+		// 			}
+		// 			pixelV = Math.floor((pixelV - min) / (max - min) * 255);
+		// 			ctx.fillStyle =
+		// 				'rgba(' + pixelV + ',' + pixelV + ',' + pixelV + ',1)';
+		// 			ctx.fillRect(j, i, 1, 1);
+		// 		}
+		// 	}
 
-			const imgUrl = canvas.toDataURL('imag/png', 1);
-			// TODO  coordinate
-			// xll: x low left
-			const WSCorner = [spatial.xllcorner, spatial.yllcorner];
-			const ENCorner = [
-				spatial.xllcorner + spatial.xsize * canvasW,
-				spatial.yllcorner + spatial.ysize * canvasH
-			];
-			// WSCorner = proj4('EPSG:3857').inverse(WSCorner);
-			// ENCorner = proj4('EPSG:3857').inverse(ENCorner);
-			const base64Data = imgUrl.replace(/^data:image\/\w+;base64,/, '');
-			const dataBuf = new Buffer(base64Data, 'base64');
+		// 	const imgUrl = canvas.toDataURL('imag/png', 1);
+		// 	// TODO  coordinate
+		// 	// xll: x low left
+		// 	const WSCorner = [spatial.xllcorner, spatial.yllcorner];
+		// 	const ENCorner = [
+		// 		spatial.xllcorner + spatial.xsize * canvasW,
+		// 		spatial.yllcorner + spatial.ysize * canvasH
+		// 	];
+		// 	// WSCorner = proj4('EPSG:3857').inverse(WSCorner);
+		// 	// ENCorner = proj4('EPSG:3857').inverse(ENCorner);
+		// 	const base64Data = imgUrl.replace(/^data:image\/\w+;base64,/, '');
+		// 	const dataBuf = new Buffer(base64Data, 'base64');
 
-			const dstPath = path.join(
-				__dirname,
-				'/../upload/geo-data',
-				folderName,
-				entryName + '.png'
-			);
-			fs.writeFile(dstPath, dataBuf, err => {
-				if (err) {
-					return reject(err);
-				} else {
-					return resolve({
-						title: entryName,
-						path: imgUrl,
-						extent: [
-							WSCorner[0],
-							WSCorner[1],
-							ENCorner[0],
-							ENCorner[1]
-						],
-						state: CmpState.FINISHED_SUCCEED
-					});
-				}
-			});
+		// 	const dstPath = path.join(
+		// 		__dirname,
+		// 		'/../upload/geo-data',
+		// 		folderName,
+		// 		entryName + '.png'
+		// 	);
+		// 	fs.writeFile(dstPath, dataBuf, err => {
+		// 		if (err) {
+		// 			return reject(err);
+		// 		} else {
+		// 			return resolve({
+		// 				title: entryName,
+		// 				path: imgUrl,
+		// 				extent: [
+		// 					WSCorner[0],
+		// 					WSCorner[1],
+		// 					ENCorner[0],
+		// 					ENCorner[1]
+		// 				],
+		// 				state: CmpState.FINISHED_SUCCEED
+		// 			});
+		// 		}
+		// 	});
 		} catch (e) {
 			console.log(e);
 			reject(e);

@@ -10,6 +10,41 @@ import * as APIModel from '../models/api.model';
 import DataCtrl from '../controllers/data.controller';
 import { modelServiceDB } from '../models/model-service.model';
 
+const db = modelServiceDB;
+
+export default class ModelService {
+    constructor() {}
+
+    static findAll(): Promise<any> {
+        return db.find({})
+            .then(docs =>{
+                return Promise.resolve(docs);
+            })
+            .catch(Promise.reject)
+    }
+
+    static findByPage(pageOpt: {
+        pageSize: number,
+        pageNum: number
+    }): Promise<any> {
+        return db.findByPage({}, {
+            pageSize: pageOpt.pageSize,
+            pageNum: pageOpt.pageNum
+        })
+            .then(rst => {
+                return Promise.resolve(rst);
+            })
+            .catch(Promise.reject);
+    }
+
+    static getModelDetail(id): Promise<any> {
+        return db.findOne({_id: id})
+            .then(Promise.resolve)
+            .catch(Promise.reject)
+    }
+
+}
+
 export const convert2Tree = (user, docs): Promise<any> => {
     const models = <Array<any>>docs;
     // TODO 这里先统一到一个分类下，等有真正的分类方法后在实现

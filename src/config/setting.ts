@@ -21,7 +21,8 @@ export const setting = {
     mongodb: {
         // name: 'WebNJGIS',
         name: 'Comparison',
-        host: '127.0.0.1',
+        // host: '127.0.0.1',
+        host: '223.2.45.120',
         port: '27017'
     },
     model_service_container: {

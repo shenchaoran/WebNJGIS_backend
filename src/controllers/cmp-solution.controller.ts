@@ -41,12 +41,14 @@ export const getSlnDetail = (id): Promise<any> => {
  */
 const expandDoc = (doc): Promise<any> => {
     return Promise.all(_.concat(
-        cmpIssueDB.findOne({_id: doc.issueId})
+        [
+            cmpIssueDB.findOne({_id: doc.issueId})
             .then(issue => {
                 doc.issue = issue;
                 return Promise.resolve();
             })
-            .catch(Promise.reject),
+            .catch(Promise.reject)
+        ],
         _.map(doc.taskIds, id => {
             return cmpTaskDB.findOne({_id: id});
         })
