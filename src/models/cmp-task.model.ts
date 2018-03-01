@@ -13,6 +13,7 @@ import { CmpObj } from './cmp-obj.class';
 import { CmpState } from './cmp-state.enum';
 import { CalcuCfg } from './calcu-cfg.class';
 import { DataRefer } from './dataRefer.class';
+import { CmpResult } from './cmp-result.class';
 
 class CmpTaskDB extends Mongoose {
     constructor() {
@@ -21,6 +22,7 @@ class CmpTaskDB extends Mongoose {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             solutionId: String,
+            issueId: String,
             parameters: mongoose.Schema.Types.Mixed,
             // cmpCfg: mongoose.Schema.Types.Mixed,
             // calcuCfg: mongoose.Schema.Types.Mixed,
@@ -49,11 +51,30 @@ export class CmpTask {
         userName: string
     };
     solutionId: string;
+    issueId: string;
     // 配置参数，时空参数在Issue中有
     parameters: {
         msId: string,
         eventName: string,
         dataId: string
+    }[];
+    // 比较结果
+    cmpObjs: {
+        id: string,
+        meta: {
+            name: string,
+            desc: string
+        },
+        schemaName: string,
+        methods: string[],
+        dataRefers: {
+            msId: string,
+            msName: string,
+            eventName: string,
+            dataId: string,
+            data: any,
+            cmpResult: CmpResult
+        }[]
     }[];
     // 比较结果状态
     cmpState: CmpState;             // undefined/INIT, RUNNING, FINISHED

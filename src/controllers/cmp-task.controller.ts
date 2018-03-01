@@ -13,6 +13,7 @@ import * as UDXComparators from './UDX.compare.controller';
 import {
     cmpTaskDB,
     cmpSolutionDB,
+    cmpIssueDB,
     calcuTaskDB,
     CalcuTask,
     CalcuTaskState,
@@ -24,27 +25,39 @@ import { ResourceSrc } from '../models/resource.enum';
 import * as ChildProcessCtrl from './child-process.controller';
 
 const db = cmpTaskDB;
-export const findAll = (): Promise<any> => {
-        return db
-            .find({})
-            .then(docs => {
-                // docs = _.map(docs as any[], doc => {
-                //     return reduceDoc(doc._doc, '2');
-                // });
-                return Promise.resolve(docs);
-            })
-            .catch(Promise.reject);
+
+export const findByPage = (pageOpt): Promise<any> => {
+    return db.findByPage({}, pageOpt)
+        .then(rst => {
+            _.map(rst.docs, doc => {
+                reduceDoc(doc, '2');
+                // expandDoc(doc);
+            });
+            return Promise.resolve(rst);
+        })
+        .catch(Promise.reject);
 }
+
+export const getTaskDetail = (id: string): Promise<any> => {
+    return db.findOne({_id: id})
+        .then(expandDoc)
+        .then(Promise.resolve)
+        .catch(Promise.reject);
+};
 
 export const findOne = (id: string): Promise<any> => {
-        return cmpTaskDB.findOne({_id: id})
-            .then(doc => {
-                doc = reduceDoc(doc, '1');
-                return Promise.resolve(doc);
-            })
-            .catch(Promise.reject);
+    return cmpTaskDB.findOne({_id: id})
+        .then(doc => {
+            doc = reduceDoc(doc, '1');
+            return Promise.resolve(doc);
+        })
+        .catch(Promise.reject);
 }
 
+/**
+ * 以不同力度缩减文档
+ * 查询list时，level = 2，查询item 时，level = 1
+ */
 const reduceDoc = (doc, level?: '1' | '2') => {
     if(level === undefined || level === '1') {
         _.map(doc.cmpCfg.cmpObjs as any[], cmpObj => {
@@ -61,9 +74,24 @@ const reduceDoc = (doc, level?: '1' | '2') => {
         });
     }
     else if(level === '2') {
-        doc.cmpCfg.cmpObjs = undefined;
+        doc.cmpResults = undefined;
+
+        _.set(doc, 'cmpCfg.cmpObjs', undefined);
     }
     return doc;
+}
+
+const expandDoc = (doc): Promise<any> => {
+    return Promise.all([
+        cmpIssueDB.findOne({_id: doc.issueId}),
+        cmpSolutionDB.findOne({_id: doc.solutionId})
+    ])
+        .then(rsts => {
+            doc.issue = rsts[0];
+            doc.solution = rsts[1];
+            return Promise.resolve(doc);
+        })
+        .catch(Promise.reject);
 }
 
 /**

@@ -20,12 +20,26 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        CmpTaskCtrl.findAll()
-            .then(docs => {
+        if(req.query.pageSize === undefined) {
+            req.query.pageSize = 25;
+        }
+        else {
+            req.query.pageSize = parseInt(req.query.pageSize);
+        }
+        if(req.query.pageNum === undefined) {
+            req.query.pageNum = 1;
+        }
+        else {
+            req.query.pageNum = parseInt(req.query.pageNum);
+        }
+
+        CmpTaskCtrl.findByPage({
+            pageSize: req.query.pageSize,
+            pageNum: req.query.pageNum
+        })
+            .then(rst => {
                 res.locals = {
-                    resData: {
-                        docs: docs
-                    },
+                    resData: rst,
                     template: {},
                     succeed: true
                 };
@@ -53,19 +67,31 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        CmpTaskCtrl.findOne(req.params.id)
+        CmpTaskCtrl.getTaskDetail(req.params.id)
             .then(doc => {
                 res.locals = {
-                    resData: {
-                        doc: doc
-                    },
+                    resData: doc,
                     template: {},
                     succeed: true
                 };
                 return next();
             })
             .catch(next);
-    });
+    })
+    // .get((req: Request, res: Response, next: NextFunction) => {
+    //     CmpTaskCtrl.findOne(req.params.id)
+    //         .then(doc => {
+    //             res.locals = {
+    //                 resData: {
+    //                     doc: doc
+    //                 },
+    //                 template: {},
+    //                 succeed: true
+    //             };
+    //             return next();
+    //         })
+    //         .catch(next);
+    // });
 
 
 router.route('/:id/start')

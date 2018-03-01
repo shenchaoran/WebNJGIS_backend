@@ -1,5 +1,6 @@
 import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
+import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
 const debug = require('debug');
@@ -63,7 +64,9 @@ export class Mongoose {
                 if (err) {
                     return reject(err);
                 } else {
-                    return resolve(docs);
+                    return resolve(_.map(docs as any[], doc => {
+                        return doc.toJSON();
+                    }));
                 }
             });
         });
@@ -99,7 +102,9 @@ export class Mongoose {
                         if (err) {
                             return reject(err);
                         } else {
-                            return resolve(docs);
+                            return resolve(_.map(docs as any[], doc => {
+                                return doc.toJSON();
+                            }));
                         }
                     })
                     .limit(pageOpt.pageSize)

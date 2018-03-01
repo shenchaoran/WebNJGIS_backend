@@ -13,15 +13,6 @@ const db = cmpIssueDB;
 export default class CmpIssue {
     constructor() {}
 
-    static findAll(): Promise<any> {
-        return db.find({})
-            .then(docs => {
-                _.map(docs, CmpIssue.reduceDoc);
-                return Promise.resolve(docs);
-            })
-            .catch(Promise.reject);
-    }
-
     static findByPage(pageOpt: {
         pageSize: number,
         pageNum: number
