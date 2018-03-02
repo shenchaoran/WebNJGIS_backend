@@ -67,6 +67,7 @@ export class CmpTask {
         },
         schemaName: string,
         methods: string[],
+        // 计算出来的结果
         dataRefers: {
             msId: string,
             msName: string,
@@ -74,7 +75,14 @@ export class CmpTask {
             dataId: string,
             data: any,
             cmpResult: CmpResult
-        }[]
+        }[],
+        // 标准结果
+        stdResult: {
+            image?: any,
+            chart: any,
+            GIF: any,
+            statistic: any
+        }
     }[];
     // 比较结果状态
     cmpState: CmpState;             // undefined/INIT, RUNNING, FINISHED
