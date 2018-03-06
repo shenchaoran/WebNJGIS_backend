@@ -8,7 +8,7 @@ import * as fs from 'fs';
 const request = require('request');
 const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
-// import * as Canvas from 'canvas';
+import * as Canvas from 'canvas';
 const Canvas = require('canvas');
 import * as proj4x from 'proj4';
 import { setting } from '../config/setting';

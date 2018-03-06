@@ -47,8 +47,16 @@ export class ModelService {
             schemas: UDXSchema[],
             data: Event[]
         },
+        params: Param[],
         runtime: any;
     };
+}
+
+export class Param {
+    name: string;
+    optional: boolean;
+    desc: string;
+    defaultValue: string; //对应一个dataid 该数据对应区域的配置参数值
 }
 
 // 可以还原出一棵树，可以表现父子关系、多选一关系
@@ -63,7 +71,7 @@ export class Event {
     options?: Array<string>;
     optionType?: 'value' | 'file';
     // 输入还是输出
-    type?: 'input' | 'output';
+    type?: 'input' | 'output' | 'parameter';
     description?: string;
     optional?: boolean;
     schemaId?: string;
