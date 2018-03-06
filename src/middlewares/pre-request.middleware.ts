@@ -7,6 +7,8 @@ const compression = require('compression');
 const expressValidator = require('express-validator');
 const session = require('express-session');
 const jwt = require('jwt-simple');
+const path = require('path');
+const favicon = require('serve-favicon');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
@@ -39,8 +41,12 @@ export const preReqMid = (app) => {
 
     // 解析cookie，通过req.cookies使用
     app.use(cookieParser());
+
+    // favicon
+    app.use(favicon(path.join(__dirname, '..', 'public/images/favicon.png')));
+
     // 加载静态资源中间件，前后端分离就不要了
-    // router.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.static(path.join(__dirname, '..', 'public')));
 
     // all cross origin
     app.all('*', function(req: Request, res: Response, next: NextFunction) {

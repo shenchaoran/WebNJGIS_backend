@@ -306,6 +306,11 @@ const drawAscii = (
 	folderName: string,
 	entryName: string
 ): Promise<any> => {
+    const end = entryName.lastIndexOf('.');
+    if(end) {
+        entryName = entryName.substring(0, end);
+    }
+    
 	return new Promise((resolve, reject) => {
 		try {
 			const rowsStr = _.split(gridStr, '\n');
@@ -343,7 +348,8 @@ const drawAscii = (
 			// WSCorner = proj4('EPSG:3857').inverse(WSCorner);
 			// ENCorner = proj4('EPSG:3857').inverse(ENCorner);
 			const base64Data = imgUrl.replace(/^data:image\/\w+;base64,/, '');
-			const dataBuf = new Buffer(base64Data, 'base64');
+            const dataBuf = new Buffer(base64Data, 'base64');
+            const imgPath = path.join(folderName, entryName + '.png');
 
 			const dstPath = path.join(
 				__dirname,
@@ -357,7 +363,7 @@ const drawAscii = (
 				} else {
 					return resolve({
 						title: entryName,
-						path: imgUrl,
+						path: imgPath,
 						extent: [
 							WSCorner[0],
 							WSCorner[1],

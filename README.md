@@ -29,6 +29,15 @@ npm start
 ```
 Navigate to `http://localhost:9999`
 
+# npm version
+
+- types/request/index.d.ts
+    ```
+    toJSON(): Object;
+    // 改为
+    toJSON(): object;
+```
+
 # Architecture
 - pre-middleware: 对应用级或路由级中间件统一处理
 - post-middleware: 对response和error统一处理（除了下载文件这种特殊情况）

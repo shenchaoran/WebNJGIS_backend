@@ -124,23 +124,6 @@ module.exports = class MyRouter {
             }
         }
         
-        router
-            .route('/ping')
-            .get((req: Request, res: Response, next: NextFunction) => {
-                res.locals.succeed = true;
-                res.locals.resData = [
-                    {
-                        href: req.originalUrl
-                    }
-                ];
-                res.locals.template = [
-                    {
-                        href: 'string'
-                    }
-                ];
-                return next();
-            });
-        
         return router;
     }
 };

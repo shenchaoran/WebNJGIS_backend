@@ -7,6 +7,7 @@ export class DataRefer {
     msName?: string;
     eventName?: string;
     dataId?: string;
+    field?: string;
     // data 存放具体比较的配置，如chart的列名，图像处;
     data: any;
     cmpResult?: CmpResult;

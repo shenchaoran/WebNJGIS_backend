@@ -1,4 +1,5 @@
 import { Response, Request, NextFunction } from "express";
+import * as path from 'path';
 
 import DataCtrl from '../controllers/data.controller';
 import * as UDXPropParser from '../controllers/UDX.property.controller';
@@ -82,6 +83,16 @@ router.route('/:id/show')
                 return next();
             })
             .catch(next);
+    });
+
+router.route('/:id/:entry')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        const fpath = path.join(__dirname, '../upload/geo-data', req.params.id, req.params.entry);
+        return res.download(fpath, req.params.entry, err => {
+            if(err) {
+                return next(err);
+            }
+        });
     });
 
 // router.route('/compare/:left/2/:right')

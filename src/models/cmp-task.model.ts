@@ -73,10 +73,11 @@ export class CmpTask {
             msName: string,
             eventName: string,
             dataId: string,
+            field: string,
             data: any,
             cmpResult: CmpResult
         }[],
-        // 标准结果
+        // 标准结果，最终可能不出现在这里，可能放在标准结果库里，要不然总是重复存储
         stdResult: {
             image?: any,
             chart: any,

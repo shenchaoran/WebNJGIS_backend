@@ -1,22 +1,23 @@
 import { CmpState } from './cmp-state.enum';
 
 export class CmpResult {
-    state: CmpState;                // undefined/INIT, RUNNING, FINISHE
+    state: CmpState;                // undefined/INIT, RUNNING, FINISHED
     image?: [{
       extent: any,
-      path: string,
+      path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
       title: string,
-      state: CmpState                // FINISHED_SUCCEED, FINISHED_FAILED
+      state: CmpState               // FINISHED_SUCCEED, FINISHED_FAILED
     }];
     chart?: {
         state: CmpState,
-        tableSrc: any               // 不能放在
+        path: string,               // data/:id/:entrance 同样的，这里也放一个文件路径，前台解析为二位数组，做成 chart
+        row: any[]
     };
     GIF?: {
         state: CmpState
     };
     statistic?: {
         state: CmpState,
-        tableSrc: any
+        path: string
     };
 }
