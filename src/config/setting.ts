@@ -22,7 +22,7 @@ export const setting = {
         // name: 'WebNJGIS',
         name: 'Comparison',
         // host: '127.0.0.1',
-        host: '223.2.45.120',
+        host: '223.2.44.69',
         port: '27017'
     },
     model_service_container: {

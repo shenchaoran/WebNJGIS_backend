@@ -10,7 +10,7 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import { cmpSolutionDB, cmpTaskDB, cmpIssueDB, ResourceSrc } from '../models';
+import { cmpSolutionDB, cmpTaskDB, cmpIssueDB, modelServiceDB, ResourceSrc } from '../models';
 const db = cmpSolutionDB;
 
 export const findAll = (): Promise<any> => {
@@ -51,7 +51,7 @@ const expandDoc = (doc): Promise<any> => {
         ],
         _.map(doc.taskIds, id => {
             return cmpTaskDB.findOne({_id: id});
-        })
+        }),
     ))
         .then(rsts => {
             _.map(rsts as any[], (rst, i) => {
@@ -71,6 +71,22 @@ const expandDoc = (doc): Promise<any> => {
             });
             return Promise.resolve(doc);   
         })
+        // .then(rsts => {
+        //     _.map(rsts as any[], (rst, i) => {
+        //         if(i === 0) {
+        //             return ;
+        //         }
+        //         else {
+        //             if(doc.models === undefined) {
+        //                 doc.models = [];
+        //             }
+        //             doc.models.push({
+        //                 _id: rst._id,
+        //             });
+        //         }
+        //     });
+        //     return Promise.resolve(doc);   
+        // })
         .catch(Promise.reject);
 }
 

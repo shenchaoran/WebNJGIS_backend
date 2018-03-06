@@ -17,7 +17,7 @@ export default class ModelService {
 
     static findAll(): Promise<any> {
         return db.find({})
-            .then(docs =>{
+            .then(docs => {
                 return Promise.resolve(docs);
             })
             .catch(Promise.reject)
