@@ -9,7 +9,7 @@ const request = require('request');
 const debug = require('debug');
 const visualDebug = debug('WebNJGIS: Visualization');
 import * as Canvas from 'canvas';
-const Canvas = require('canvas');
+// const Canvas = require('canvas');
 import * as proj4x from 'proj4';
 import { setting } from '../config/setting';
 const proj4 = (proj4x as any).proj4;
@@ -313,31 +313,66 @@ const drawAscii = (
     
 	return new Promise((resolve, reject) => {
 		try {
-			const rowsStr = _.split(gridStr, '\n');
-			const cells = _.map(_.split(_.join(rowsStr, ' '), ' '), parseFloat);
+            const rowsStr = _.chain(gridStr)
+                .split('\n')
+                .reverse()
+                .value();
+            const cells = _.chain(rowsStr)
+                .join(' ')
+                .split(' ')
+                .map(parseFloat)
+                .value();
 			const max = _.max(cells);
 			const min = _.min(cells);
 
 			const canvasH = spatial.nrows;
 			const canvasW = spatial.ncols;
 			const canvas = new Canvas(canvasW, canvasH);
-			const ctx = canvas.getContext('2d');
-			for (let i = 0; i < canvasH; i++) {
-				for (let j = 0; j < canvasW; j++) {
-					let pixelV = cells[i * canvasH + j];
-					if (pixelV === spatial.NODATA_value) {
-						ctx.fillStyle = 'rgba(0,0,0,1)';
-						ctx.fillRect(j, i, 1, 1);
-						continue;
-					}
-					pixelV = Math.floor((pixelV - min) / (max - min) * 255);
-					ctx.fillStyle =
-						'rgba(' + pixelV + ',' + pixelV + ',' + pixelV + ',1)';
-					ctx.fillRect(j, i, 1, 1);
-				}
-			}
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
+            for(let i=0; i<cells.length; i++) {
+                if(cells[i] === spatial.NODATA_value) {
+                    imgData.data[i] = imgData.data[i + 1] = imgData.data[i + 2] = 0;
+                    imgData.data[i + 4] = 255;
+                }
+                else {
+                    const v = Math.floor((cells[i] - min) / (max - min) * 255);
+                    imgData.data[i*4] = v;
+                    imgData.data[i*4 + 1] = v;
+                    imgData.data[i*4 + 2] = v;
+                    imgData.data[i*4 + 3] = 255;    
+                }
+            }
 
-			const imgUrl = canvas.toDataURL('imag/png', 1);
+            // imgData.data = _.reduce(cells, (arr, pixelV) => {
+            //     if(pixelV === spatial.NODATA_value) {
+            //         return _.concat(arr, [0, 0, 0, 1]);
+            //     }
+            //     const v = Math.floor((pixelV - min) / (max - min) * 255);
+            //     return _.concat(arr, [v, v, v, 1]);
+            // }, []);
+
+            // console.log(imgData.data.length);
+
+            ctx.putImageData(imgData, 0, 0);
+
+			// for (let i = 0; i < canvasH; i++) {
+			// 	for (let j = 0; j < canvasW; j++) {
+			// 		let pixelV = cells[i * canvasH + j];
+			// 		if (pixelV === spatial.NODATA_value) {
+			// 			ctx.fillStyle = 'rgba(0,0,0,1)';
+			// 			ctx.fillRect(j, i, 1, 1);
+			// 			continue;
+			// 		}
+			// 		pixelV = Math.floor((pixelV - min) / (max - min) * 255);
+			// 		ctx.fillStyle =
+			// 			'rgba(' + pixelV + ',' + pixelV + ',' + pixelV + ',1)';
+			// 		ctx.fillRect(j, i, 1, 1);
+			// 	}
+			// }
+
+            const imgUrl = canvas.toDataURL('imag/png', 1);
+            // console.log(imgUrl);
 			// TODO  coordinate
 			// xll: x low left
 			const WSCorner = [spatial.xllcorner, spatial.yllcorner];

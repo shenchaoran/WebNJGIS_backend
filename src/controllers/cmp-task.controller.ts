@@ -152,6 +152,9 @@ export const getStdResult = (cmpTaskId): Promise<any> => {
             .catch(Promise.reject);
 }
 
+/**
+ * deprecated
+ */
 export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
     const trees = {
         public: [
@@ -209,15 +212,7 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
 export const start = (id: string): Promise<any> => {
     return new Promise((resolve, reject) => {
         cmpTaskDB
-            .find({ _id: id })
-            .then(docs => {
-                if (docs.length) {
-                    const doc = docs[0];
-                    return Promise.resolve(doc);
-                } else {
-                    return Promise.reject(new Error("Can't find this task!"));
-                }
-            })
+            .findOne({ _id: id })
             .then(doc => {
                 // TODO 没有管then
                 updateCmpResult(doc._id);
@@ -233,7 +228,7 @@ export const start = (id: string): Promise<any> => {
 
 export const insert = (doc: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        doc = changeParticipate(doc);
+        // doc = changeParticipate(doc);
         cmpTaskDB
             .insert(doc)
             .then(_doc => {
