@@ -16,43 +16,23 @@ import * as VisualParser from './UDX.visualization.controller';
 
 export const parse = (dataId: string): Promise<any> => {
     return new Promise((resolve, reject) => {
-        geoDataDB.find({ _id: dataId })
-            .then(rsts => {
-                if (rsts.length) {
-                    const doc = rsts[0];
-                    return Promise.resolve(doc);
-                } else {
-                    return reject(new Error("can't find geo-data!"));
-                }
-            })
+        geoDataDB.findOne({ _id: dataId })
             .then(doc => {
                 const udxcfg = doc.udxcfg;
                 let promiseFunc = undefined;
-                if (udxcfg.schema$.type === SchemaName[SchemaName.TABLE_RAW]) {
-                    promiseFunc = new Promise((resolve, reject) => {
-                        Promise.all([
-                            parseRAWTableProp(doc),
-                            VisualParser.showRAWTable(doc)
-                        ])
-                            .then(rsts => {
-                                return resolve({
-                                    prop: rsts[0],
-                                    show: rsts[1]
-                                });
-                            })
-                            .catch(reject);
-                    });
-                } 
+                if (udxcfg.schema$.id === SchemaName[SchemaName.TABLE_RAW]) {
+                    promiseFunc = parseRAWTableProp(doc);
+                }
                 else if (udxcfg.schema$.type === SchemaName[SchemaName.ASCII_GRID_RAW]) {
                     promiseFunc = parseRAWAsciiProp(doc);
-                } 
+                }
                 else if (udxcfg.schema$.type === SchemaName[SchemaName.SHAPEFILE_RAW]) {
                     promiseFunc = parseRAWShpProp(doc);
-                } 
+                }
                 else {
                     return resolve(new Error('todo'));
                 }
-        
+
                 promiseFunc
                     .then(parsed => {
                         return resolve({
@@ -66,213 +46,8 @@ export const parse = (dataId: string): Promise<any> => {
     });
 };
 
-// deprecated
-const parseXMLTableProp = (udxStr): Promise<UDXTableXML> => {
-    return new Promise((resolve, reject) => {
-        try {
-            const doc = new dom().parseFromString(udxStr);
-            const colNodes = xpath.select(
-                "/dataset/XDO[@name='table']/XDO",
-                doc
-            );
-            const table = new UDXTableXML();
-            const rowsData: Array<any> = [];
-
-            table.columns = [
-                {
-                    data: 'name',
-                    title: 'Name',
-                    readOnly: true
-                },
-                {
-                    data: 'type',
-                    title: 'Type',
-                    readOnly: true
-                },
-                {
-                    data: 'min',
-                    title: 'Minimum',
-                    readOnly: true
-                },
-                {
-                    data: 'max',
-                    title: 'Maximum',
-                    readOnly: true
-                },
-                {
-                    data: 'mean',
-                    title: 'Mean',
-                    readOnly: true
-                },
-                {
-                    data: 'stdDev',
-                    title: 'Standard Deviation',
-                    readOnly: true
-                },
-                {
-                    data: 'sum',
-                    title: 'Sum',
-                    readOnly: true
-                }
-            ];
-            table.data = [];
-            _.chain(colNodes)
-                .map((colNode, colIndex) => {
-                    const nameNode = xpath.select1('@name', colNode);
-                    const kernelTypeNode = xpath.select1(
-                        '@kernelType',
-                        colNode
-                    );
-                    const valueNode = xpath.select1('@value', colNode);
-                    let name = undefined;
-                    let kernelType = undefined;
-                    let value = undefined;
-                    let max = undefined;
-                    let min = undefined;
-                    let mean = undefined;
-                    let stdDev = undefined;
-                    let sum = undefined;
-
-                    if (nameNode) {
-                        name = nameNode.value;
-                    }
-                    if (kernelTypeNode) {
-                        let type = kernelTypeNode.value;
-                        type = type.split('_')[0];
-                        kernelType = type;
-                        // column.type = type;
-                    }
-
-                    if (valueNode) {
-                        value = valueNode.value;
-                        value = _.split(value, ';');
-                        value = _.map(value, _.trim);
-                        switch (kernelType) {
-                            case 'string':
-                                value = _.map(value, parseFloat);
-                                break;
-                            case 'int':
-                                value = _.map(value, parseInt);
-                                break;
-                            case 'real':
-                                value = _.map(value, parseFloat);
-                                break;
-                        }
-                        mean = _.mean(value);
-                        max = <number>_.max(value);
-                        min = <number>_.min(value);
-                        sum = _.sum(value);
-                        stdDev = ArrayUtils.stdDev(value);
-                    }
-
-                    table.data.push({
-                        name: name,
-                        type: kernelType,
-                        min: min,
-                        max: max,
-                        mean: mean,
-                        stdDev: stdDev,
-                        sum: sum
-                    });
-                })
-                .value();
-            return resolve(table);
-        } catch (e) {
-            return reject(e);
-        }
-    });
-};
-
-export const parseRAWTableProp = (geodata: any): Promise<UDXTableXML> => {
-    const udxcfg = geodata.udxcfg;
-    return new Promise((resolve, reject) => {
-        fs.readFile(udxcfg.elements.entrance, (err, dataBuf) => {
-            if (err) {
-                return reject(err);
-            }
-            const table = new UDXTableXML();
-            table.columns = [
-                {
-                    data: 'name',
-                    title: 'Name',
-                    readOnly: true
-                },
-                {
-                    data: 'unit',
-                    title: 'Unit',
-                    readOnly: true
-                },
-                {
-                    data: 'min',
-                    title: 'Minimum',
-                    readOnly: true
-                },
-                {
-                    data: 'max',
-                    title: 'Maximum',
-                    readOnly: true
-                },
-                {
-                    data: 'mean',
-                    title: 'Mean',
-                    readOnly: true
-                },
-                {
-                    data: 'stdDev',
-                    title: 'Standard Deviation',
-                    readOnly: true
-                },
-                {
-                    data: 'sum',
-                    title: 'Sum',
-                    readOnly: true
-                }
-            ];
-            table.data = [];
-            const dataStr = dataBuf.toString();
-            const rowsStr = dataStr.split('\n');
-            const rows = [];
-            const rowObj = [];
-            // th + unit
-            _.map(rowsStr, (rowStr, i) => {
-                if (rowStr.trim() !== '') {
-                    rows.push(rowStr.split(','));
-                }
-            });
-            // th
-            _.map(rows[0], (th, i) => {
-                if (rows[1][i].trim() !== '') {
-                    rows[0][i] = `${th} (${rows[i][i]})`;
-                }
-            });
-            // 转置 table body
-            const ths = _.remove(rows, (row, i) => i === 0);
-            // const units = _.remove(rows, (row, i) => i === 0);
-            const transed = [];
-            for (let i = 0; i < rows.length; i++) {
-                for (let j = 0; j < rows[i].length; j++) {
-                    if (transed.length <= j) {
-                        transed.push([]);
-                    }
-
-                    transed[j].push(parseFloat(rows[i][j]));
-                }
-            }
-            // 统计
-            _.map(transed, (row, i) => {
-                table.data.push({
-                    name: ths[0][i],
-                    // unit: units[0][i],
-                    min: <number>_.min(row),
-                    max: <number>_.max(row),
-                    mean: _.mean(row),
-                    stdDev: ArrayUtils.stdDev(row),
-                    sum: _.sum(row)
-                });
-            });
-            return resolve(table);
-        });
-    });
+export const parseRAWTableProp = (geodata: any): Promise<any> => {
+    return
 };
 
 export const parseRAWAsciiProp = (geodata: any): Promise<any> => {
@@ -286,13 +61,126 @@ export const parseRAWShpProp = (geodata: any): Promise<any> => {
 ////////////////////////////////////////////////////////////////////////////////
 
 export const statisticRAWShp = (doc: any): Promise<any> => {
-    return 
+    return
 }
 
 export const statisticRAWAscii = (doc: any): Promise<any> => {
-    return 
+    return
 }
 
+export const statisticTableRow = (doc: any, field?: string): Promise<any> => {
+    const udxcfg = doc.udxcfg;
+    return new Promise((resolve, reject) => {
+        const fPath = path.join(
+            setting.uploadPath,
+            'geo-data',
+            doc.meta.path,
+            udxcfg.entrance
+        );
+        fs.readFile(fPath, (err, buf) => {
+            if (err) {
+                return reject(err);
+            }
+            else {
+                const dataStr = buf.toString();
+                const rowsStr = dataStr.split(/\r\n|\r|\n/g);
+                const rows = [];
+                const rowsObj = [];
+                const cols = [];
+                _.map(rowsStr, (rowStr, i) => {
+                    if (rowStr.trim() !== '') {
+                        if (i === 0) {
+                            rows.push(_.map(rowStr.split(','), item => {
+                                return item;
+                            }));
+                        }
+                        else {
+                            rows.push(_.map(rowStr.split(','), item => {
+                                return parseFloat(item);
+                            }));
+                        }
+                    }
+                });
+
+                // 列名
+                let ths = _.remove(rows, (row, i) => i === 0);
+                ths = ths[0];
+                let index;
+                _.map(ths, (td, i) => {
+                    if (td === field) {
+                        index = i;
+                    }
+                });
+
+                const col = [];
+                if (index) {
+                    _.map(rows, row => {
+                        col.push(row[index]);
+                    });
+                }
+
+                // const table = new UDXTableXML();
+                // table.columns = [
+                //     {
+                //         data: 'name',
+                //         title: 'Name',
+                //         readOnly: true
+                //     },
+                //     {
+                //         data: 'min',
+                //         title: 'Minimum',
+                //         readOnly: true
+                //     },
+                //     {
+                //         data: 'max',
+                //         title: 'Maximum',
+                //         readOnly: true
+                //     },
+                //     {
+                //         data: 'mean',
+                //         title: 'Mean',
+                //         readOnly: true
+                //     },
+                //     {
+                //         data: 'stdDev',
+                //         title: 'Standard Deviation',
+                //         readOnly: true
+                //     },
+                //     {
+                //         data: 'sum',
+                //         title: 'Sum',
+                //         readOnly: true
+                //     }
+                // ];
+                // table.data.push({
+                //     name: ths[0][index],
+                //     min: <number>_.min(col),
+                //     max: <number>_.max(col),
+                //     mean: _.mean(col),
+                //     stdDev: ArrayUtils.stdDev(col),
+                //     sum: _.sum(col)
+                // });
+                const statisCol = [
+                    ths[index],
+                    <number>_.min(col),
+                    <number>_.max(col),
+                    _.mean(col),
+                    ArrayUtils.stdDev(col),
+                    _.sum(col)
+                ];
+
+                return resolve({
+                    statistic: {
+                        row: statisCol,
+                        progress: 100
+                    }
+                });
+            }
+        });
+    });
+}
+
+// TODO
 export const statisticRAWTable = (doc: any): Promise<any> => {
     const udxcfg = doc.udxcfg;
     return new Promise((resolve, reject) => {
@@ -300,7 +188,7 @@ export const statisticRAWTable = (doc: any): Promise<any> => {
             setting.uploadPath,
             'geo-data',
             doc.meta.path,
-            udxcfg.elements.entrance
+            udxcfg.entrance
         );
         fs.readFile(fPath, (err, dataBuf) => {
             if (err) {
@@ -373,7 +261,6 @@ export const statisticRAWTable = (doc: any): Promise<any> => {
                     if (transed.length <= j) {
                         transed.push([]);
                     }
-
                     transed[j].push(parseFloat(rows[i][j]));
                 }
             }
@@ -382,7 +269,6 @@ export const statisticRAWTable = (doc: any): Promise<any> => {
                 table.data.push({
                     name: ths[0][i],
                     // unit: unit[0][i],
-                    unit: '',
                     min: <number>_.min(row),
                     max: <number>_.max(row),
                     mean: _.mean(row),
@@ -393,7 +279,7 @@ export const statisticRAWTable = (doc: any): Promise<any> => {
             return resolve({
                 statistic: {
                     tableSrc: table,
-                    state: CmpState.FINISHED_SUCCEED
+                    progress: 100
                 }
             });
         });

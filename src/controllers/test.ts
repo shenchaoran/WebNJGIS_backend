@@ -102,9 +102,9 @@ import { geoDataDB }  from '../models/UDX-data.model';
 // });
 
 // ////////////////////////////// proj4 test
-const proj4 = require('proj4');
-console.log(proj4('EPSG:3857').forward([180, 77]));
-console.log(proj4('EPSG:3857').inverse([180, 100000000]));
+// const proj4 = require('proj4');
+// console.log(proj4('EPSG:3857').forward([180, 77]));
+// console.log(proj4('EPSG:3857').inverse([180, 100000000]));
 // //////////////////////////////
 
 ////////////////////////////// canvas test
@@ -148,3 +148,26 @@ console.log(proj4('EPSG:3857').inverse([180, 100000000]));
 // aPromise.then(function (value) {
 //     console.log("1: " + value); // => 100
 // });
+
+// const crypto = require('crypto');
+// const md5 = (v) => {
+//     return crypto.createHash('md5').update(v, 'utf8').digest('hex');
+// };
+
+// console.log(md5('23'), md5('23ewgfgsdfaafdfdasf'));
+
+
+import * as CmpCtrl from './UDX.compare.controller';
+// 测试table chart statistic
+// CmpCtrl.compare('5ab100790579a0bcccc60c28', ['TABLE_CHART', 'TABLE_STATISTIC'], 'aycsoi*1000')
+//     .then(rst=> {
+//         console.log(rst);
+//     })
+//     .catch(console.log); 
+
+// 测试grid image
+CmpCtrl.compare('5ab3a6ef5f46f2a2ac0566e2', ['ASCII_GRID_BATCH_VISUALIZATION'])
+    .then(rst => {
+        console.log(rst);
+    })
+    .catch(console.log);

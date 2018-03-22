@@ -18,12 +18,12 @@ const getPort = (): Promise<any> => {
     });
 };
 
-export const newCmpProcess = (dataId: string, methods: string[]): Promise<any> => {
+export const newCmpProcess = (dataId: string, methods: string[], field?: string): Promise<any> => {
     const cpPath = path.join(__dirname, 'UDX.compare.controller.js');
     return new Promise((resolve, reject) => {
         // 子进程不方便调试，所以如果调试模式下就不启用子进程，采用阻塞的方法在本进程运行。
         if(setting.debug.child_process) {
-            UDXComparetor.compare(dataId, methods)
+            UDXComparetor.compare(dataId, methods, field)
                 .then(m => {
                     return resolve(m);
                 })

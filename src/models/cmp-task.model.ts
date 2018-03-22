@@ -3,7 +3,7 @@
  * cmp task 和参与比较的model task相关联
  */
 
-import { Mongoose } from './mongoose.base';
+import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 
@@ -11,7 +11,6 @@ import { GeoDataClass } from './UDX-data.model';
 import { CalcuTaskState } from './calcu-task.model';
 import { CmpObj } from './cmp-obj.class';
 import { CmpState } from './cmp-state.enum';
-import { CalcuCfg } from './calcu-cfg.class';
 import { DataRefer } from './dataRefer.class';
 import { CmpResult } from './cmp-result.class';
 
@@ -23,11 +22,9 @@ class CmpTaskDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             solutionId: String,
             issueId: String,
-            parameters: mongoose.Schema.Types.Mixed,
-            // cmpCfg: mongoose.Schema.Types.Mixed,
-            // calcuCfg: mongoose.Schema.Types.Mixed,
             calcuTasks: mongoose.Schema.Types.Mixed,
-            cmpState: Number
+            progress: Number,
+            cmpObjs: mongoose.Schema.Types.Mixed
         };
 
         super(collectionName, schema);
@@ -36,7 +33,7 @@ class CmpTaskDB extends Mongoose {
 
 export const cmpTaskDB = new CmpTaskDB();
 
-export class CmpTask {
+export class CmpTask extends OgmsObj {
     _id?: any;
     // 任务描述
     meta: {
@@ -50,46 +47,17 @@ export class CmpTask {
         userId: string,
         userName: string
     };
+    // 0 未启动
+    // 1 启动
+    // -1 比较失败
+    // 100 比较成功
+    // [2, 99] 进度条
+    progress: number;
     solutionId: string;
     issueId: string;
-    // 配置参数，时空参数在Issue中有
-    parameters: {
-        msId: string,
-        eventName: string,
-        dataId: string
+    calcuTasks: {
+        _id: string,
+        progress: number
     }[];
-    // 比较结果
-    cmpObjs: {
-        id: string,
-        meta: {
-            name: string,
-            desc: string
-        },
-        schemaName: string,
-        methods: string[],
-        // 计算出来的结果
-        dataRefers: {
-            msId: string,
-            msName: string,
-            eventName: string,
-            dataId: string,
-            field: string,
-            data: any,
-            cmpResult: CmpResult
-        }[],
-        // 标准结果，最终可能不出现在这里，可能放在标准结果库里，要不然总是重复存储
-        stdResult: {
-            image?: any,
-            chart: any,
-            GIF: any,
-            statistic: any
-        }
-    }[];
-    // 比较结果状态
-    cmpState: CmpState;             // undefined/INIT, RUNNING, FINISHED
-    // 计算实例
-    calcuTasks: Array<{
-      calcuTaskId: string,
-      state: CalcuTaskState
-    }>;
+    cmpObjs: CmpObj[];
 }

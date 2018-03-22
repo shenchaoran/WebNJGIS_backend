@@ -8,6 +8,10 @@ import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
 import * as APIModel from '../models/api.model';
 import { userDB, UserClass } from '../models/user.model';
+import * as crypto from 'crypto';
+const md5 = (v) => {
+    return crypto.createHash('md5').update(v, 'utf8').digest('hex');
+};
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
@@ -23,7 +27,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
     userDB.find({ username: username })
         .then(user => {
             user = user[0];
-            if (user.password === password) {
+            if (user.password === md5(password)) {
                 const expires = moment()
                     .add(7, 'days')
                     .valueOf();
@@ -59,7 +63,9 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         .catch(next);
 };
 
-export const logout = (req: Request, res: Response, next: NextFunction) => {};
+export const logout = (req: Request, res: Response, next: NextFunction) => {
+    
+};
 
 export const register = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;

@@ -23,6 +23,7 @@ import { UDXSchema } from '../models/UDX-schema.class';
 import { ObjectID } from 'mongodb';
 import { SchemaName } from './UDX-schema.class';
 import { CmpResult } from './cmp-result.class';
+import { DataRefer } from './dataRefer.class';
 
 export class CmpObj {
     id: string;
@@ -32,17 +33,7 @@ export class CmpObj {
     };
     // 此处的数据参考是比较对象的数据参考，可能是输入，但绝大多数都是输出
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
-    dataRefers: Array<{
-        // 独立上传的，不是模型算出来的数据
-        independent?: boolean,// 暂时还没用到这个字段，默认认为ms的participate为false时是独立上传的
-        msId?: string,
-        msName?: string,
-        eventName?: string,
-        dataId: string,
-        // data 存放具体比较的配置，如chart的列名，图像处理
-        data: any
-    }>;
-    cmpResults?: Array<CmpResult>;
-    schemaTypes: string[];
+    dataRefers: Array<DataRefer>;
+    schemaId: string;
     methods: any[];
 }

@@ -4,6 +4,7 @@ import { initFolders } from './init-folder';
 import * as Promise from 'bluebird';
 
 export const init = () => {
+    
     return new Promise((resolve, reject) => {
         Promise.all([
             // connect2MSC(), 

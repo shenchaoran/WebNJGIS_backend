@@ -3,21 +3,25 @@
  * 这个表算是一个中间产物，其实存在cmp-task的calcuTasks中也行，但是多表查询很麻烦
  */
 
-import { Mongoose } from './mongoose.base';
+import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { CalcuCfg } from './calcu-cfg.class';
+import { ObjectID } from 'mongodb';
+import * as _ from 'lodash';
 
 class CalcuTaskDB extends Mongoose {
     constructor() {
         const collectionName = 'Calcu_Task';
         const schema = {
+            meta: mongoose.Schema.Types.Mixed,
+            auth: mongoose.Schema.Types.Mixed,
             msId: String,
+            msName: String,
             cmpTaskId: String,
             nodeName: String,
-            calcuCfg: mongoose.Schema.Types.Mixed,
-            outputs: mongoose.Schema.Types.Mixed,
-            state: Number
+            IO: mongoose.Schema.Types.Mixed,
+            state: Number,
+            progress: Number
         };
 
         super(collectionName, schema);
@@ -26,22 +30,35 @@ class CalcuTaskDB extends Mongoose {
 
 export const calcuTaskDB = new CalcuTaskDB();
 
-export class CalcuTask {
+export class CalcuTask extends OgmsObj {
     _id?: any;
+    meta: {
+        name: string,
+        desc: string,
+        time: number
+    };
+    auth: {
+        userId: string,
+        userName: string,
+        src: ResourceSrc
+    };
     msId: string;
+    msName: string;
     cmpTaskId: string;
     nodeName: string;
-    calcuCfg: CalcuCfg;
-    outputs: Array<{
-        eventName: string;
-        dataId: string;
-    }>;
+    IO: {
+        dataSrc: 'STD' | 'UPLOAD',
+        schemas: any[],
+        data: any[],
+        std: any[]
+    };
     state: CalcuTaskState;
+    progress: number;
 }
 
 export enum CalcuTaskState {
     INIT = 0,
-    PAUSE,
+    COULD_START,
     START_PENDING,
     START_FAILED,
     RUNNING,

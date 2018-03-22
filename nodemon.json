@@ -4,6 +4,7 @@
         "node_modules",
         "dist/upload",
         "dist/public",
+        "dist/logs",
         ".vscode",
         "test",
         "upload"

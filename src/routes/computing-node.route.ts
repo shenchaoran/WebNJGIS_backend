@@ -49,7 +49,10 @@ router.route('/logout')
     });
 
 
-// 更新host，port
+/**
+ * deprecated 服务调用的方式变了，不用我这边主动调用了，所以host，port暂时用不到了
+ * 更新host，port
+ */
 router
     .route('/:nodeName')
     .put((req: Request, res: Response, next: NextFunction) => {
@@ -86,7 +89,7 @@ router
 router
     .route('/:nodeName/tasks')
     .get((req: Request, res: Response, next: NextFunction) => {
-        CalcuTaskCtrl.getInitTask(req.params.nodeName)
+        CalcuTaskCtrl.getReadyTask(req.params.nodeName)
             .then(docs => {
                 res.locals = {
                     resData: {
@@ -106,10 +109,10 @@ router
     .put((req: Request, res: Response, next: NextFunction) => {
         if (req.body.newState) {
             CalcuTaskCtrl.updateState(
-                req.params.nodeName,
                 req.params.taskId,
                 req.body.oldState,
-                req.body.newState
+                req.body.newState,
+                req.params.nodeName
             )
                 .then(rst => {
                     res.locals = {
@@ -127,15 +130,28 @@ router
         }
     });
 
-// 更新output
+/**
+ * 计算结束
+ * 更新output 和 progress
+ * body {
+ *      state: number,
+ *      outputs: [{
+ *          id: string,
+ *          value: any
+ *      }],
+ *      progress: number
+ * }
+ */
 router
     .route('/:nodeName/tasks/:taskId/data')
     .post((req: Request, res: Response, next: NextFunction) => {
         if (req.body.outputs) {
-            CalcuTaskCtrl.updateData(
+            CalcuTaskCtrl.updateOnFinished(
                 req.params.nodeName,
                 req.params.taskId,
-                req.body.outputs
+                req.body.outputs,
+                req.body.progress,
+                req.body.state
             )
                 .then(doc => {
                     res.locals = {

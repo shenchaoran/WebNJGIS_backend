@@ -14,7 +14,7 @@ const jwt = require('jwt-simple');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
-import { userDB } from '../models';
+import { computingNodeDB } from '../models';
 
 export const nodeAuthMid = app => {
     // 计算节点的请求认证
@@ -62,7 +62,7 @@ export const nodeAuthMid = app => {
                     err.status = 406;
                     return next(err);
                 } else {
-                    userDB
+                    computingNodeDB
                         .find({
                             auth: {
                                 nodeName: decoded.iss

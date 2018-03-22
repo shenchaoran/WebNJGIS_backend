@@ -1,4 +1,4 @@
-import { Mongoose } from './mongoose.base';
+import { Mongoose, OgmsObj } from './mongoose.base';
 import { UDXSchema } from './UDX-schema.class';
 import { UDXCfg } from './UDX-cfg.class';
 import * as mongoose from 'mongoose';
@@ -19,7 +19,7 @@ class GeoDataDB extends Mongoose {
 
 export const geoDataDB = new GeoDataDB();
 
-export class GeoDataClass {
+export class GeoDataClass extends OgmsObj {
     _id?: mongoose.Schema.Types.ObjectId;
 
     meta?: {

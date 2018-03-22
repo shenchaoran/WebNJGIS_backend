@@ -22,9 +22,6 @@ router.route('/')
         db
             .find({})
             .then(docs => {
-                return DataCtrl.convert2Tree(req.query.user, docs);
-            })
-            .then(docs => {
                 res.locals.resData = docs;
                 res.locals.template = {};
                 res.locals.succeed = true;
@@ -57,6 +54,19 @@ router.route('/:id')
         }
     });
 
+/**
+ * 按条目下载
+ */
+router.route('/:id/:entry')
+    .get((req: Request, res: Response, next: NextFunction) => {
+        const fpath = path.join(__dirname, '../upload/geo-data', req.params.id, req.params.entry);
+        return res.download(fpath, req.params.entry, err => {
+            if(err) {
+                return next(err);
+            }
+        });
+    });
+
 router.route('/:id/property')
     .get((req: Request, res: Response, next: NextFunction) => {
         UDXPropParser.parse(req.params.id)
@@ -84,16 +94,3 @@ router.route('/:id/show')
             })
             .catch(next);
     });
-
-router.route('/:id/:entry')
-    .get((req: Request, res: Response, next: NextFunction) => {
-        const fpath = path.join(__dirname, '../upload/geo-data', req.params.id, req.params.entry);
-        return res.download(fpath, req.params.entry, err => {
-            if(err) {
-                return next(err);
-            }
-        });
-    });
-
-// router.route('/compare/:left/2/:right')
-//     .get(DataCtrl.compareUDX);

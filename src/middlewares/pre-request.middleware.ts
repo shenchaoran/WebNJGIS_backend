@@ -62,7 +62,7 @@ export const preReqMid = (app) => {
         );
         if (req.method == 'OPTIONS') {
             // 预检请求直接返回
-            return res.send(200);
+            return res.sendStatus(200);
         } else {
             return next();
         }

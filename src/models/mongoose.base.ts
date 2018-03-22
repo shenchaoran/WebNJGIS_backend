@@ -1,6 +1,7 @@
 import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
 import * as _ from 'lodash';
+import { ObjectID } from 'mongodb';
 
 import { setting } from '../config/setting';
 const debug = require('debug');
@@ -145,6 +146,19 @@ export class Mongoose {
         });
     }
 
+    public insertBatch(docs, options?): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.model.collection.insert(docs, options, (err, rst) => {
+                if(err) {
+                    return reject(err);
+                }
+                else {
+                    return resolve(rst);
+                }
+            });
+        });
+    }
+
     public update(where, update, options?): Promise<any> {
         return new Promise((resolve, reject) => {
             this.model.update(where, update, options, (err, rst) => {
@@ -155,5 +169,19 @@ export class Mongoose {
                 }
             });
         });
+    }
+}
+
+
+export class OgmsObj {
+    _id?: any;
+    
+    constructor(obj?: any) {
+        if(obj) {
+            _.assign(this, obj);
+        }
+        else {
+            this._id = new ObjectID();
+        }
     }
 }
