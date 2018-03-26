@@ -8,6 +8,12 @@ import * as CmpTaskCtrl from './cmp-task.controller';
 import { calcuTaskDB, CalcuTaskState, cmpTaskDB } from '../models';
 import { ObjectID } from 'mongodb';
 
+export const getCalcuTaskDetail = (id): Promise<any> => {
+    return calcuTaskDB.findOne({_id: id})
+        .then(Promise.resolve)
+        .catch(Promise.reject);
+}
+
 export const insertBatch = (docs): Promise<any> => {
     // TODO 结果处理
     _.map(docs as any[], doc => {

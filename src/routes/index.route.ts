@@ -11,6 +11,7 @@ const CmpSceneRouter = require('./cmp-scene.route');
 const NodeRouter = require('./computing-node.route');
 const CmpIssueRouter = require('./cmp-issue.route');
 const SearchRouter = require('./search.route');
+const CalcuRouter = require('./calculation.route');
 
 export const router = new MyRouter();
 
@@ -26,3 +27,4 @@ router.use('/comparison/solutions', CmpSolutionRouter);
 router.use('/comparison/tasks', CmpTaskRouter);
 // router.use('/comparison/scenes', CmpSceneRouter);
 router.use('/nodes', NodeRouter);
+router.use('/calculation', CalcuRouter);

@@ -22,7 +22,7 @@ class CmpTaskDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             solutionId: String,
             issueId: String,
-            calcuTasks: mongoose.Schema.Types.Mixed,
+            calcuTaskIds: mongoose.Schema.Types.Mixed,
             progress: Number,
             cmpObjs: mongoose.Schema.Types.Mixed
         };
@@ -55,7 +55,7 @@ export class CmpTask extends OgmsObj {
     progress: number;
     solutionId: string;
     issueId: string;
-    calcuTasks: {
+    calcuTaskIds: {
         _id: string,
         progress: number
     }[];

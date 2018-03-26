@@ -89,8 +89,8 @@ const reduceDoc = (doc, level?: '1' | '2') => {
 
 const expandDoc = (doc): Promise<any> => {
     let calcuTaskPromise = undefined;
-    if (doc.calcuTasks) {
-        calcuTaskPromise = Promise.all(_.map(doc.calcuTasks, id => {
+    if (doc.calcuTaskIds && doc.calcuTaskIds.length) {
+        calcuTaskPromise = Promise.all(_.map(doc.calcuTaskIds, id => {
             return calcuTaskDB.findOne({ _id: id });
         }));
     }

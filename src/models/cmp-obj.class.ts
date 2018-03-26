@@ -36,4 +36,5 @@ export class CmpObj {
     dataRefers: Array<DataRefer>;
     schemaId: string;
     methods: any[];
+    progress: number;
 }

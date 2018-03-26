@@ -1,6 +1,6 @@
 /**
  * 新建的路由器可以直接配置对数据库的增删查改路由:
- *      find-all, find, insert, update, remove
+ *      findAll, find, insert, update, remove
  */
 
 import {
@@ -20,16 +20,30 @@ module.exports = class MyRouter {
         const router = express.Router();
 
         if(db) {
-            if (_.indexOf(defaultRoutes, 'find-all') !== -1) {
+            if (_.indexOf(defaultRoutes, 'findAll') !== -1) {
                 router
                     .route('/')
                     .get((req: Request, res: Response, next: NextFunction) => {
+                        if(req.query.pageSize === undefined) {
+                            req.query.pageSize = 25;
+                        }
+                        else {
+                            req.query.pageSize = parseInt(req.query.pageSize);
+                        }
+                        if(req.query.pageNum === undefined) {
+                            req.query.pageNum = 1;
+                        }
+                        else {
+                            req.query.pageNum = parseInt(req.query.pageNum);
+                        }
+
                         db
-                            .find({})
+                            .findByPage({}, {
+                                pageSize: req.query.pageSize,
+                                pageNum: req.query.pageNum
+                            })
                             .then(docs => {
-                                res.locals.resData = {
-                                    docs: docs
-                                };
+                                res.locals.resData = docs;
                                 res.locals.template = {};
                                 res.locals.succeed = true;
                                 return next();
@@ -43,15 +57,9 @@ module.exports = class MyRouter {
                     .get((req: Request, res: Response, next: NextFunction) => {
                         if (req.params.id) {
                             db
-                                .find({ _id: req.params.id })
-                                .then(docs => {
-                                    if (docs.length === 0) {
-                                        res.locals.resData = undefined;
-                                    } else {
-                                        res.locals.resData = {
-                                            doc: docs[0]
-                                        };
-                                    }
+                                .findOne({ _id: req.params.id })
+                                .then(doc => {
+                                    res.locals.resData = doc;
                                     res.locals.template = {};
                                     res.locals.succeed = true;
                                     return next();
@@ -70,9 +78,7 @@ module.exports = class MyRouter {
                             db
                                 .insert(req.body.doc)
                                 .then(doc => {
-                                    res.locals.resData = {
-                                        doc: doc
-                                    };
+                                    res.locals.resData = doc;
                                     res.locals.template = {};
                                     res.locals.succeed = true;
                                     return next();
@@ -92,9 +98,7 @@ module.exports = class MyRouter {
                                 .update({ _id: req.body.id }, req.body.doc)
                                 .then((doc) => {
                                     // TODO 此doc非彼doc
-                                    res.locals.resData = {
-                                        doc: doc
-                                    };
+                                    res.locals.resData = doc;
                                     res.locals.template = {};
                                     res.locals.succeed = true;
                                     return next();
@@ -112,9 +116,7 @@ module.exports = class MyRouter {
                         db
                             .remove({ _id: req.params.id })
                             .then((doc) => {
-                                res.locals.resData = {
-                                    doc: doc
-                                };
+                                res.locals.resData = doc;
                                 res.locals.template = {};
                                 res.locals.succeed = true;
                                 return next();

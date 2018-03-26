@@ -92,9 +92,7 @@ router
         CalcuTaskCtrl.getReadyTask(req.params.nodeName)
             .then(docs => {
                 res.locals = {
-                    resData: {
-                        docs: docs
-                    },
+                    resData: docs,
                     template: {},
                     succeed: true
                 };
@@ -155,9 +153,7 @@ router
             )
                 .then(doc => {
                     res.locals = {
-                        resData: {
-                            doc: doc
-                        },
+                        resData: doc,
                         template: {},
                         succeed: true
                     };

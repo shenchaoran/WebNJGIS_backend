@@ -5,6 +5,7 @@ import { cmpSolutionDB } from '../models/cmp-solution.model';
 const db = cmpSolutionDB;
 
 const defaultRoutes = [
+    'findAll',
     'insert',
     'remove',
     'update'
@@ -19,34 +20,6 @@ userAuthMid(router);
 // endregion
 
 // router.route('/:id').get(cmpSolutionDB.find);
-
-router.route('/')
-    .get((req: Request, res: Response, next: NextFunction) => {
-        if(req.query.pageSize === undefined) {
-            req.query.pageSize = 25;
-        }
-        else {
-            req.query.pageSize = parseInt(req.query.pageSize);
-        }
-        if(req.query.pageNum === undefined) {
-            req.query.pageNum = 1;
-        }
-        else {
-            req.query.pageNum = parseInt(req.query.pageNum);
-        }
-        
-        CmpSolutionCtrl.findByPage({
-            pageSize: req.query.pageSize,
-            pageNum: req.query.pageNum
-        })
-            .then(rst => {
-                res.locals.resData = rst;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    });
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
