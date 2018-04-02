@@ -19,3 +19,5 @@ export * from './cmp-issue.model';
 export * from './cmp-result.class';
 export * from './cmp-state.enum';
 export * from './dataRefer.class';
+export * from './std-data.model';
+export * from './site.model';

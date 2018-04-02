@@ -15,5 +15,5 @@ export const getAPIUrl = (id: string, params?: any) => {
             path = _.replace(path, ':' + key, params[key]);
         }
     }
-    return `http://${setting.model_service_container.host}:${setting.model_service_container.port}${path}`;
+    return `http://${setting.calculation_server.host}:${setting.calculation_server.port}${path}`;
 };

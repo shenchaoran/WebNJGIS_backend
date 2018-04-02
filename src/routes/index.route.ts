@@ -12,6 +12,7 @@ const NodeRouter = require('./computing-node.route');
 const CmpIssueRouter = require('./cmp-issue.route');
 const SearchRouter = require('./search.route');
 const CalcuRouter = require('./calculation.route');
+const STDDataRouter = require('./std-data.route');
 
 export const router = new MyRouter();
 
@@ -28,3 +29,4 @@ router.use('/comparison/tasks', CmpTaskRouter);
 // router.use('/comparison/scenes', CmpSceneRouter);
 router.use('/nodes', NodeRouter);
 router.use('/calculation', CalcuRouter);
+router.use('/std-data', STDDataRouter);

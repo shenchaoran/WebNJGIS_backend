@@ -5,8 +5,9 @@ import DataCtrl from '../controllers/data.controller';
 import * as UDXPropParser from '../controllers/UDX.property.controller';
 import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
 const MyRouter = require('./base.route');
-import { geoDataDB, STD_DATA } from '../models/UDX-data.model';
+import { geoDataDB, STD_DATA } from '../models';
 const db = geoDataDB;
+
 
 const router = new MyRouter();
 module.exports = router;
@@ -33,13 +34,13 @@ router.route('/')
 router.route('/:id')
     .delete(DataCtrl.remove)
     .get((req: Request, res: Response, next: NextFunction) => {
-        if(req.params.id === 'std') {
-            res.locals.resData = STD_DATA;
-            res.locals.template = {},
-            res.locals.succeed = true;
-            return next();
-        }
-        else {
+        // if(req.params.id === 'std') {
+        //     res.locals.resData = STD_DATA;
+        //     res.locals.template = {},
+        //     res.locals.succeed = true;
+        //     return next();
+        // }
+        // else {
             DataCtrl.download(req.params.id)
                 .then(rst => {
                     res.set({
@@ -51,7 +52,7 @@ router.route('/:id')
                     });
                     return res.end(rst.data);
                 });
-        }
+        // }
     });
 
 /**

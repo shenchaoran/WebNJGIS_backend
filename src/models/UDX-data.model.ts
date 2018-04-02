@@ -48,13 +48,14 @@ export enum STD_DATA_FEATURE {
 }
 
 export const STD_DATA = {
+    
     temporal: {
         start: (new Date(1979, 0, 1, 0, 0, 0)).getTime(),
         end: (new Date(1988, 11, 31, 24, 0, 0)).getTime(),
         scale: 'DAY'
     },
     spatial: {
-        cols: 540,
+        cols: 720,
         rows: 360
     },
     features: [

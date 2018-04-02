@@ -147,11 +147,13 @@ export default class DataCtrl {
 				.find({ _id: id })
 				.then(docs => {
 					if (docs.length) {
-						const doc = docs[0];
+                        const doc = docs[0];
+                        const fname = doc.meta.name;    
+				        const ext = fname.substr(fname.lastIndexOf('.'));
 						const fpath = path.join(
 							setting.uploadPath,
 							'geo-data',
-							doc.path
+                            doc.meta.path + ext,
 						);
 						fs.stat(fpath, (err, stats) => {
 							if (err) {

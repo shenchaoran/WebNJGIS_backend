@@ -10,6 +10,13 @@ import { cmpSolutionDB } from '../models/cmp-solution.model';
 import * as UDXCtrl from './UDX.visualization.controller';
 import { geoDataDB }  from '../models/UDX-data.model';
 
+import * as RequestCtrl from './request.controller';
+RequestCtrl.getByServer('http://localhost:9999/data/5aac7240efa958648898b87e', undefined, true)
+    .then(rst => {
+        rst;
+    })
+    .catch(console.log);
+
 // geoDataDB.find({_id: '5a5eef3b5455b4ab888b1257'});
 
 
@@ -103,6 +110,7 @@ import { geoDataDB }  from '../models/UDX-data.model';
 
 // ////////////////////////////// proj4 test
 // const proj4 = require('proj4');
+// console.log(proj4('EPSG:3857').forward([0, 77]));
 // console.log(proj4('EPSG:3857').forward([180, 77]));
 // console.log(proj4('EPSG:3857').inverse([180, 100000000]));
 // //////////////////////////////
@@ -157,7 +165,7 @@ import { geoDataDB }  from '../models/UDX-data.model';
 // console.log(md5('23'), md5('23ewgfgsdfaafdfdasf'));
 
 
-import * as CmpCtrl from './UDX.compare.controller';
+// import * as CmpCtrl from './UDX.compare.controller';
 // 测试table chart statistic
 // CmpCtrl.compare('5ab100790579a0bcccc60c28', ['TABLE_CHART', 'TABLE_STATISTIC'], 'aycsoi*1000')
 //     .then(rst=> {
@@ -166,8 +174,8 @@ import * as CmpCtrl from './UDX.compare.controller';
 //     .catch(console.log); 
 
 // 测试grid image
-CmpCtrl.compare('5ab3a6ef5f46f2a2ac0566e2', ['ASCII_GRID_BATCH_VISUALIZATION'])
-    .then(rst => {
-        console.log(rst);
-    })
-    .catch(console.log);
+// CmpCtrl.compare('5ab3a6ef5f46f2a2ac0566e2', ['ASCII_GRID_BATCH_VISUALIZATION'])
+//     .then(rst => {
+//         console.log(rst);
+//     })
+//     .catch(console.log);

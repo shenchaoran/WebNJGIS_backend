@@ -24,11 +24,11 @@ export const setting = {
         host: '127.0.0.1',
         port: '27017'
     },
-    model_service_container: {
+    calculation_server: {
         host: '172.21.213.146',
-        // host: '127.0.0.1',
         port: '8060'
     },
+
     uploadPath: __dirname + '/../upload/',
     UDX: {
         parse: {

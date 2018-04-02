@@ -44,6 +44,11 @@ export const APIS = {
             id: 'invoke-record',
             pathname: '/modelserrun/json/:id',
             desc: ''
+        },
+        {
+            id: '',
+            pathname: '/',
+            desc: ''
         }
     ],
     template: [
