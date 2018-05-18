@@ -52,7 +52,7 @@ export class Mongoose {
                         return resolve(docs[0]._doc);
                     }
                     else {
-                        return reject(new Error('Can\'t find data by ' + JSON.stringify(where)));
+                        return reject(new Error('No data found!'));
                     }
                 }
             });
@@ -161,6 +161,22 @@ export class Mongoose {
 
     public update(where, update, options?): Promise<any> {
         return new Promise((resolve, reject) => {
+            this.model.update(where, update, options, (err, rst) => {
+                if (err) {
+                    return reject(err);
+                } else {
+                    return resolve(rst);
+                }
+            });
+        });
+    }
+
+    public upsert(where, update, options?): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if(options === undefined) {
+                options = {};
+            }
+            options.upsert = true;
             this.model.update(where, update, options, (err, rst) => {
                 if (err) {
                     return reject(err);

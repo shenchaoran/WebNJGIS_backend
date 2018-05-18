@@ -139,6 +139,7 @@ router
  *      }],
  *      progress: number
  * }
+ * 此处的output也只是文件id，不是实体，在需要文件时从计算容器获取
  */
 router
     .route('/:nodeName/tasks/:taskId/data')

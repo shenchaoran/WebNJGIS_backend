@@ -1,8 +1,9 @@
 import { Response, Request, NextFunction } from "express";
 
 const MyRouter = require('./base.route');
-import ModelToolsCtrl from './../controllers/model-tools.controller';
+import MSCtrl from './../controllers/model-tools.controller';
 import { modelServiceDB } from '../models/model-service.model';
+import { calcuTaskDB } from '../models/calcu-task.model';
 const db = modelServiceDB;
 
 const defaultRoutes = [
@@ -21,33 +22,20 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        // db
-        //     .find({})
-        //     .then(docs => {
-        //         return ModelToolsCtrl.convert2Tree(req.query.user, docs)
-        //     })
-        //     .then(docs => {
-        //         res.locals.resData = docs;
-        //         res.locals.template = {};
-        //         res.locals.succeed = true;
-        //         return next();
-        //     })
-        //     .catch(next);
-
-        if(req.query.pageSize === undefined) {
+        if (req.query.pageSize === undefined) {
             req.query.pageSize = 25;
         }
         else {
             req.query.pageSize = parseInt(req.query.pageSize);
         }
-        if(req.query.pageNum === undefined) {
+        if (req.query.pageNum === undefined) {
             req.query.pageNum = 1;
         }
         else {
             req.query.pageNum = parseInt(req.query.pageNum);
         }
 
-        ModelToolsCtrl.findByPage({
+        MSCtrl.findByPage({
             pageSize: req.query.pageSize,
             pageNum: req.query.pageNum
         })
@@ -62,7 +50,7 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        ModelToolsCtrl.getModelDetail(req.params.id)
+        MSCtrl.getModelDetail(req.params.id)
             .then(rst => {
                 res.locals = {
                     resData: rst,
@@ -72,4 +60,26 @@ router.route('/:id')
                 return next();
             })
             .catch(next);
+    });
+
+router.route('/:id/invoke')
+    .post((req, res, next) => {
+        const msInstance = req.body.msInstance;
+        if (msInstance) {
+            MSCtrl.invoke(msInstance, req.body.type)
+                .then(msg => {
+                    res.locals = {
+                        resData: msg,
+                        succeed: true
+                    }
+                    return next();
+                })
+                .catch(e => {
+                    console.log(e);
+                    return next(e);
+                })
+        }
+        else {
+            return next('invalid request body!');
+        }
     });

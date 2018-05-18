@@ -8,6 +8,7 @@ import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import { ObjectID } from 'mongodb';
 import * as _ from 'lodash';
+import { Event } from './model-service.model';
 
 class CalcuTaskDB extends Mongoose {
     constructor() {
@@ -20,6 +21,8 @@ class CalcuTaskDB extends Mongoose {
             cmpTaskId: String,
             nodeName: String,
             IO: mongoose.Schema.Types.Mixed,
+            stdInputId: String,
+            stdOutputId: String,
             state: Number,
             progress: Number
         };
@@ -49,10 +52,19 @@ export class CalcuTask extends OgmsObj {
     IO: {
         dataSrc: 'STD' | 'UPLOAD',
         schemas: any[],
-        data: any[],
-        std: any[]
+        inputs: Event[],
+        parameters: Event[],
+        outputs: Event[],
+        std: Event[]
     };
+    stdInputId: string;
+    stdOutputId: string;
     state: CalcuTaskState;
+    // 0 未启动
+    // 1 启动
+    // -1 失败
+    // 100 成功
+    // [2, 99] 进度条
     progress: number;
 }
 

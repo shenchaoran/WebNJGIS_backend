@@ -28,8 +28,12 @@ export const setting = {
         host: '172.21.213.146',
         port: '8060'
     },
-
-    uploadPath: __dirname + '/../upload/',
+    geo_data: {
+        path: path.join(__dirname, '/../upload/geo-data')
+    },
+    geo_models: {
+        path: path.join(__dirname, '/../upload/geo-models')
+    },
     UDX: {
         parse: {
             maxSize: 10000
@@ -37,5 +41,6 @@ export const setting = {
     },
     debug: {
         child_process: true
-    }
+    },
+    invoke_failed_tag: '-----this is an error identification-----'
 };

@@ -26,7 +26,7 @@
         ],
         "no-internal-module": true,
         "no-null-keyword": true,
-        "prefer-const": true,
+        "prefer-const": false,
         "jsdoc-format": true
     }
 }

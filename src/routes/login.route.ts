@@ -13,8 +13,8 @@ userAuthMid(router);
 
 router.route('/login').post(UserCtrl.login);
 
-router.route('/logout').post(UserCtrl.logout);
-
 router.route('/register').post(UserCtrl.register);
+
+router.route('/logout').post(UserCtrl.logout);
 
 router.route('/find-psw').post(UserCtrl.findPst);

@@ -73,8 +73,7 @@ export const extractRow = (doc: any, field: string): Promise<any> => {
     const udxcfg = doc.udxcfg;
     return new Promise((resolve, reject) => {
         const fPath = path.join(
-            setting.uploadPath,
-            'geo-data',
+            setting.geo_data.path,
             doc.meta.path,
             udxcfg.entrance
         );
@@ -138,8 +137,7 @@ export const showRAWTable = (doc: any): Promise<any> => {
     const udxcfg = doc.udxcfg;
 	return new Promise((resolve, reject) => {
         const fPath = path.join(
-            setting.uploadPath,
-            'geo-data',
+            setting.geo_data.path,
             doc.meta.path,
             udxcfg.entrance
         );
@@ -207,8 +205,7 @@ export const showRAWAscii = (doc: any): Promise<any> => {
             return reject(new Error('invalid geo-data config!'));
         }
         const asciiPath = path.join(
-            setting.uploadPath,
-            'geo-data',
+            setting.geo_data.path,
             doc.meta.path,
             doc.udxcfg.entrance
         );
@@ -230,13 +227,12 @@ export const showRAWAscii = (doc: any): Promise<any> => {
 
 export const showRAWAsciiBatch = (doc: any): Promise<any> => {
     return new Promise((resolve, reject) => {
-        const fpath = path.join(setting.uploadPath, 'geo-data', doc.meta.path);
+        const fpath = path.join(setting.geo_data.path, doc.meta.path);
         Promise.all(
             _.map(doc.udxcfg.entries, entry => {
                 return new Promise((resolve, reject) => {
                     const asciiPath = path.join(
-                        setting.uploadPath,
-                        'geo-data',
+                        setting.geo_data.path,
                         doc.meta.path,
                         entry as any
                     );

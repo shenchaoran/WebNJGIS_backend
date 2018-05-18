@@ -6,6 +6,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
+import * as StdDataProcesser from './std-data-process.controller';
 
 export const preview = (id, cfg): Promise<any> => {
     return stdDataDB.findOne({ _id: id })

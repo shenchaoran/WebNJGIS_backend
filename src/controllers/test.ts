@@ -11,9 +11,15 @@ import * as UDXCtrl from './UDX.visualization.controller';
 import { geoDataDB }  from '../models/UDX-data.model';
 
 import * as RequestCtrl from './request.controller';
+
+// RequestCtrl.postByServer('...', {
+//     myfile: fs.createReadStream...postByServer
+//     ...: 
+// }, "FILE", true)
+
 RequestCtrl.getByServer('http://localhost:9999/data/5aac7240efa958648898b87e', undefined, true)
     .then(rst => {
-        rst;
+        console.log(rst);
     })
     .catch(console.log);
 
@@ -74,14 +80,18 @@ RequestCtrl.getByServer('http://localhost:9999/data/5aac7240efa958648898b87e', u
 //     console.log('finished!');
 // };
 
+// var Promise = require('bluebird');
 // const ASYNCS = [];
-// for(let i=0;i<100000;i++) {
+// for(let i=0;i<100;i++) {
 //     ASYNCS.push(i);
 // }
 
 // Promise.map(ASYNCS, function (async) {
-//     return Promise.resolve(console.log(async));
-// },{concurrency: 5000});
+//     return Promise.resolve(async);
+// },{concurrency: 20})
+//     .then(rsts => {
+//         console.log(rsts);
+//     });
 
 // const a = {
 //     a: 1
