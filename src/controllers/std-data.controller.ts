@@ -6,7 +6,8 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
-import * as StdDataProcesser from './std-data-process.controller';
+import { IBIS_STD_DATA } from './IBIS_STD_DATA.controller';
+import { BIOME_BGC_STD_DATA } from './BIOME_BGC_STD_DATA.controller';
 
 export const preview = (id, cfg): Promise<any> => {
     return stdDataDB.findOne({ _id: id })
@@ -105,6 +106,17 @@ export const download = (id, cfg) => {
             });
         })
         .catch(Promise.reject);
+}
+
+export const get_STD_DATA_Class = (className) => {
+    switch (className) {
+        case 'IBIS_STD_DATA': 
+            return IBIS_STD_DATA;
+        case 'BIOME_BGC_STD_DATA':
+            return BIOME_BGC_STD_DATA;
+        default:
+            return undefined;
+    }
 }
 
 const getPointPosition = (type, x, y): {

@@ -42,5 +42,16 @@ export const setting = {
     debug: {
         child_process: true
     },
-    invoke_failed_tag: '-----this is an error identification-----'
+    invoke_failed_tag: '-----this is an error identification-----',
+    progressReg: /-----Progress:(.*)%-----/,
+    STD_DATA: {
+        IBIS_STD_DATA: {
+            inputPath: 'E:\\Data\\IBIS_Data\\input',
+            outputPath: 'E:\\Data\\IBIS_Data\\output'
+        },
+        BIOME_BGC_STD_DATA: {
+            inputPath: 'E:\\Data\\Biome_BGC_Data',
+            outputPath: 'E:\\Data\\Biome_BGC_Data\\outputs'
+        }
+    }
 };

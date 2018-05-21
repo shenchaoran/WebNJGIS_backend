@@ -12,14 +12,15 @@ import DataCtrl from '../controllers/data.controller';
 import {
     modelServiceDB,
     calcuTaskDB,
-    CalcuTaskState
+    CalcuTaskState,
+    geoDataDB,
+    ResourceSrc,
 } from '../models';
 import * as child_process from 'child_process';
 const exec = child_process.exec;
 const spawn = child_process.spawn;
 import * as path from 'path';
 import * as StdDataCtrl from './std-data.controller';
-import * as StdDataProcesser from './std-data-process.controller';
 const db = modelServiceDB;
 
 export default class ModelService {
@@ -80,50 +81,78 @@ export default class ModelService {
                 .then(v => {
                     ms = v;
                     if (msInstance.IO.dataSrc === 'STD') {
-                        let stdGetter = StdDataProcesser[ms.stdGetter];
-                        if (!stdGetter) {
-                            return reject('invalid stdGetter of ms!');
+                        const STDClass = StdDataCtrl.get_STD_DATA_Class(ms.stdClass);
+                        if (!STDClass) {
+                            return reject('invalid STD_DATA_Class of ms!');
                         }
                         if (msInstance.IO.std.length === 0) {
                             return reject('invalid std input of msInstance!');
                         }
-                        return stdGetter(ms.stdInputId, ms.stdOutputId, msInstance)
+                        return new STDClass().getExeInvokeStr(ms.stdId, msInstance);
                     }
                     else if (msInstance.IO.dataSrc === 'UPLOAD') {
                         let ioStr = '';
+                        let geodata = [];
                         // TODO 对输入输出文件的处理
                         let jointIOStr = (type) => {
                             _.map(msInstance.IO[type] as Array<any>, event => {
-                                if(type === 'outputs') {
+                                if (type === 'outputs') {
                                     event.fname = _.cloneDeep(event.value);
                                     let i = _.lastIndexOf(event.fname, event.ext);
-                                    if(i === -1) {
+                                    if (i === -1) {
                                         event.fname += event.ext;
                                     }
-                                    event.value = new ObjectID().toHexString() + event.ext;
+                                    event.value = new ObjectID().toHexString();
                                 }
                                 if (event.value && event.value !== '') {
-                                    let fpath = path.join('\.\\..\\..\\geo-data', event.value);
+                                    let fpath = path.join('\.\\..\\..\\geo-data', event.value + event.ext);
                                     // let fpath = path.join(setting.geo_data.path, event.value);
                                     ioStr += `${event.id}=${fpath}  `;
+                                }
+                                if (type !== 'parameters') {
+                                    geodata.push({
+                                        _id: new ObjectID(event.value),
+                                        meta: {
+                                            desc: '',
+                                            path: event.value + event.ext,
+                                            name: event.fname
+                                        },
+                                        auth: {
+                                            src: ResourceSrc.PUBLIC
+                                        }
+                                    });
+                                    event.url = `/data/${event.value}`;
                                 }
                             });
                         }
                         jointIOStr('inputs');
                         jointIOStr('outputs');
                         jointIOStr('parameters');
-                        return Promise.resolve({
-                            runned: false,
-                            ioStr: ioStr
-                        });
+                        return Promise.map(geodata, doc => {
+                            return new Promise((resolve, reject) => {
+                                geoDataDB.insert(doc)
+                                    .then(v => {
+                                        return resolve(true);
+                                    })
+                                    .catch(e => {
+                                        return resolve(false);
+                                    })
+                            });
+                        })
+                            .then(rsts => {
+                                return Promise.resolve({
+                                    runned: false,
+                                    ioStr: ioStr
+                                })
+                            })
                     }
                 })
                 .then(obj => {
-                    if(obj.runned) {
+                    if (obj.runned) {
                         // 此处应该在前台动态验证，如果标准数据集中的数据已经计算过了，则不参与计算，直接重定向到运行记录
                         msInstance.state = CalcuTaskState.FINISHED_SUCCEED;
                         msInstance.progress = 100;
-                        calcuTaskDB.update({_id: msInstance._id}, msInstance)
+                        calcuTaskDB.update({ _id: msInstance._id }, msInstance)
                             .then(rst => {
                                 return resolve(msInstance._id);
                             });
@@ -135,15 +164,16 @@ export default class ModelService {
                         let group = _.filter(cmdLine.split(/\s+/), str => str.trim() !== '');
                         console.log(cmdLine);
                         let updateRecord = (type, progress?) => {
-                            if(progress) {
+                            if (progress) {
                                 msInstance.progress = progress;
+                                msInstance.state = progress >= 100 ? CalcuTaskState.FINISHED_SUCCEED : CalcuTaskState.RUNNING;
                             }
                             else {
-                                msInstance.state = type === 'succeed'? CalcuTaskState.FINISHED_SUCCEED: CalcuTaskState.FINISHED_FAILED;
-                                msInstance.progress = type === 'succeed'? 100: -1;
+                                msInstance.state = type === 'succeed' ? CalcuTaskState.FINISHED_SUCCEED : CalcuTaskState.FINISHED_FAILED;
+                                msInstance.progress = type === 'succeed' ? 100 : -1;
                             }
-                            
-                            calcuTaskDB.update({_id: msInstance._id}, msInstance);
+
+                            calcuTaskDB.update({ _id: msInstance._id }, msInstance);
                         }
                         // TODO 管道的写法，提取出进度条
                         const cp = spawn(group[0], group.slice(1), {
@@ -156,18 +186,23 @@ export default class ModelService {
                             }
                             else {
                                 // 更新 process
-                                // let progress = ;
-                                // updateRecord(undefined, progress);
+                                let group = str.match(setting.progressReg);
+                                let progress = group ? group[group.length - 1] : undefined;
+                                if (progress) {
+                                    console.log(progress);
+                                    updateRecord(undefined, parseFloat(progress));
+                                }
                             }
                         });
-                        cp.stderr.on('data', data=> {
+                        cp.stderr.on('data', data => {
                             // 
                             console.log(data.toString());
                             updateRecord('failed');
                         });
                         cp.on('close', code => {
                             console.log(code);
-                            if(code === 0){
+                            if (code === 0) {
+                                console.log('run finished!');
                                 updateRecord('succeed');
                             }
                             else {
@@ -178,7 +213,7 @@ export default class ModelService {
                         // exec(cmdLine, {
                         //     cwd: cwd
                         // }, (err, stdout, stderr) => {
-                            
+
                         //     if (err) {
                         //         console.log(err);
                         //         updateRecord('failed');
@@ -191,7 +226,7 @@ export default class ModelService {
                         //     }
                         // });
 
-                        msInstance.progress = 1.5;
+                        msInstance.progress = 0.0001;
                         return calcuTaskDB.update({ _id: msInstance._id }, msInstance)
                             .then(rst => {
                                 return resolve(msInstance._id);

@@ -54,9 +54,10 @@ router.route('/:id')
                 });
         // }
     });
+    
 
 /**
- * 按条目下载
+ * 一个数据包里可以有多条数据，此处为 按条目下载，只下载其中一个
  */
 router.route('/:id/:entry')
     .get((req: Request, res: Response, next: NextFunction) => {

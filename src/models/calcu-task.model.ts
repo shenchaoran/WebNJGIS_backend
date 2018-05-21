@@ -18,11 +18,13 @@ class CalcuTaskDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             msId: String,
             msName: String,
+            topic: String,
+            topicId: String,
             cmpTaskId: String,
             nodeName: String,
             IO: mongoose.Schema.Types.Mixed,
-            stdInputId: String,
-            stdOutputId: String,
+            stdId: String,
+            stdClass: String,
             state: Number,
             progress: Number
         };
@@ -47,6 +49,8 @@ export class CalcuTask extends OgmsObj {
     };
     msId: string;
     msName: string;
+    topic?: string;
+    topicId?: string;
     cmpTaskId: string;
     nodeName: string;
     IO: {
@@ -57,8 +61,8 @@ export class CalcuTask extends OgmsObj {
         outputs: Event[],
         std: Event[]
     };
-    stdInputId: string;
-    stdOutputId: string;
+    stdId: string;
+    stdClass: string;
     state: CalcuTaskState;
     // 0 未启动
     // 1 启动

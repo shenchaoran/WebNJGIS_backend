@@ -9,19 +9,23 @@ import * as _ from 'lodash';
 import { cmpSolutionDB } from '../models/cmp-solution.model';
 import * as UDXCtrl from './UDX.visualization.controller';
 import { geoDataDB }  from '../models/UDX-data.model';
+import { ObjectID } from 'mongodb';
+
 
 import * as RequestCtrl from './request.controller';
+
+console.log(new ObjectID('5abc554b79d20cef9d610d7d').toHexString());
 
 // RequestCtrl.postByServer('...', {
 //     myfile: fs.createReadStream...postByServer
 //     ...: 
 // }, "FILE", true)
 
-RequestCtrl.getByServer('http://localhost:9999/data/5aac7240efa958648898b87e', undefined, true)
-    .then(rst => {
-        console.log(rst);
-    })
-    .catch(console.log);
+// RequestCtrl.getByServer('http://localhost:9999/data/5aac7240efa958648898b87e', undefined, true)
+//     .then(rst => {
+//         console.log(rst);
+//     })
+//     .catch(console.log);
 
 // geoDataDB.find({_id: '5a5eef3b5455b4ab888b1257'});
 

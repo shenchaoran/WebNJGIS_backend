@@ -9,8 +9,8 @@ class ModelServiceDB extends Mongoose {
         const schema = {
             auth: mongoose.Schema.Types.Mixed,
             MDL: mongoose.Schema.Types.Mixed,
-            stdInputId: String,
-            stdOutputId: String,
+            stdId: String,
+            stdClass: String,
             topic: String,
             path: String,
             exeName: String
@@ -45,8 +45,8 @@ export class ModelService {
         },
         runtime: any;
     };
-    stdInputId: string;
-    stdOutputId: string;
+    stdId: string;
+    stdClass: string;
     topic: string;
     path: string;
     exeName: string;
@@ -58,9 +58,14 @@ export class Event {
     name: string;
     description: string;
     schemaId: string;
-    // 使用 std data 计算时，value为 std data id
+    // 该字段用于 获取文件
+    // upload: data id
+    // std: index in std
     value?: string;
     optional?: number;
+    // 该字段用于 文件下载时的文件名 和 前台显示 label
     fname?: string;
+    // 下载链接
+    url?: string;
     ext: string;
 }
