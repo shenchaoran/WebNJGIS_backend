@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
-
-const MyRouter = require('./base.route');
+import { RouterExtends } from './base.route';
+const express = require('express');
 import * as CmpSceneCtrl from '../controllers/cmp-scene.controller';
 import { cmpSceneDB } from '../models/cmp-scene.model';
 const db = cmpSceneDB;
@@ -12,7 +12,7 @@ const defaultRoutes = [
     'update'
 ];
 
-const router = new MyRouter(cmpSceneDB, defaultRoutes);
+const router = express.Router();
 module.exports = router;
 
 // region auth
@@ -35,3 +35,6 @@ router.route('/')
             })
             .catch(next);
     });
+
+    
+     RouterExtends(router, db, defaultRoutes);

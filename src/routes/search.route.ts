@@ -1,10 +1,11 @@
 import { Response, Request, NextFunction } from 'express';
-const MyRouter = require('./base.route');
+const express = require('express');
+import { RouterExtends } from './base.route';
 import { ComputingNode, computingNodeDB, calcuTaskDB } from '../models';
 import SearchCtrl from '../controllers/search.controller';
 import { nodeAuthMid } from '../middlewares/node-auth.middleware';
 
-const router = new MyRouter(undefined, undefined);
+const router = express.Router();
 module.exports = router;
 
 nodeAuthMid(router);
@@ -22,3 +23,5 @@ router.route('')
             })
             .catch(next);
     });
+
+//  RouterExtends(router, db, defaultRoutes);

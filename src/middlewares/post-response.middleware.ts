@@ -8,15 +8,15 @@ export const postResMid = app => {
         // console.log(res.locals);
         if (res.locals.succeed === true) {
             const resData = new ResponseModel();
-            resData.href = req.originalUrl;
-            resData.token = res.locals.token;
-            resData.username = res.locals.username;
+            // resData.href = req.originalUrl;
+            // resData.token = res.locals.token;
+            // resData.username = res.locals.username;
             resData.status = {
                 code: '200',
                 desc: 'succeed'
             };
             resData.data = res.locals.resData;
-            resData.template = res.locals.template;
+            // resData.template = res.locals.template;
             return res.json(resData);
         } else {
             return next();

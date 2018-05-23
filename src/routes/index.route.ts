@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from "express";
-const MyRouter = require('./base.route');
+const express = require('express');
 const LoginRouter = require('./login.route');
 const DataRouter = require('./data.route');
 const ModelToolsRouter = require('./model-tools.route');
@@ -14,7 +14,7 @@ const SearchRouter = require('./search.route');
 const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
 
-export const router = new MyRouter();
+export const router = express.Router();
 
 
 router.use('/auth', LoginRouter);

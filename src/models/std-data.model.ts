@@ -9,9 +9,11 @@ class STDDataDB extends Mongoose {
         const collectionName = 'STD_Data';
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
-            type: String,
             getter: String,
             models: mongoose.Schema.Types.Mixed,
+            inputPath: String,
+            outputPath: String,
+            stdClass: String,
             content: mongoose.Schema.Types.Mixed
         };
 
@@ -27,11 +29,11 @@ class STDData {
         desc: string,
         name: string
     };
-    type: 'input' | 'output';
-    getter: string;
     models: string[];
+    inputPath: string;
+    outputPath: string;
+    stdClass: string;
     content: {
-        rootPath: string,
         [key: string]: any
     };
 }

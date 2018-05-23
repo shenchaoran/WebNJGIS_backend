@@ -1,5 +1,8 @@
 import { Response, Request, NextFunction } from "express";
-const MyRouter = require('./base.route');
+const express = require('express');
 
-const router = new MyRouter();
+const router = express.Router();
 module.exports = router;
+
+
+//  RouterExtends(router, db, defaultRoutes);

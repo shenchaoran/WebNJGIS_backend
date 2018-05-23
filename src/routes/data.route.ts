@@ -1,15 +1,15 @@
 import { Response, Request, NextFunction } from "express";
 import * as path from 'path';
-
+import { RouterExtends } from './base.route';
 import DataCtrl from '../controllers/data.controller';
 import * as UDXPropParser from '../controllers/UDX.property.controller';
 import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
-const MyRouter = require('./base.route');
+const express = require('express');
 import { geoDataDB, STD_DATA } from '../models';
 const db = geoDataDB;
+const defaultRoutes = [];
 
-
-const router = new MyRouter();
+const router = express.Router();
 module.exports = router;
 
 // region auth
@@ -96,3 +96,6 @@ router.route('/:id/show')
             })
             .catch(next);
     });
+
+    
+     RouterExtends(router, db, defaultRoutes);

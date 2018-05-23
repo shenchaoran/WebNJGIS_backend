@@ -1,9 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 
-const MyRouter = require('./base.route');
+const express = require('express');
 import * as UserCtrl from '../controllers/user.controller';
 
-const router = new MyRouter();
+const router = express.Router();
 module.exports = router;
 
 // region auth
@@ -18,3 +18,5 @@ router.route('/register').post(UserCtrl.register);
 router.route('/logout').post(UserCtrl.logout);
 
 router.route('/find-psw').post(UserCtrl.findPst);
+
+//  RouterExtends(router, db, defaultRoutes);

@@ -1,5 +1,6 @@
 import { Response, Request, NextFunction } from "express";
-const MyRouter = require('./base.route');
+const express = require('express');
+import { RouterExtends } from './base.route';
 import { calcuTaskDB } from '../models/calcu-task.model';
 import * as CalcuCtrl from '../controllers/calcu-task.controller';
 
@@ -10,7 +11,7 @@ const defaultRoutes = [
     'remove'
     // 'update'
 ];
-const router = new MyRouter(db, defaultRoutes);
+const router = express.Router();
 module.exports = router;
 
 // region auth
@@ -31,3 +32,6 @@ router.route('/:id')
             })
             .catch(next);
     });
+
+    
+     RouterExtends(router, db, defaultRoutes);

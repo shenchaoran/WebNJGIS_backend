@@ -113,7 +113,8 @@ export class IBIS_STD_DATA implements STD_DATA {
                 });
             })
             .catch(e => {
-                return Promise.reject(e);
+                console.log(e);
+                return Promise.reject('No file found!');
             })
     }
 }

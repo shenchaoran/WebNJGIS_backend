@@ -3,7 +3,8 @@
  */
 
 import { Response, Request, NextFunction } from 'express';
-const MyRouter = require('./base.route');
+const express = require('express');
+import { RouterExtends } from './base.route';
 import { ComputingNode, computingNodeDB, calcuTaskDB } from '../models';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import * as ComputingNodeCtrl from '../controllers/computing-node.controller';
@@ -11,7 +12,7 @@ import { nodeAuthMid } from '../middlewares/node-auth.middleware';
 
 const db = computingNodeDB;
 const defaultRoutes = ['insert'];
-const router = new MyRouter(db, defaultRoutes);
+const router = express.Router();
 module.exports = router;
 
 nodeAuthMid(router);
@@ -165,3 +166,6 @@ router
             return next(new Error('invalidate request body!'));
         }
     });
+
+    
+     RouterExtends(router, db, defaultRoutes);

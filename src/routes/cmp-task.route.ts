@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
-
-const MyRouter = require('./base.route');
+import { RouterExtends } from './base.route';
+const express = require('express');
 import * as CmpTaskCtrl from '../controllers/cmp-task.controller';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import { cmpTaskDB } from '../models/cmp-task.model';
@@ -11,7 +11,7 @@ const defaultRoutes = [
     'update'
 ];
 
-const router = new MyRouter(cmpTaskDB, defaultRoutes);
+const router = express.Router();
 module.exports = router;
 
 // region auth
@@ -151,3 +151,6 @@ router.route('/:id/stdResult')
             })
             .catch(next);
     });
+
+    
+     RouterExtends(router, db, defaultRoutes);
