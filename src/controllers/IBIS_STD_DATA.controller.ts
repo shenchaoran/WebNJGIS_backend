@@ -57,7 +57,7 @@ export class IBIS_STD_DATA implements STD_DATA {
                         }
 
                         if (msInstance.IO.dataSrc === 'STD') {
-                            event.url = `/std-data/IBIS_STD_DATA?eventId=${event.id}&query=${index}`;
+                            event.url = `/std-data/${this.name}?eventId=${event.id}&query=${index}`;
                         }
                         else if (msInstance.IO.dataSrc === 'UPLOAD') {
                             event.url = `/data/${event.value}`;

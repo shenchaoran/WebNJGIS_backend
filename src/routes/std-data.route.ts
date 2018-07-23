@@ -52,26 +52,32 @@ router.route('/:className')
 
 router.route('/met_site')
     .get((req, res, next) => {
-        siteDB
-            .find({})
-            // .findByPage({}, {
-            //     pageSize: 500,
-            //     pageNum: 1
-            // })
-            .then(docs => {
-                return res.json({
-                    status: {
-                        code: '200',
-                        desc: 'succeed'
-                    },
-                    data: {
-                        // docs: docs.docs,
-                        // length: docs.docs.length
-                        docs: docs,
-                        length: docs.length
-                    }
-                });
-            });
+        const fpath = path.join(__dirname, '../../IBIS_site.json');
+        return res.download(fpath, 'site.json', err => {
+            if(err) {
+                return next(err);
+            }
+        });
+        // siteDB
+        //     .find({})
+        //     // .findByPage({}, {
+        //     //     pageSize: 500,
+        //     //     pageNum: 1
+        //     // })
+        //     .then(docs => {
+        //         return res.json({
+        //             status: {
+        //                 code: '200',
+        //                 desc: 'succeed'
+        //             },
+        //             data: {
+        //                 // docs: docs.docs,
+        //                 // length: docs.docs.length
+        //                 docs: docs,
+        //                 length: docs.length
+        //             }
+        //         });
+        //     });
     });
 
 router.route('/:id/download')

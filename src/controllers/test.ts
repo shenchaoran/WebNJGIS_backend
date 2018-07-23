@@ -1,20 +1,106 @@
 // const debug = require('debug')('WebNJGIS: Debug');
+import * as Promise from 'bluebird';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
-const fs = require('fs');
+const fs = Promise.promisifyAll(require('fs'));
 import * as unzip from 'unzip';
 import { Buffer } from 'buffer';
-import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import { cmpSolutionDB } from '../models/cmp-solution.model';
 import * as UDXCtrl from './UDX.visualization.controller';
 import { geoDataDB }  from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
-
-
 import * as RequestCtrl from './request.controller';
+import * as path from 'path';
 
-console.log(new ObjectID('5abc554b79d20cef9d610d7d').toHexString());
+Promise.all([
+    Promise.resolve(1)
+        .then(v => {
+            throw new Error('custom error')
+        })
+        .catch(e => {
+            return Promise.resolve();
+        }),
+        Promise.resolve(2)
+])
+    .then(rsts => {
+        console.log('map finished');
+        
+    })
+    .catch(e => {
+        console.log('catch by Map')
+    })
+
+// new Promise((resolve, reject) => {
+//     resolve();
+// })
+//     .then(() => {
+//         try{
+//             throw new Error('custom error')
+//             return ;
+//         }
+//         catch(e) {
+//             console.log('catch error');
+//             return Promise.resolve();
+//         } 
+//     })
+//     .then(() => {
+//         console.log('promise then');
+        
+//     })
+//     .catch(e => {
+//         console.log('promise catch');
+        
+//     });
+
+// let fpath = path.join(__dirname, '111.txt');
+// fs.writeFileAsync(fpath, 'asdf;j\nasdf\r\nasdf')
+//     .then(() => {
+//         console.log('finished');
+        
+//     })
+//     .catch(console.log);
+
+// let fileIndex = [];
+// for(let i=1; i< 100; i++) {
+//     fileIndex.push(i + '.ini');
+//     fileIndex.push(i + '_spinup.ini');
+// }
+// Promise.map(fileIndex, fname => {
+//     console.log(fname);
+    
+// }, {
+//     concurrency: 10
+// })
+
+// new Promise((resolve, reject) => {
+//     resolve(1);
+    
+// })
+//     .then((v) => {
+//         console.log(v,2);
+//         // return 3;
+//         // setTimeout(() => {
+//         //     console.log('async');
+//         // }, 0);
+//         return new Promise((resolve, reject) => {
+//             console.log('async')
+//             return resolve();
+//         });
+//     })
+//     .then(v => {
+//         return console.log(v);
+//     })
+//     .then(v => {
+//         console.log(v);
+        
+//     })
+//     .catch(e => {
+//         console.log(e);
+        
+//     });
+
+// console.log(new ObjectID('5abc554b79d20cef9d610d7d').toHexString());
 
 // RequestCtrl.postByServer('...', {
 //     myfile: fs.createReadStream...postByServer

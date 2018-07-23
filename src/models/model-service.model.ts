@@ -62,6 +62,8 @@ export class Event {
     // upload: data id
     // std: index in std
     value?: string;
+    // TODO
+    isFile?: boolean;
     optional?: number;
     // 该字段用于 文件下载时的文件名 和 前台显示 label
     fname?: string;
