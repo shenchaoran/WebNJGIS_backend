@@ -7,6 +7,7 @@ import * as CalcuCtrl from '../controllers/calcu-task.controller';
 const db = calcuTaskDB;
 const defaultRoutes = [
     'findAll',
+    'find',
     // 'insert',
     'remove'
     // 'update'
@@ -19,19 +20,10 @@ import { userAuthMid } from '../middlewares/user-auth.middleware';
 userAuthMid(router);
 // endregion
 
-router.route('/:id')
-    .get((req, res, next) => {
-        CalcuCtrl.getCalcuTaskDetail(req.params.id)
-            .then(doc => {
-                res.locals = {
-                    resData: doc,
-                    template: {},
-                    succeed: true
-                };
-                return next();
-            })
-            .catch(next);
-    });
 
+router.route('/:msrId/log')
+    .get((req, res, next) => {
+
+    })
     
-     RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, db, defaultRoutes);

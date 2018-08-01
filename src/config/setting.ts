@@ -9,6 +9,11 @@ export const setting = {
     },
     auth: false,
     port: '9999',
+    fiddler_proxy: {
+        host: 'localhost',
+        port: 3122,
+        use: true
+    },
     // session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
     platform: (function() {
@@ -19,14 +24,9 @@ export const setting = {
         return platform;
     })(),
     mongodb: {
-        // name: 'WebNJGIS',
         name: 'Comparison',
         host: '127.0.0.1',
         port: '27017'
-    },
-    calculation_server: {
-        host: '172.21.213.146',
-        port: '8060'
     },
     geo_data: {
         path: path.join(__dirname, '/../upload/geo-data')

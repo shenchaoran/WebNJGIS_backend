@@ -1,4 +1,3 @@
-export * from './api.model';
 export * from './calcu-task.model';
 export * from './cmp-method.class';
 export * from './cmp-obj.class';

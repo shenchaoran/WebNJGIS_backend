@@ -7,7 +7,6 @@ import { ObjectID } from 'mongodb';
 
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
-import * as APIModel from '../models/api.model';
 import DataCtrl from '../controllers/data.controller';
 import {
     modelServiceDB,
@@ -15,227 +14,105 @@ import {
     CalcuTaskState,
     geoDataDB,
     ResourceSrc,
+    computingNodeDB
 } from '../models';
 import * as child_process from 'child_process';
 const exec = child_process.exec;
 const spawn = child_process.spawn;
 import * as path from 'path';
 import * as StdDataCtrl from './std-data.controller';
+import * as NodeCtrl from './computing-node.controller'
+import { getByServer, postByServer, PostRequestType } from './request.controller';
 const db = modelServiceDB;
 
 export default class ModelService {
     constructor() { }
 
-    static findAll(): Promise<any> {
-        return db.find({})
-            .then(docs => {
-                return Promise.resolve(docs);
-            })
-            .catch(Promise.reject)
-    }
-
-    static findByPage(pageOpt: {
-        pageSize: number,
-        pageNum: number
-    }): Promise<any> {
-        return db.findByPage({}, {
-            pageSize: pageOpt.pageSize,
-            pageNum: pageOpt.pageNum
-        })
-            .then(rst => {
-                return Promise.resolve(rst);
-            })
-            .catch(Promise.reject);
-    }
-
-    static getModelDetail(id): Promise<any> {
-        return db.findOne({ _id: id })
-            .then(Promise.resolve)
-            .catch(Promise.reject)
-    }
-
     /**
-     * 调用模型：实质上是插入 运行记录 文档，同时如果type==invoke时启动模型实例
+     * resolve:
+     *      {msrId, code, desc}
+     *      code:
+     *          200: 调用成功
+     *          500: 比较服务器出错
+     *          501: 计算服务器出错
+     *          503: 计算服务器崩了或 ip 变了
+     * reject: 
+     * 
+     * 调用模型：
+     *      插入运行记录
+     *      如果 state === START_PENDING 时启动模型实例
+     * 
+     *      如果使用用户上传的数据时，还要先将数据传过去
      * 
      * @static
-     * @param {any} msInstance 
+     * @param {any} msr 
      * @param {any} type 
      * @returns {Promise<any>} 
      * @memberof ModelService
      */
-    static invoke(msInstance, type): Promise<any> {
-        let ms;
-        return new Promise((resolve, reject) => {
-            calcuTaskDB.upsert({ _id: msInstance._id }, msInstance)
-                .then(rst => {
-                    if (type === 'save') {
-                        return resolve(msInstance._id);
-                    }
-                    else if (type === 'invoke') {
-                        return Promise.resolve();
-                    }
-                })
-                .then(() => {
-                    return modelServiceDB.findOne({ _id: msInstance.msId })
-                })
-                .then(v => {
-                    ms = v;
-                    if (msInstance.IO.dataSrc === 'STD') {
-                        const STDClass = StdDataCtrl.get_STD_DATA_Class(ms.stdClass);
-                        if (!STDClass) {
-                            return reject('invalid STD_DATA_Class of ms!');
-                        }
-                        if (msInstance.IO.std.length === 0) {
-                            return reject('invalid std input of msInstance!');
-                        }
-                        return new STDClass().getExeInvokeStr(ms.stdId, msInstance);
-                    }
-                    else if (msInstance.IO.dataSrc === 'UPLOAD') {
-                        let ioStr = '';
-                        let geodata = [];
-                        // TODO 对输入输出文件的处理
-                        let jointIOStr = (type) => {
-                            _.map(msInstance.IO[type] as Array<any>, event => {
-                                if (type === 'outputs') {
-                                    event.fname = _.cloneDeep(event.value);
-                                    let i = _.lastIndexOf(event.fname, event.ext);
-                                    if (i === -1) {
-                                        event.fname += event.ext;
-                                    }
-                                    event.value = new ObjectID().toHexString();
-                                }
-                                if (event.value && event.value !== '') {
-                                    let fpath = path.join('\.\\..\\..\\geo-data', event.value + event.ext);
-                                    // let fpath = path.join(setting.geo_data.path, event.value);
-                                    ioStr += `${event.id}=${fpath}  `;
-                                }
-                                if (type !== 'parameters') {
-                                    geodata.push({
-                                        _id: new ObjectID(event.value),
-                                        meta: {
-                                            desc: '',
-                                            path: event.value + event.ext,
-                                            name: event.fname
-                                        },
-                                        auth: {
-                                            src: ResourceSrc.PUBLIC
-                                        }
-                                    });
-                                    event.url = `/data/${event.value}`;
-                                }
-                            });
-                        }
-                        jointIOStr('inputs');
-                        jointIOStr('outputs');
-                        jointIOStr('parameters');
-                        return Promise.map(geodata, doc => {
-                            return new Promise((resolve, reject) => {
-                                geoDataDB.insert(doc)
-                                    .then(v => {
-                                        return resolve(true);
-                                    })
-                                    .catch(e => {
-                                        return resolve(false);
-                                    })
-                            });
+    static invoke(msr): Promise<any> {
+        if (!msr._id) {
+            msr._id = new ObjectID()
+        }
+        let node
+        let serverURL
+        return calcuTaskDB.upsert({ _id: msr._id }, msr)
+            .then(rst => {
+                if (CalcuTaskState.INIT === msr.state) {
+                    return Promise.resolve(msr._id);
+                }
+                else if (CalcuTaskState.START_PENDING === msr.state) {
+                    // 查找 node 的 host 和 port
+                    return NodeCtrl.telNode(msr.ms.nodeId)
+                        .then(v => {
+                            serverURL = v
+                            if (msr.IO.dataSrc === 'UPLOAD') {
+                                return DataCtrl.pushData2ComputingServer(msr._id)
+                            }
+                            else {
+                                return
+                            }
                         })
-                            .then(rsts => {
+                        .then(() => {
+                            let invokeURL = `${serverURL}/services/invoke`
+                            return postByServer(invokeURL, {
+                                calcuTask: msr
+                            }, PostRequestType.JSON)
+                        })
+                        .then(res => {
+                            if (res.code === 200) {
                                 return Promise.resolve({
-                                    runned: false,
-                                    ioStr: ioStr
+                                    msrId: msr._id,
+                                    code: 200,
+                                    desc: 'start model succeed'
                                 })
-                            })
-                    }
-                })
-                .then(obj => {
-                    if (obj.runned) {
-                        // 此处应该在前台动态验证，如果标准数据集中的数据已经计算过了，则不参与计算，直接重定向到运行记录
-                        msInstance.state = CalcuTaskState.FINISHED_SUCCEED;
-                        msInstance.progress = 100;
-                        calcuTaskDB.update({ _id: msInstance._id }, msInstance)
-                            .then(rst => {
-                                return resolve(msInstance._id);
-                            });
-                    }
-                    else {
-                        let ioStr = obj.ioStr;
-                        let cmdLine = `${ms.exeName} ${ioStr}`;
-                        let cwd = path.join(setting.geo_models.path, ms.path);
-                        let group = _.filter(cmdLine.split(/\s+/), str => str.trim() !== '');
-                        console.log(cmdLine);
-                        let updateRecord = (type, progress?) => {
-                            if (progress) {
-                                msInstance.progress = progress;
-                                msInstance.state = progress >= 100 ? CalcuTaskState.FINISHED_SUCCEED : CalcuTaskState.RUNNING;
                             }
                             else {
-                                msInstance.state = type === 'succeed' ? CalcuTaskState.FINISHED_SUCCEED : CalcuTaskState.FINISHED_FAILED;
-                                msInstance.progress = type === 'succeed' ? 100 : -1;
+                                return Promise.resolve({
+                                    msrId: msr._id,
+                                    code: 501,
+                                    desc: 'start model failed, error in calculation server'
+                                })
                             }
-
-                            calcuTaskDB.update({ _id: msInstance._id }, msInstance);
-                        }
-                        // TODO 管道的写法，提取出进度条
-                        const cp = spawn(group[0], group.slice(1), {
-                            cwd: cwd
-                        });
-                        cp.stdout.on('data', data => {
-                            let str = data.toString();
-                            if (str.indexOf(setting.invoke_failed_tag) !== -1) {
-                                updateRecord('failed');
-                            }
-                            else {
-                                // 更新 process
-                                let group = str.match(setting.progressReg);
-                                let progress = group ? group[group.length - 1] : undefined;
-                                if (progress) {
-                                    console.log(progress);
-                                    updateRecord(undefined, parseFloat(progress));
-                                }
-                            }
-                        });
-                        cp.stderr.on('data', data => {
-                            // 
-                            console.log(data.toString());
-                            updateRecord('failed');
-                        });
-                        cp.on('close', code => {
-                            console.log(code);
-                            if (code === 0) {
-                                console.log('run finished!');
-                                updateRecord('succeed');
+                        })
+                        .catch(e => {
+                            console.log(e);
+                            if (_.get(e, 'error.code') === 'ECONNREFUSED') {
+                                return Promise.resolve({
+                                    msrId: msr._id,
+                                    code: 503,
+                                    desc: 'computing server crash or ip changed, please retry later'
+                                })
                             }
                             else {
-                                updateRecord('failed');
+                                return Promise.resolve({
+                                    msrId: msr._id,
+                                    code: 500,
+                                    desc: 'unpredectable error'
+                                })
                             }
                         });
-
-                        // exec(cmdLine, {
-                        //     cwd: cwd
-                        // }, (err, stdout, stderr) => {
-
-                        //     if (err) {
-                        //         console.log(err);
-                        //         updateRecord('failed');
-                        //     }
-                        //     if (stdout.indexOf(setting.invoke_failed_tag) !== -1) {
-                        //         updateRecord('failed');
-                        //     }
-                        //     else {
-                        //         updateRecord('succeed');
-                        //     }
-                        // });
-
-                        msInstance.progress = 0.0001;
-                        return calcuTaskDB.update({ _id: msInstance._id }, msInstance)
-                            .then(rst => {
-                                return resolve(msInstance._id);
-                            });
-                    }
-                })
-            // .catch(e => {
-            //     console.log(e);
-            // });
-        });
+                }
+            })
     }
 }

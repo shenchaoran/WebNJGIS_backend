@@ -169,47 +169,6 @@ export const getStdResult = (cmpTaskId): Promise<any> => {
         .catch(Promise.reject);
 }
 
-/**
- * 此处只更新状态
- * 实质的比较事件在 模型运行状态更新为 FINISHED_SUCCEED 时触发
- */
-export const updateStartState = (id: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        cmpTaskDB
-            .findOne({ _id: id })
-            .then(doc => {
-                if (doc.progress == 0) {
-                    // TODO 没有管then
-                    Promise.all(_.map(doc.calcuTasks as any[], calcuTaskId => {
-                        CalcuTaskCtrl.updateState(calcuTaskId, CalcuTaskState.INIT, CalcuTaskState.COULD_START)
-                    }))
-                        .then(rsts => { })
-                        .catch(err => { });
-
-                    cmpTaskDB.update({
-                        _id: id
-                    }, {
-                            $set: {
-                                progress: 1
-                            }
-                        })
-                        .then(rst => {
-                            return resolve({
-                                succeed: true
-                            });
-                        })
-                }
-                else {
-                    return resolve({
-                        succeed: false,
-                        desc: 'This task has already started, please do not submit repeatedly!'
-                    });
-                }
-            })
-            .catch(reject);
-    });
-};
-
 const startCmpDataItem = (
     cmpTaskId: string, 
     updatePath: string, 

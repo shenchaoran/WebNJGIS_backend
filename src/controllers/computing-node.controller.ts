@@ -8,6 +8,8 @@ const jwt = require('jwt-simple');
 const moment = require('moment');
 import { setting } from '../config/setting';
 import * as crypto from 'crypto';
+import { getByServer } from './request.controller'
+
 const md5 = (v) => {
     return crypto.createHash('md5').update(v, 'utf8').digest('hex');
 };
@@ -51,4 +53,27 @@ export const login = (authInfo: any): Promise<any> => {
 // TODO
 export const logout = (): Promise<any> => {
     return ;
+}
+
+export const telNode = nodeId => {
+    let node, serverURL
+    return computingNodeDB.findOne({_id: nodeId})
+        .then(v => {
+            node = v;
+            serverURL = `http://${node.host}:${node.port}${node.API_prefix}`
+            return getByServer(serverURL, undefined)
+        })
+        .then(msg => {
+            let nodeName = msg.match(/server name: (.*)"}/)[1]
+            if(nodeName === node.auth.nodeName) {
+                return Promise.resolve(serverURL)
+            }
+            else {
+                return Promise.reject('server ip changed or resources location changed')
+            }
+        })
+        .catch(e => {
+            console.error(e)
+            return Promise.reject('')
+        })
 }

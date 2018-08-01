@@ -9,6 +9,7 @@ import { ResourceSrc } from './resource.enum';
 import { ObjectID } from 'mongodb';
 import * as _ from 'lodash';
 import { Event } from './model-service.model';
+import { Enum } from 'typescript-string-enums';
 
 class CalcuTaskDB extends Mongoose {
     constructor() {
@@ -16,16 +17,11 @@ class CalcuTaskDB extends Mongoose {
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
-            msId: String,
-            msName: String,
-            topic: String,
-            topicId: String,
             cmpTaskId: String,
-            nodeName: String,
             IO: mongoose.Schema.Types.Mixed,
-            stdId: String,
-            stdClass: String,
-            state: Number,
+            ms: mongoose.Schema.Types.Mixed,
+            std: mongoose.Schema.Types.Mixed,
+            state: String,
             progress: Number
         };
 
@@ -47,12 +43,8 @@ export class CalcuTask extends OgmsObj {
         userName: string,
         src: ResourceSrc
     };
-    msId: string;
-    msName: string;
-    topic?: string;
-    topicId?: string;
+    ms: string;
     cmpTaskId: string;
-    nodeName: string;
     IO: {
         dataSrc: 'STD' | 'UPLOAD',
         schemas: any[],
@@ -61,8 +53,7 @@ export class CalcuTask extends OgmsObj {
         outputs: Event[],
         std: Event[]
     };
-    stdId: string;
-    stdClass: string;
+    std: any;
     state: CalcuTaskState;
     // 0 未启动
     // 1 启动
@@ -72,12 +63,13 @@ export class CalcuTask extends OgmsObj {
     progress: number;
 }
 
-export enum CalcuTaskState {
-    INIT = 0,
-    COULD_START,
-    START_PENDING,
-    START_FAILED,
-    RUNNING,
-    FINISHED_FAILED,
-    FINISHED_SUCCEED
-}
+export const CalcuTaskState = Enum(
+    'INIT',
+    'COULD_START',
+    'START_PENDING',
+    'START_FAILED',
+    'RUNNING',
+    'FINISHED_FAILED',
+    'FINISHED_SUCCEED'
+);
+export type CalcuTaskState = Enum<typeof CalcuTaskState>;

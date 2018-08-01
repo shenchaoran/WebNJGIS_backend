@@ -82,6 +82,7 @@
         "request-promise": "^4.2.2",
         "serve-favicon": "^2.4.5",
         "supports-color": "^4.4.0",
+        "typescript-string-enums": "^0.3.5",
         "unzip": "^0.1.11",
         "xmldom": "^0.1.27",
         "xpath": "0.0.24"

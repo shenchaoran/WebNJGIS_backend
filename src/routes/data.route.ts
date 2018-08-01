@@ -7,7 +7,10 @@ import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
 const express = require('express');
 import { geoDataDB, STD_DATA } from '../models';
 const db = geoDataDB;
-const defaultRoutes = [];
+const defaultRoutes = [
+    'findAll',
+    'remove'
+];
 
 const router = express.Router();
 module.exports = router;
@@ -19,54 +22,40 @@ userAuthMid(router);
 
 router.route('/')
     .post(DataCtrl.insert)
-    .get((req: Request, res: Response, next: NextFunction) => {
-        db
-            .find({})
-            .then(docs => {
-                res.locals.resData = docs;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    });
-    
-router.route('/:id')
-    .delete(DataCtrl.remove)
-    .get((req: Request, res: Response, next: NextFunction) => {
-        // if(req.params.id === 'std') {
-        //     res.locals.resData = STD_DATA;
-        //     res.locals.template = {},
-        //     res.locals.succeed = true;
-        //     return next();
-        // }
-        // else {
-            DataCtrl.download(req.params.id)
-                .then(rst => {
+
+router.route('/download')
+    .get((req, res, next) => {
+        let msrId = req.query.msrId
+        let eventId = req.query.eventId
+        if(msrId && eventId) {
+            DataCtrl.cacheData({msrId, eventId})
+                .then(({stream, fname}) => {
+                    // return res.download(msg.path, msg.fname)
                     res.set({
                         'Content-Type': 'file/*',
-                        'Content-Length': rst.length,
                         'Content-Disposition':
                             'attachment;filename=' +
-                            encodeURIComponent(rst.filename)
+                            (fname)
                     });
-                    return res.end(rst.data);
-                });
-        // }
-    });
-    
-
-/**
- * 一个数据包里可以有多条数据，此处为 按条目下载，只下载其中一个
- */
-router.route('/:id/:entry')
+                    return (stream as any).pipe(res)
+                })
+                .catch(next);
+        }
+        else {
+            return res.json({
+                code: 400,
+                desc: 'invalid query params'
+            })
+        }
+    })
+        
+router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        const fpath = path.join(__dirname, '../upload/geo-data', req.params.id, req.params.entry);
-        return res.download(fpath, req.params.entry, err => {
-            if(err) {
-                return next(err);
-            }
-        });
+        DataCtrl.download(req.params.id)
+            .then(msg => {
+                return res.download(msg.path, msg.fname)
+            })
+            .catch(next);
     });
 
 router.route('/:id/property')
@@ -75,7 +64,6 @@ router.route('/:id/property')
             .then(prop => {
                 res.locals = {
                     resData: prop,
-                    template: {},
                     succeed: true
                 };
                 return next();
@@ -89,7 +77,6 @@ router.route('/:id/show')
             .then(visual => {
                 res.locals = {
                     resData: visual,
-                    template: {},
                     succeed: true
                 };
                 return next();
@@ -98,4 +85,4 @@ router.route('/:id/show')
     });
 
     
-     RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, db, defaultRoutes);

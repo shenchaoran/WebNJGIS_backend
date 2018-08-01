@@ -59,9 +59,33 @@ export class Mongoose {
         });
     }
 
+    public findDocs(ids: string[]): Promise<any> {
+        return Promise.map(ids, id => {
+            return new Promise((resolve, reject) => {
+                this.findOne({_id: id})
+                    .then(resolve)
+                    .catch(e => {
+                        console.log(e)
+                        return resolve(undefined)
+                    }) 
+            });
+        }, {
+            concurrency: 5
+        })
+            .then(docs => {
+                return _.chain(docs as Array<any>)
+                    .filter(doc => doc !== undefined)
+                    .map(doc => {
+                        doc._id = doc._id.toString()
+                        return doc;
+                    })
+                    .value()
+            })
+    }
+
     public find(where): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.model.find(where, (err, docs) => {
+            this.model.find(where).sort({_id: -1}).exec((err, docs) => {
                 if (err) {
                     return reject(err);
                 } else {
@@ -69,7 +93,7 @@ export class Mongoose {
                         return doc.toJSON();
                     }));
                 }
-            });
+            })
         });
     }
 
@@ -99,7 +123,11 @@ export class Mongoose {
             }),
             new Promise((resolve, reject) => {
                 this.model
-                    .find(where, (err, docs) => {
+                    .find(where)
+                    .sort({_id: -1})
+                    .limit(pageOpt.pageSize)
+                    .skip(pageOpt.pageSize* (pageOpt.pageNum- 1))
+                    .exec((err, docs) => {
                         if (err) {
                             return reject(err);
                         } else {
@@ -108,8 +136,6 @@ export class Mongoose {
                             }));
                         }
                     })
-                    .limit(pageOpt.pageSize)
-                    .skip(pageOpt.pageSize* (pageOpt.pageNum- 1));
             })
         ])
             .then(rsts => {

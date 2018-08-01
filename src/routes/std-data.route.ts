@@ -20,6 +20,35 @@ const defaultRoutes = [
 const router = express.Router();
 module.exports = router;
 
+router.route('/docs')
+    .get((req, res, next) => {
+        let ids = req.query.ids;
+        if(typeof ids === 'string') {
+            ids = [ids]
+        }
+        if(ids) {
+            stdDataDB.findDocs(ids)
+                .then(docs => {
+                    // res.locals = {
+                    //     resData: docs,
+                    //     succeed: true
+                    // }
+                    // return next()
+                    return res.json({
+                        data: docs,
+                        status: {
+                            code: '200',
+                            desc: 'succeed'
+                        }
+                    })
+                })
+                .catch(next)
+        }
+        else {
+            return next('invalid request body!')
+        }
+    })
+
 /**
  * 下载标准数据集中的数据
  */
@@ -39,7 +68,7 @@ router.route('/:className')
                         'Content-Length': rst.length,
                         'Content-Disposition':
                             'attachment;filename=' +
-                            encodeURIComponent(rst.filename)
+                            rst.filename
                     });
                     return res.end(rst.data);
                 })
@@ -84,14 +113,14 @@ router.route('/:id/download')
     .get((req, res, next) => {
         STDDataCtrl.download(req.params.id, req.query.cfg)
             .then(rst => {
-                res.set({
-                    'Content-Type': 'file/*',
-                    'Content-Length': rst.length,
-                    'Content-Disposition':
-                        'attachment;filename=' +
-                        encodeURIComponent(rst.filename)
-                });
-                return res.end(rst.data);
+                // res.set({
+                //     'Content-Type': 'file/*',
+                //     'Content-Length': rst.length,
+                //     'Content-Disposition':
+                //         'attachment;filename=' +
+                //         encodeURIComponent(rst.filename)
+                // });
+                // return res.end(rst.data);
             })
             .catch(next);
     });
@@ -105,7 +134,7 @@ router.route('/:id/preview')
                     'Content-Length': rst.length,
                     'Content-Disposition':
                         'attachment;filename=' +
-                        encodeURIComponent(rst.filename)
+                        rst.filename
                 });
                 return res.end(rst.data);
             })

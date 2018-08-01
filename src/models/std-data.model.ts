@@ -19,6 +19,7 @@ class STDDataDB extends Mongoose {
 
         super(collectionName, schema);
     }
+
 }
 
 export const stdDataDB = new STDDataDB();

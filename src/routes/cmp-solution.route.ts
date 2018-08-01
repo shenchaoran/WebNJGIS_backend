@@ -28,7 +28,6 @@ router.route('/:id')
             .then(rst => {
                 res.locals = {
                     resData: rst,
-                    template: {},
                     succeed: true
                 };
                 return next();

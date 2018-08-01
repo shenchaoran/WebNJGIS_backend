@@ -39,8 +39,7 @@ router.route('/')
         })
             .then(rst => {
                 res.locals.resData = rst;
-                res.locals.template = {};
-                res.locals.succeed = true;
+                                res.locals.succeed = true;
                 return next();
             })
             .catch(next);
@@ -52,7 +51,6 @@ router.route('/:id')
             .then(rst => {
                 res.locals = {
                     resData: rst,
-                    template: {},
                     succeed: true
                 };
                 return next();

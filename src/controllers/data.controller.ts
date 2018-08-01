@@ -4,50 +4,16 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import { ObjectID } from 'mongodb';
-import * as fs from 'fs';
-const request = require('request');
+import * as fs_ from 'fs';
 import * as unzip from 'unzip';
-
 import { setting } from '../config/setting';
-import { geoDataDB, GeoDataClass, STD_DATA } from '../models/UDX-data.model';
-import * as APIModel from '../models/api.model';
 import * as RequestCtrl from './request.controller';
-import * as UDXComparators from './UDX.compare.controller';
-import { UDXCfg } from '../models/UDX-cfg.class';
-import { UDXSchema } from '../models/UDX-schema.class';
-import { ResourceSrc } from '../models/resource.enum';
+import * as NodeCtrl from './computing-node.controller'
+import { geoDataDB, GeoDataClass, STD_DATA, UDXCfg, calcuTaskDB } from '../models';
+const fs: any = Promise.promisifyAll(fs_)
 
 export default class DataCtrl {
     constructor() { }
-    static find = (req: Request, res: Response, next: NextFunction) => {
-        geoDataDB
-            .find({})
-            .then(docs => {
-                res.locals.resData = docs;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
-    };
-
-    static remove = (req: Request, res: Response, next: NextFunction) => {
-        if (req.params.id != undefined) {
-            geoDataDB
-                .remove({ _id: req.params.id })
-                .then(docs => {
-                    res.locals.resData = docs;
-                    res.locals.template = {};
-                    res.locals.succeed = true;
-                    return next();
-                })
-                .catch(next);
-        } else {
-            return next(
-                new Error("can't find related resource in the database!")
-            );
-        }
-    };
 
 	/**
 	 * 条目保存到数据库，文件移动到upload/geo-data中
@@ -115,7 +81,6 @@ export default class DataCtrl {
                                             .then(doc => {
                                                 // console.log(doc);
                                                 res.locals.resData = doc;
-                                                res.locals.template = {};
                                                 res.locals.succeed = true;
                                                 return next();
                                             })
@@ -144,7 +109,6 @@ export default class DataCtrl {
                             .then(doc => {
                                 // console.log(doc);
                                 res.locals.resData = doc;
-                                res.locals.template = {};
                                 res.locals.succeed = true;
                                 return next();
                             })
@@ -156,46 +120,26 @@ export default class DataCtrl {
     };
 
     static download = (id: string): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            geoDataDB
-                .find({ _id: id })
-                .then(docs => {
-                    if (docs.length) {
-                        const doc = docs[0];
-                        const fname = doc.meta.name;
-                        const ext = fname.substr(fname.lastIndexOf('.'));
-                        const fpath = path.join(
-                            setting.geo_data.path,
-                            doc.meta.path,
-                        );
-                        fs.stat(fpath, (err, stats) => {
-                            if (err) {
-                                if (err.code === 'ENOENT') {
-                                    return reject(
-                                        new Error("can't find data file!")
-                                    );
-                                }
-                                return reject(err);
-                            } else {
-                                fs.readFile(fpath, (err, data) => {
-                                    if (err) {
-                                        return reject(err);
-                                    } else {
-                                        return resolve({
-                                            length: data.length,
-                                            filename: doc.meta.name,
-                                            data: data
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    } else {
-                        return reject(new Error("can't find data file!"));
-                    }
-                })
-                .catch(reject);
-        });
+        return geoDataDB.findOne({
+            _id: id
+        })
+            .then(doc => {
+                let fpath = path.join(
+                    setting.geo_data.path,
+                    doc.meta.path,
+                );
+                return fs.statAsync(fpath)
+                    .then(stats => {
+                        return Promise.resolve({
+                            path: fpath,
+                            fname: doc.meta.name
+                        })
+                    })
+                    .catch(e => {
+                        return Promise.reject(e.code === 'ENOENT' ? 'file don\'t exist!' : 'unpredictable error!');
+                    });
+            })
+            .catch(Promise.reject);
     };
 
     static visualization = (req: Request, res: Response, next: NextFunction) => { };
@@ -221,4 +165,128 @@ export default class DataCtrl {
             });
         });
     };
+
+    /**
+     * 如果文件有本地缓存，直接返回给前台
+     * 否则文件缓存到本地，同时更新 geodata, calcu task 数据库，并返回给前台
+     */
+    static cacheData = ({ msrId, eventId }) => {
+        let msr, eventIndex, event, eventType
+        return calcuTaskDB.findOne({ _id: msrId })
+            .then(doc => {
+                msr = doc
+                // let event = _
+                //     .chain(msr.IO)
+                //     .values()
+                //     .flatten()
+                //     .find(v => (v as any).id === eventId)
+                //     .value()
+                function indexOfEvent(type) {
+                    let events = msr.IO[type]
+                    if (!events || !events.length)
+                        return
+                    for (let i = 0; i < events.length; i++) {
+                        if (events[i].id === eventId) {
+                            eventType = type
+                            eventIndex = i
+                            event = events[i]
+                        }
+                    }
+                }
+                indexOfEvent('inputs')
+                indexOfEvent('parameters')
+                indexOfEvent('outputs')
+
+                if (event.cached) {
+                    return DataCtrl.download(event.value)
+                        .then(({ path, fname }) => {
+                            return Promise.resolve({
+                                stream: fs.createReadStream(path),
+                                fname: fname
+                            })
+                        })
+                        .catch(e => {
+                            console.error(e)
+                            return Promise.reject(e)
+                        })
+                }
+                else {
+                    return NodeCtrl.telNode(msr.ms.nodeId)
+                        .then(serverURL => {
+                            return RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path, ({ fname, fpath }) => {
+                                let gdid = new ObjectID()
+                                geoDataDB.insert({
+                                    _id: gdid,
+                                    meta: {
+                                        desc: '',
+                                        path: fpath,
+                                        name: fname
+                                    },
+                                    auth: {
+                                        src: _.get(msr, 'auth.src'),
+                                        userId: _.get(msr, 'auth.userId')
+                                    }
+                                })
+
+                                let setObj = {}
+                                setObj[`IO.${eventType}.${eventIndex}.value`] = gdid.toHexString()
+                                setObj[`IO.${eventType}.${eventIndex}.cached`] = true
+                                calcuTaskDB.update({ _id: msr._id }, {
+                                    $set: setObj
+                                })
+                            })
+                        })
+                        .catch(e => {
+                            console.error(e)
+                            return Promise.reject(e)
+                        })
+                }
+            })
+    }
+
+    /**
+     * 如果使用上传数据运行，则需要先将所有数据 post 过去
+     */
+    static pushData2ComputingServer = (msrId) => {
+        let msr, serverURL
+        return new Promise((resolve, reject) => {
+            calcuTaskDB.findOne({ _id: msrId })
+                .then(doc => {
+                    msr = doc
+                    return NodeCtrl.telNode(msr.ms.nodeId)
+                })
+                .then(v => {
+                    serverURL = v
+                    let url = serverURL + '/data'
+                    return Promise.map(msr.IO.inputs as any[], input => {
+                        let fpath = path.join(setting.geo_data.path, input.value + input.ext)
+                        return RequestCtrl.postByServer(url, {
+                            useNewName: 'false',
+                            myfile: fs.createReadStream(fpath)
+                        }, RequestCtrl.PostRequestType.File)
+                            .then(res => {
+                                res = JSON.parse(res)
+                                if (res.code === 200) {
+                                    return Promise.resolve()
+                                }
+                                else {
+                                    throw 'transfer input file into computing server failed'
+                                }
+                            })
+                            .catch(e => {
+                                console.error(e)
+                                throw 'transfer input file into computing server failed'
+                            })
+                    }, {
+                            concurrency: 10
+                        })
+                })
+                .then(rsts => {
+                    return resolve()
+                })
+                .catch(e => {
+                    return reject(e)
+                })
+        });
+    }
 }

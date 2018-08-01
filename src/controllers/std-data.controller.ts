@@ -37,7 +37,7 @@ export const preview = (id, cfg): Promise<any> => {
                 return Promise.reject('invalid STD data type!');
             }
         })
-        .then(requestData)
+        // .then(requestData)
         .then(file => {
 
         })
@@ -95,16 +95,16 @@ export const download = (id, cfg) => {
                 return Promise.reject('invalid STD data type!');
             }
         })
-        .then(requestData)
-        .then(response => {
-            let fname = response.headers['Content-Disposition'];
-            fname = fname.substring(fname.indexOf('filename=') + 9);
-            return Promise.resolve({
-                length: response.headers['content-length'],
-                data: response.body,
-                filename: fname
-            });
-        })
+        // .then(requestData)
+        // .then(response => {
+        //     let fname = response.headers['Content-Disposition'];
+        //     fname = fname.substring(fname.indexOf('filename=') + 9);
+        //     return Promise.resolve({
+        //         length: response.headers['content-length'],
+        //         data: response.body,
+        //         filename: fname
+        //     });
+        // })
         .catch(Promise.reject);
 }
 
@@ -142,10 +142,4 @@ const getPointPosition = (type, x, y): {
         row: row,
         col: col
     };
-}
-
-const requestData = (cfg): Promise<any> => {
-    // 暂时不管 STD Data 的 type， 假设计算服务器上只存储了这一种标准数据
-    const url = `http://${setting.calculation_server.host}:${setting.calculation_server.port}/std-data?type=${cfg.type}`;
-    return RequestCtrl.getByServer(url, cfg.cfg, true);
 }

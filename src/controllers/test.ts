@@ -12,24 +12,48 @@ import { geoDataDB }  from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
 import * as RequestCtrl from './request.controller';
 import * as path from 'path';
+import { getByServer } from './request.controller';
+import { setting } from '../config/setting';
 
-Promise.all([
-    Promise.resolve(1)
-        .then(v => {
-            throw new Error('custom error')
-        })
-        .catch(e => {
-            return Promise.resolve();
-        }),
-        Promise.resolve(2)
-])
-    .then(rsts => {
-        console.log('map finished');
+console.log(process)
+
+// let os = require('os')
+
+// let interfaces = os.networkInterfaces()
+// for(let key in interfaces) {
+//     for(let item of interfaces[key]) {
+//         if(!item.internal && item.family === 'IPv4') {
+//             (global as any).ipv4 = item.address
+//             console.log(item.address)
+
+//             // return resolve()
+//         }
+//     }
+// }
+
+// let pingURL = `http://192.168.79.132:6868/`;
+// getByServer(pingURL, undefined)
+//     .then(res => {
+//         res;
+//     })
+
+// Promise.all([
+//     Promise.resolve(1)
+//         .then(v => {
+//             throw new Error('custom error')
+//         })
+//         .catch(e => {
+//             return Promise.resolve();
+//         }),
+//         Promise.resolve(2)
+// ])
+//     .then(rsts => {
+//         console.log('map finished');
         
-    })
-    .catch(e => {
-        console.log('catch by Map')
-    })
+//     })
+//     .catch(e => {
+//         console.log('catch by Map')
+//     })
 
 // new Promise((resolve, reject) => {
 //     resolve();

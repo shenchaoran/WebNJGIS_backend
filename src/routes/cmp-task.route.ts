@@ -41,7 +41,6 @@ router.route('/')
             .then(rst => {
                 res.locals = {
                     resData: rst,
-                    template: {},
                     succeed: true
                 };
                 return next();
@@ -57,7 +56,6 @@ router.route('/')
             ])
                 .then(rsts => {
                     res.locals = {
-                        template: {},
                         succeed: true,
                         resData: rsts[0]._id
                     };
@@ -69,8 +67,7 @@ router.route('/')
             //         res.locals.resData = {
             //             doc: _doc
             //         };
-            //         res.locals.template = {};
-            //         res.locals.succeed = true;
+            //                     //         res.locals.succeed = true;
             //         return next();
             //     })
             //     .catch(next);
@@ -86,7 +83,6 @@ router.route('/:id')
             .then(doc => {
                 res.locals = {
                     resData: doc,
-                    template: {},
                     succeed: true
                 };
                 return next();
@@ -100,7 +96,6 @@ router.route('/:id')
     //                 resData: {
     //                     doc: doc
     //                 },
-    //                 template: {},
     //                 succeed: true
     //             };
     //             return next();
@@ -111,14 +106,7 @@ router.route('/:id')
 
 router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
-        CmpTaskCtrl.updateStartState(req.params.id)
-            .then(data => {
-                res.locals.resData = data;
-                res.locals.template = {};
-                res.locals.succeed = true;
-                return next();
-            })
-            .catch(next);
+
     });
 
 /**
@@ -134,7 +122,6 @@ router.route('/:id/cmpResult')
         CmpTaskCtrl.getCmpResult(req.params.id, req.query.cmpObjId, req.query.msId)
             .then(rst => {
                 res.locals = {
-                    template: {},
                     succeed: true,
                     resData: rst
                 };

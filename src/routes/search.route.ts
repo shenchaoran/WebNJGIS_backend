@@ -16,8 +16,7 @@ router.route('')
             .then(rst => {
                 res.locals = {
                     resData: rst,
-                    succeed: true,
-                    template: {}
+                    succeed: true
                 };
                 return next();
             })

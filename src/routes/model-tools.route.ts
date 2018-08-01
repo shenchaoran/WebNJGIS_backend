@@ -21,53 +21,11 @@ import { userAuthMid } from '../middlewares/user-auth.middleware';
 userAuthMid(router);
 // endregion
 
-// router.route('/')
-//     .get((req: Request, res: Response, next: NextFunction) => {
-//         if (req.query.pageSize === undefined) {
-//             req.query.pageSize = 25;
-//         }
-//         else {
-//             req.query.pageSize = parseInt(req.query.pageSize);
-//         }
-//         if (req.query.pageNum === undefined) {
-//             req.query.pageNum = 1;
-//         }
-//         else {
-//             req.query.pageNum = parseInt(req.query.pageNum);
-//         }
-
-//         MSCtrl.findByPage({
-//             pageSize: req.query.pageSize,
-//             pageNum: req.query.pageNum
-//         })
-//             .then(rst => {
-//                 res.locals.resData = rst;
-//                 res.locals.template = {};
-//                 res.locals.succeed = true;
-//                 return next();
-//             })
-//             .catch(next);
-//     });
-
-// router.route('/:id')
-//     .get((req: Request, res: Response, next: NextFunction) => {
-//         MSCtrl.getModelDetail(req.params.id)
-//             .then(rst => {
-//                 res.locals = {
-//                     resData: rst,
-//                     template: {},
-//                     succeed: true
-//                 };
-//                 return next();
-//             })
-//             .catch(next);
-//     });
-
-router.route('/:id/invoke')
+router.route('/invoke')
     .post((req, res, next) => {
         const msInstance = req.body.msInstance;
         if (msInstance) {
-            MSCtrl.invoke(msInstance, req.body.type)
+            MSCtrl.invoke(msInstance)
                 .then(msg => {
                     res.locals = {
                         resData: msg,
@@ -84,5 +42,6 @@ router.route('/:id/invoke')
             return next('invalid request body!');
         }
     });
+
 
 RouterExtends(router, db, defaultRoutes);

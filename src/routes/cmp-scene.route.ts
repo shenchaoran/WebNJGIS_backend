@@ -29,8 +29,7 @@ router.route('/')
             })
             .then(docs => {
                 res.locals.resData = docs;
-                res.locals.template = {};
-                res.locals.succeed = true;
+                                res.locals.succeed = true;
                 return next();
             })
             .catch(next);

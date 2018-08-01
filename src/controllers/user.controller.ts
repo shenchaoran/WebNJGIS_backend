@@ -6,7 +6,6 @@ import * as _ from 'lodash';
 
 import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
-import * as APIModel from '../models/api.model';
 import { userDB, UserClass } from '../models/user.model';
 import * as crypto from 'crypto';
 const md5 = (v) => {
@@ -20,8 +19,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         res.locals.resData = {
             succeed: false
         }
-        res.locals.template = {};
-        res.locals.succeed = true;
+                res.locals.succeed = true;
         return next();
     }
     userDB.find({ username: username })
@@ -48,15 +46,13 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
                         user: user
                     }
                 };
-                res.locals.template = {};
-                res.locals.succeed = true;
+                                res.locals.succeed = true;
                 return next();
             } else {
                 res.locals.resData = {
                     succeed: false
                 }
-                res.locals.template = {};
-                res.locals.succeed = true;
+                                res.locals.succeed = true;
                 return next();
             }
         })
@@ -92,8 +88,7 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
                 res.locals.resData = {
                     succeed: true
                 }
-                res.locals.template = {};
-                res.locals.succeed = true;
+                                res.locals.succeed = true;
                 return next();
             })
             .catch(next);
@@ -102,8 +97,7 @@ export const register = (req: Request, res: Response, next: NextFunction) => {
         res.locals.resData = {
             succeed: false
         }
-        res.locals.template = {};
-        res.locals.succeed = true;
+                res.locals.succeed = true;
         return next();
     }
 };

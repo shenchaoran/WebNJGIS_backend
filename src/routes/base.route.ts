@@ -41,7 +41,6 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                         })
                         .then(docs => {
                             res.locals.resData = docs;
-                            res.locals.template = {};
                             res.locals.succeed = true;
                             return next();
                         })
@@ -57,7 +56,6 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                             .findOne({ _id: req.params.id })
                             .then(doc => {
                                 res.locals.resData = doc;
-                                res.locals.template = {};
                                 res.locals.succeed = true;
                                 return next();
                             })
@@ -76,8 +74,7 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                             .insert(req.body.doc)
                             .then(doc => {
                                 res.locals.resData = doc;
-                                res.locals.template = {};
-                                res.locals.succeed = true;
+                                                                res.locals.succeed = true;
                                 return next();
                             })
                             .catch(next);
@@ -96,8 +93,7 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                             .then((doc) => {
                                 // TODO 此doc非彼doc
                                 res.locals.resData = doc;
-                                res.locals.template = {};
-                                res.locals.succeed = true;
+                                                                res.locals.succeed = true;
                                 return next();
                             })
                             .catch(next);
@@ -114,7 +110,6 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                         .remove({ _id: req.params.id })
                         .then((doc) => {
                             res.locals.resData = doc;
-                            res.locals.template = {};
                             res.locals.succeed = true;
                             return next();
                         })

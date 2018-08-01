@@ -5,19 +5,13 @@ const ResponseModel = require('../models/response.class');
 export const postResMid = app => {
     // unify response
     app.use((req: Request, res: Response, next: NextFunction) => {
-        // console.log(res.locals);
         if (res.locals.succeed === true) {
-            const resData = new ResponseModel();
+            const response = new ResponseModel();
             // resData.href = req.originalUrl;
             // resData.token = res.locals.token;
             // resData.username = res.locals.username;
-            resData.status = {
-                code: '200',
-                desc: 'succeed'
-            };
-            resData.data = res.locals.resData;
-            // resData.template = res.locals.template;
-            return res.json(resData);
+            response.data = res.locals.resData;
+            return res.json(response);
         } else {
             return next();
         }
@@ -31,15 +25,14 @@ export const postResMid = app => {
 
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         console.log(err);
-        const resData = new ResponseModel();
-        resData.href = req.originalUrl;
-        resData.token = res.locals.token;
-        resData.username = res.locals.username;
-        resData.status = {
+        const response = new ResponseModel();
+        // resData.token = res.locals.token;
+        // resData.username = res.locals.username;
+        response.error = {
             code: err.status || 500,
             desc: err.message,
             stack: req.app.get('env') === 'development' ? err.stack : {}
         };
-        return res.json(resData);
+        return res.json(response);
     });
 };
