@@ -21,6 +21,7 @@ class CalcuTaskDB extends Mongoose {
             IO: mongoose.Schema.Types.Mixed,
             ms: mongoose.Schema.Types.Mixed,
             std: mongoose.Schema.Types.Mixed,
+            log: mongoose.Schema.Types.Mixed,
             state: String,
             progress: Number
         };
@@ -52,6 +53,10 @@ export class CalcuTask extends OgmsObj {
         parameters: Event[],
         outputs: Event[],
         std: Event[]
+    };
+    log: {
+        cached: boolean,
+        dataId: string
     };
     std: any;
     state: CalcuTaskState;

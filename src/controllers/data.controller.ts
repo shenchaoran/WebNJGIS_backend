@@ -214,26 +214,28 @@ export default class DataCtrl {
                     return NodeCtrl.telNode(msr.ms.nodeId)
                         .then(serverURL => {
                             return RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path, ({ fname, fpath }) => {
-                                let gdid = new ObjectID()
-                                geoDataDB.insert({
-                                    _id: gdid,
-                                    meta: {
-                                        desc: '',
-                                        path: fpath,
-                                        name: fname
-                                    },
-                                    auth: {
-                                        src: _.get(msr, 'auth.src'),
-                                        userId: _.get(msr, 'auth.userId')
-                                    }
-                                })
-
-                                let setObj = {}
-                                setObj[`IO.${eventType}.${eventIndex}.value`] = gdid.toHexString()
-                                setObj[`IO.${eventType}.${eventIndex}.cached`] = true
-                                calcuTaskDB.update({ _id: msr._id }, {
-                                    $set: setObj
-                                })
+                                if(msr.progress === 100) {
+                                    let gdid = new ObjectID()
+                                    geoDataDB.insert({
+                                        _id: gdid,
+                                        meta: {
+                                            desc: '',
+                                            path: fpath,
+                                            name: fname
+                                        },
+                                        auth: {
+                                            src: _.get(msr, 'auth.src'),
+                                            userId: _.get(msr, 'auth.userId')
+                                        }
+                                    })
+    
+                                    let setObj = {}
+                                    setObj[`IO.${eventType}.${eventIndex}.value`] = gdid.toHexString()
+                                    setObj[`IO.${eventType}.${eventIndex}.cached`] = true
+                                    calcuTaskDB.update({ _id: msr._id }, {
+                                        $set: setObj
+                                    })
+                                }
                             })
                         })
                         .catch(e => {

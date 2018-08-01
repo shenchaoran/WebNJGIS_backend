@@ -22,7 +22,7 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                 .route('/')
                 .get((req: Request, res: Response, next: NextFunction) => {
                     if (req.query.pageSize === undefined) {
-                        req.query.pageSize = 25;
+                        req.query.pageSize = 15;
                     }
                     else {
                         req.query.pageSize = parseInt(req.query.pageSize);
