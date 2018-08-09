@@ -14,6 +14,9 @@ export const setting = {
         port: 3122,
         use: true
     },
+    daemon: {
+        msr_progress: 5000
+    },
     // session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
     platform: (function() {

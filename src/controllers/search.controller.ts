@@ -10,7 +10,7 @@ import * as unzip from 'unzip';
 
 import { setting } from '../config/setting';
 import { geoDataDB, GeoDataClass, STD_DATA } from '../models/UDX-data.model';
-import * as RequestCtrl from './request.controller';
+import * as RequestCtrl from '../utils/request.utils';
 
 export default class SearchCtrl {
     constructor() {}

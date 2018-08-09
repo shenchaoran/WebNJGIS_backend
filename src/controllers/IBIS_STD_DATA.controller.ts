@@ -2,7 +2,7 @@ import * as proj4x from 'proj4';
 const proj4 = (proj4x as any).proj4;
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-import * as RequestCtrl from './request.controller';
+import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
 import * as path from 'path';
 const fs = Promise.promisifyAll(require('fs'));

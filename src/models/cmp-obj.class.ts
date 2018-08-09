@@ -19,7 +19,7 @@
 import * as _ from 'lodash';
 
 import { GeoDataClass } from './UDX-data.model';
-import { UDXSchema } from '../models/UDX-schema.class';
+import { UDXSchema } from './UDX-schema.class';
 import { ObjectID } from 'mongodb';
 import { SchemaName } from './UDX-schema.class';
 import { CmpResult } from './cmp-result.class';

@@ -10,9 +10,9 @@ import { cmpSolutionDB } from '../models/cmp-solution.model';
 import * as UDXCtrl from './UDX.visualization.controller';
 import { geoDataDB }  from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
-import * as RequestCtrl from './request.controller';
+import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
-import { getByServer } from './request.controller';
+import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
 
 console.log(process)

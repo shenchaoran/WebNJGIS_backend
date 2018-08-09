@@ -1,4 +1,4 @@
-import { setting } from './../config/setting';
+import { setting } from '../config/setting';
 import { Response, Request, NextFunction } from 'express';
 const requestPromise = require('request-promise');
 const request = require('request');

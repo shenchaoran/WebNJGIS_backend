@@ -3,7 +3,7 @@
  */
 
 import * as _ from 'lodash';
-import { UDXSchema } from '../models/UDX-schema.class';
+import { UDXSchema } from './UDX-schema.class';
 
 import { ResourceSrc } from './resource.enum';
 

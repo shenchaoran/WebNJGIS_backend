@@ -1,31 +1,19 @@
-import { Response, Request, NextFunction } from 'express';
 import * as Promise from 'bluebird';
 import * as _ from 'lodash';
-const xpath = require('xpath');
-const dom = require('xmldom').DOMParser;
 import { ObjectID } from 'mongodb';
-
-import * as RequestCtrl from './request.controller';
 import { setting } from '../config/setting';
-import DataCtrl from '../controllers/data.controller';
+import DataCtrl from './data.controller';
+import * as path from 'path'
 import {
-    modelServiceDB,
     calcuTaskDB,
     CalcuTaskState,
-    geoDataDB,
-    ResourceSrc,
-    computingNodeDB
 } from '../models';
-import * as child_process from 'child_process';
-const exec = child_process.exec;
-const spawn = child_process.spawn;
-import * as path from 'path';
-import * as StdDataCtrl from './std-data.controller';
 import * as NodeCtrl from './computing-node.controller'
-import { getByServer, postByServer, PostRequestType } from './request.controller';
-const db = modelServiceDB;
+import { getByServer, postByServer, PostRequestType } from '../utils/request.utils';
+import { ChildProcessUtil } from '../utils'
+import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 
-export default class ModelService {
+export default class ModelServiceCtrl {
     constructor() { }
 
     /**
@@ -43,12 +31,6 @@ export default class ModelService {
      *      如果 state === START_PENDING 时启动模型实例
      * 
      *      如果使用用户上传的数据时，还要先将数据传过去
-     * 
-     * @static
-     * @param {any} msr 
-     * @param {any} type 
-     * @returns {Promise<any>} 
-     * @memberof ModelService
      */
     static invoke(msr): Promise<any> {
         if (!msr._id) {
@@ -81,6 +63,7 @@ export default class ModelService {
                         })
                         .then(res => {
                             if (res.code === 200) {
+                                ModelServiceCtrl.progressDaemon(msr._id)
                                 return Promise.resolve({
                                     msrId: msr._id,
                                     code: 200,
@@ -114,5 +97,43 @@ export default class ModelService {
                         });
                 }
             })
+    }
+
+    static progressDaemon(msrId) {
+        let cpPath = path.join(__dirname, '../daemons/msrProgress.daemon.js')
+        let cp = new ChildProcessUtil(cpPath)
+        let debugFn = () => {
+            let daemon = new MSRProgressDaemon (msrId)
+            daemon.start()
+                .then(msg => {
+                    if((msg as any).code === 500) {
+                        throw (msg as any).error
+                    }
+                    else if((msg as any).code === 200) {
+                        console.info('fetch data succeed!')
+                    }
+                })
+                .catch(e => {
+                    console.log(e)
+
+                })
+        }
+        cp.initialization(debugFn)
+        //     .then(() => {
+        //         cp.on(500)
+        //             .then((msg) => {
+        //                 console.log((msg as any).error)
+        //             })
+
+        //         cp.on(200)
+        //             .then(() => {
+        //                 console.log('fetch data succeed!')
+        //             })
+
+        //         cp.send({
+        //             code: 'start',
+        //             msrId: msrId
+        //         })
+        //     })
     }
 }

@@ -7,7 +7,7 @@ import { ObjectID } from 'mongodb';
 import * as fs_ from 'fs';
 import * as unzip from 'unzip';
 import { setting } from '../config/setting';
-import * as RequestCtrl from './request.controller';
+import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
 import { geoDataDB, GeoDataClass, STD_DATA, UDXCfg, calcuTaskDB } from '../models';
 const fs: any = Promise.promisifyAll(fs_)
@@ -167,6 +167,8 @@ export default class DataCtrl {
     };
 
     /**
+     * resolve {stream, fname}
+     * 
      * 如果文件有本地缓存，直接返回给前台
      * 否则文件缓存到本地，同时更新 geodata, calcu task 数据库，并返回给前台
      */

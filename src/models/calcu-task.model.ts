@@ -9,7 +9,7 @@ import { ResourceSrc } from './resource.enum';
 import { ObjectID } from 'mongodb';
 import * as _ from 'lodash';
 import { Event } from './model-service.model';
-import { Enum } from 'typescript-string-enums';
+import { Enum } from 'typescript-string-enums/dist';
 
 class CalcuTaskDB extends Mongoose {
     constructor() {

@@ -8,7 +8,7 @@ const jwt = require('jwt-simple');
 const moment = require('moment');
 import { setting } from '../config/setting';
 import * as crypto from 'crypto';
-import { getByServer } from './request.controller'
+import { getByServer } from '../utils/request.utils'
 
 const md5 = (v) => {
     return crypto.createHash('md5').update(v, 'utf8').digest('hex');

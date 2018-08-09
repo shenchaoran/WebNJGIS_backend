@@ -4,7 +4,7 @@ const jwt = require('jwt-simple');
 const moment = require('moment');
 import * as _ from 'lodash';
 
-import * as RequestCtrl from './request.controller';
+import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
 import { userDB, UserClass } from '../models/user.model';
 import * as crypto from 'crypto';

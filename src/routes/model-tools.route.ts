@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 const express = require('express');
-import MSCtrl from './../controllers/model-tools.controller';
+import ModelServiceCtrl from '../controllers/model-tools.controller';
 import { modelServiceDB } from '../models/model-service.model';
 import { calcuTaskDB } from '../models/calcu-task.model';
 import { RouterExtends } from './base.route';
@@ -25,7 +25,7 @@ router.route('/invoke')
     .post((req, res, next) => {
         const msInstance = req.body.msInstance;
         if (msInstance) {
-            MSCtrl.invoke(msInstance)
+            ModelServiceCtrl.invoke(msInstance)
                 .then(msg => {
                     res.locals = {
                         resData: msg,

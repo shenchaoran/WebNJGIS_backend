@@ -14,7 +14,7 @@ const initDebug = debug('WebNJGIS: Init');
 import { setting } from './config/setting';
 import { router } from './routes/index.route';
 import { preReqMid, postResMid } from './middlewares';
-import { init } from './init/index';
+import { init } from './init';
 
 const port = setting.port;
 
