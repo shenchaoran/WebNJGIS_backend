@@ -1,3 +1,7 @@
+// process.env.DEBUG='WebNJGIS:*'
+// process.env.DEBUG_COLORS=5 
+// process.env.DEBUG_HIDE_DATE=true 
+// process.env.DEBUG_FD=1
 // inlet
 const express = require('express');
 const app = express();

@@ -1,6 +1,7 @@
 import { initEnv } from './init-env';
 import { initUser } from './init-user';
 import { initFolders } from './init-folder';
+import { initCopyFiles } from './init-copy'
 import * as Promise from 'bluebird';
 
 export const init = () => {
@@ -9,6 +10,7 @@ export const init = () => {
         Promise.all([
             // connect2MSC(), 
             // initEnv(),
+            // initCopyFiles(),
             initUser(),
             initFolders()
         ])

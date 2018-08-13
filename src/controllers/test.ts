@@ -1,4 +1,5 @@
 // const debug = require('debug')('WebNJGIS: Debug');
+import * as iconv from 'iconv-lite'
 import * as Promise from 'bluebird';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
@@ -8,14 +9,33 @@ import { Buffer } from 'buffer';
 import * as _ from 'lodash';
 import { cmpSolutionDB } from '../models/cmp-solution.model';
 import * as UDXCtrl from './UDX.visualization.controller';
-import { geoDataDB }  from '../models/UDX-data.model';
+import { geoDataDB } from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
 import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
 import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
+import * as child_process from 'child_process'
+let exec = child_process.exec
 
-console.log(process)
+
+// exec('python ../child-process/test2.py', { encoding: 'binary' }, (err, stdout, stderr) => {
+//     function toGBK(str) {
+//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
+//     }
+//     if (err) {
+//         console.log(toGBK(err.message))
+//     }
+//     if (stderr) {
+//         console.log(toGBK(stderr))
+//     }
+//     if (stdout) {
+//         console.log(toGBK(stdout))
+//     }
+// })
+
+
+// console.log(process)
 
 // let os = require('os')
 
@@ -49,7 +69,7 @@ console.log(process)
 // ])
 //     .then(rsts => {
 //         console.log('map finished');
-        
+
 //     })
 //     .catch(e => {
 //         console.log('catch by Map')
@@ -70,18 +90,18 @@ console.log(process)
 //     })
 //     .then(() => {
 //         console.log('promise then');
-        
+
 //     })
 //     .catch(e => {
 //         console.log('promise catch');
-        
+
 //     });
 
 // let fpath = path.join(__dirname, '111.txt');
 // fs.writeFileAsync(fpath, 'asdf;j\nasdf\r\nasdf')
 //     .then(() => {
 //         console.log('finished');
-        
+
 //     })
 //     .catch(console.log);
 
@@ -92,14 +112,14 @@ console.log(process)
 // }
 // Promise.map(fileIndex, fname => {
 //     console.log(fname);
-    
+
 // }, {
 //     concurrency: 10
 // })
 
 // new Promise((resolve, reject) => {
 //     resolve(1);
-    
+
 // })
 //     .then((v) => {
 //         console.log(v,2);
@@ -117,11 +137,11 @@ console.log(process)
 //     })
 //     .then(v => {
 //         console.log(v);
-        
+
 //     })
 //     .catch(e => {
 //         console.log(e);
-        
+
 //     });
 
 // console.log(new ObjectID('5abc554b79d20cef9d610d7d').toHexString());
@@ -260,8 +280,12 @@ console.log(process)
 
 // // Promise.all
 // Promise.all([
-//     Promise.resolve(1),
-//     Promise.reject(2),
+//     new Promise((resolve, reject) => {
+//         setTimeout(() => {
+//             resolve(1)
+//         }, 1000);
+//     }),
+//     Promise.resolve(2),
 //     Promise.resolve(3)
 // ])
 //     .then(console.log)

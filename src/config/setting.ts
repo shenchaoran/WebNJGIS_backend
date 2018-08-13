@@ -3,10 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export const setting = {
-    app: {
-        name: 'WebNJGIS',
-        version: 'v0.01'
-    },
     auth: false,
     port: '9999',
     fiddler_proxy: {
@@ -17,7 +13,7 @@ export const setting = {
     daemon: {
         msr_progress: 5000
     },
-    // session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
+    session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
     platform: (function() {
         let platform = 1;
@@ -28,7 +24,7 @@ export const setting = {
     })(),
     mongodb: {
         name: 'Comparison',
-        host: '127.0.0.1',
+        host: '192.168.1.131',
         port: '27017'
     },
     geo_data: {
