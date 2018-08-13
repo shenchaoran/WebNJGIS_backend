@@ -59,12 +59,9 @@ export class CalcuTask extends OgmsObj {
         dataId: string
     };
     std: any;
+    // 表示状态
     state: CalcuTaskState;
-    // 0 未启动
-    // 1 启动
-    // -1 失败
-    // 100 成功
-    // [2, 99] 进度条
+    // 只表示进度条
     progress: number;
 }
 

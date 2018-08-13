@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-export class CmpMethod {
+class CmpMethod {
     label: string;
     value: string;
 

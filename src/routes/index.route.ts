@@ -12,6 +12,7 @@ const CmpIssueRouter = require('./cmp-issue.route');
 const SearchRouter = require('./search.route');
 const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
+const CmpMethodRouter = require('./cmp-methods.route');
 
 export const router = express.Router();
 
@@ -21,6 +22,7 @@ router.use('/search', SearchRouter);
 router.use('/data', DataRouter);
 router.use('/model-tools', ModelToolsRouter);
 router.use('/visualization', VisualizationRouter);
+router.use('/comparison/methods', CmpMethodRouter);
 router.use('/comparison/issues', CmpIssueRouter);
 router.use('/comparison/solutions', CmpSolutionRouter);
 router.use('/comparison/tasks', CmpTaskRouter);

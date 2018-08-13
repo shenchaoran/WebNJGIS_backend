@@ -9,6 +9,7 @@ import { ComputingNode, computingNodeDB, calcuTaskDB } from '../models';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import * as ComputingNodeCtrl from '../controllers/computing-node.controller';
 import { nodeAuthMid } from '../middlewares/node-auth.middleware';
+import DataCtrl from '../controllers/data.controller'
 
 const db = computingNodeDB;
 const defaultRoutes = ['insert'];
@@ -46,5 +47,18 @@ router.route('/logout')
     .post((req: Request, res: Response, next: NextFunction) => {
 
     });
+
+router.route('/cache-data/:msrId')
+    .get((req, res, next) => {
+        DataCtrl.cacheDataBatch(req.params.msrId)
+            .then(msg => {
+                res.locals = {
+                    resData: msg,
+                    succeed: true
+                }
+                return next()
+            })
+            .catch(next)
+    })
 
 RouterExtends(router, db, defaultRoutes);

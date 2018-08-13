@@ -18,22 +18,23 @@ import { setting } from '../config/setting';
 import * as child_process from 'child_process'
 let exec = child_process.exec
 
-
-// exec('python ../child-process/test2.py', { encoding: 'binary' }, (err, stdout, stderr) => {
-//     function toGBK(str) {
-//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
-//     }
-//     if (err) {
-//         console.log(toGBK(err.message))
-//     }
-//     if (stderr) {
-//         console.log(toGBK(stderr))
-//     }
-//     if (stdout) {
-//         console.log(toGBK(stdout))
-//     }
-// })
-
+exec('activate base && python ../child-process/test2.py', { 
+    encoding: 'binary',
+    cwd: __dirname
+}, (err, stdout, stderr) => {
+    function toGBK(str) {
+        return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
+    }
+    if (err) {
+        console.log(toGBK(err.message))
+    }
+    if (stderr) {
+        console.log(toGBK(stderr))
+    }
+    if (stdout) {
+        console.log(toGBK(stdout))
+    }
+})
 
 // console.log(process)
 

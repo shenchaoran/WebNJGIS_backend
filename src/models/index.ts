@@ -20,3 +20,4 @@ export * from './cmp-state.enum';
 export * from './dataRefer.class';
 export * from './std-data.model';
 export * from './site.model';
+export * from './cmp-methods.model';

@@ -248,6 +248,35 @@ export default class DataCtrl {
             })
     }
 
+    static cacheDataBatch = msrId => {
+        calcuTaskDB.findOne({_id: msrId})
+            .then(msr => {
+                let toPulls = []
+                for(let key in msr.IO) {
+                    if(key === 'inputs' || key === 'outputs') {
+                        _.map(msr.IO[key] as any[], event => {
+                            if(!event.cached) {
+                                toPulls.push({
+                                    msrId: msrId,
+                                    eventId: event.id
+                                })
+                            }
+                        })
+                    }
+                }
+                return Promise.map(toPulls, DataCtrl.cacheData, {
+                    concurrency: 5
+                })
+            })
+            .then(rsts => {
+                console.log('****** cache data succeed of msr: ' + msrId)
+            })
+
+        return Promise.resolve({
+            code: 200
+        })
+    }
+
     /**
      * 如果使用上传数据运行，则需要先将所有数据 post 过去
      */

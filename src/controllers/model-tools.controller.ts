@@ -63,7 +63,7 @@ export default class ModelServiceCtrl {
                         })
                         .then(res => {
                             if (res.code === 200) {
-                                ModelServiceCtrl.progressDaemon(msr._id)
+                                // ModelServiceCtrl.progressDaemon(msr._id)
                                 return Promise.resolve({
                                     msrId: msr._id,
                                     code: 200,
@@ -99,9 +99,13 @@ export default class ModelServiceCtrl {
             })
     }
 
+    /**
+     * deprecated
+     */
     static progressDaemon(msrId) {
         let cpPath = path.join(__dirname, '../daemons/msrProgress.daemon.js')
         let cp = new ChildProcessUtil(cpPath)
+        
         let debugFn = () => {
             let daemon = new MSRProgressDaemon (msrId)
             daemon.start()
@@ -118,6 +122,7 @@ export default class ModelServiceCtrl {
 
                 })
         }
+        
         cp.initialization(debugFn)
         //     .then(() => {
         //         cp.on(500)
