@@ -1,0 +1,77 @@
+/**
+ * 计算任务
+ * 这个表算是一个中间产物，其实存在cmp-task的calcuTasks中也行，但是多表查询很麻烦
+ */
+
+import { Mongoose, OgmsObj } from './mongoose.base';
+import * as mongoose from 'mongoose';
+import { ResourceSrc } from './resource.enum';
+import { ObjectID } from 'mongodb';
+import * as _ from 'lodash';
+import { Event } from './model-service.model';
+import { Enum } from 'typescript-string-enums/dist';
+
+class CalcuTaskDB extends Mongoose {
+    constructor() {
+        const collectionName = 'Calcu_Task';
+        const schema = {
+            meta: mongoose.Schema.Types.Mixed,
+            auth: mongoose.Schema.Types.Mixed,
+            cmpTaskId: String,
+            IO: mongoose.Schema.Types.Mixed,
+            ms: mongoose.Schema.Types.Mixed,
+            std: mongoose.Schema.Types.Mixed,
+            log: mongoose.Schema.Types.Mixed,
+            state: String,
+            progress: Number
+        };
+
+        super(collectionName, schema);
+    }
+}
+
+export const calcuTaskDB = new CalcuTaskDB();
+
+export class CalcuTask extends OgmsObj {
+    _id?: any;
+    meta: {
+        name: string,
+        desc: string,
+        time: number
+    };
+    auth: {
+        userId: string,
+        userName: string,
+        src: ResourceSrc
+    };
+    ms: string;
+    cmpTaskId: string;
+    IO: {
+        dataSrc: 'STD' | 'UPLOAD',
+        schemas: any[],
+        inputs: Event[],
+        parameters: Event[],
+        outputs: Event[],
+        std: Event[]
+    };
+    log: {
+        cached: boolean,
+        dataId: string
+    };
+    std: any;
+    // 表示状态
+    state: CalcuTaskState;
+    // 只表示进度条
+    progress: number;
+}
+
+export const CalcuTaskState = Enum(
+    'INIT',
+    'COULD_START',
+    'START_PENDING',
+    'START_FAILED',
+    'RUNNING',
+    'FINISHED_FAILED',
+    'FINISHED_SUCCEED'
+);
+export type CalcuTaskState = Enum<typeof CalcuTaskState>;

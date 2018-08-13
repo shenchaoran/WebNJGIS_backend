@@ -1,0 +1,12 @@
+{
+    "verbose": true,
+    "ignore": [
+        "node_modules",
+        "dist/upload",
+        "dist/public",
+        "dist/logs",
+        ".vscode",
+        "test",
+        "upload"
+    ]
+}
