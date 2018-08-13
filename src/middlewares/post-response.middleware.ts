@@ -1,23 +1,17 @@
 import { Response, Request, NextFunction } from 'express';
 
-const ResponseModel = require('../models/response.model');
+const ResponseModel = require('../models/response.class');
 
-module.exports = (app) => {
+export const postResMid = app => {
     // unify response
     app.use((req: Request, res: Response, next: NextFunction) => {
-        // console.log(res.locals);
         if (res.locals.succeed === true) {
-            const resData = new ResponseModel();
-            resData.href = req.originalUrl;
-            resData.token = res.locals.token;
-            resData.username = res.locals.username;
-            resData.status = {
-                code: '200',
-                desc: 'succeed'
-            };
-            resData.data = res.locals.resData;
-            resData.template = res.locals.template;
-            return res.json(resData);
+            const response = new ResponseModel();
+            // resData.href = req.originalUrl;
+            // resData.token = res.locals.token;
+            // resData.username = res.locals.username;
+            response.data = res.locals.resData;
+            return res.json(response);
         } else {
             return next();
         }
@@ -30,15 +24,15 @@ module.exports = (app) => {
     });
 
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-        const resData = new ResponseModel();
-        resData.href = req.originalUrl;
-        resData.token = res.locals.token;
-        resData.username = res.locals.username;
-        resData.status = {
+        console.log(err);
+        const response = new ResponseModel();
+        // resData.token = res.locals.token;
+        // resData.username = res.locals.username;
+        response.error = {
             code: err.status || 500,
             desc: err.message,
             stack: req.app.get('env') === 'development' ? err.stack : {}
         };
-        return res.json(resData);
+        return res.json(response);
     });
-}
+};

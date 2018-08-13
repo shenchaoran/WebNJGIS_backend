@@ -3,8 +3,6 @@
 [![Dependency Status](https://david-dm.org/Microsoft/TypeScript-Node-Starter.svg)](https://david-dm.org/Microsoft/TypeScript-Node-Starter) [![Build Status](https://travis-ci.org/Microsoft/TypeScript-Node-Starter.svg?branch=master)](https://travis-ci.org/Microsoft/TypeScript-Node-Starter) 
 
 # Design
-- 与模型服务容器松耦合，依赖于模型服务容器。在运行前要配置依托的服务容器信息。
-- 
 
 # Pre-reqs
 - Install [Node.js](https://nodejs.org/en/)
@@ -31,18 +29,41 @@ npm start
 ```
 Navigate to `http://localhost:9999`
 
+# npm version
+
+- types/request/index.d.ts
+```
+    toJSON(): Object;
+    // 改为
+    toJSON(): object;
+```
+
 # Architecture
+
 - pre-middleware: 对应用级或路由级中间件统一处理
 - post-middleware: 对response和error统一处理（除了下载文件这种特殊情况）
+- controllers: 业务逻辑处理，有部分文件可以当做所有nodejs后台程序都通用的，比如：
+    - child-process.controller: 启动子进程运行一块js代码，在调用端通过`process.on`监听并执行
+    - request.controller: 通过后台发送get和post请求，这里对request进行了封装，以满足通常场景
+- utils: 工具库
+- init: 后台程序初始化操作，创建文件夹结构，初始化数据库，连接远程服务器等...
+- config: 包括后台通用配置和远程请求API的配置
+- routes: `base.route`对路由进行了封装，在创建路由器时可以可选地直接创建增删查改路由，当然也可以自己不用默认的
 
 # Design
 - 基于中间件的后台开发
 - 使用应用级中间件对response统一处理：
     - success: status.code = 200, 数据放在data里
     - fail: status.code 和 desc 详细描述错误详情
+- 异步流程全部采用`Promise`
+- 路由层只做非常简单的逻辑重组，控制层则将功能以可重用的方式构建
+
+
 
 <br>
-<hr>
+<br>
+<br>
+<br>
 <br>
 
 # TypeScript + Node 
@@ -74,27 +95,27 @@ The full folder structure of this app is explained below:
 
 > **Note!** Make sure you have already built the app using `npm run build`
 
-| Name | Description |
-| ------------------------ | --------------------------------------------------------------------------------------------- |
-| **.vscode**              | Contains VS Code specific settings                                                            |
-| **dist**                 | Contains the distributable (or output) from your TypeScript build. This is the code you ship  |
-| **node_modules**         | Contains all your npm dependencies                                                            |
-| **src**                  | Contains your source code that will be compiled to the dist dir                               |
-| **src/config**           | Passport authentication strategies and login middleware. Add other complex config code here   |
-| **src/controllers**      | Controllers define functions that respond to various http requests                            |
-| **src/models**           | Models define Mongoose schemas that will be used in storing and retrieving data from MongoDB  |
-| **src/public**           | Static assets that will be used client side                                                   |
-| **src/types**            | Holds .d.ts files not found on DefinitelyTyped. Covered more in this [section](#type-definition-dts-files)          |
-| **src**/server.ts        | Entry point to your express app                                                               |
-| **test**                 | Contains your tests. Seperate from source because there is a different build process.         |
-| **views**                | Views define how your app renders on the client. In this case we're using pug                 |
-| .env.example             | API keys, tokens, passwords, database URI. Clone this, but don't check it in to public repos. |
-| .travis.yml              | Used to configure Travis CI build                                                             |
-| .copyStaticAssets.js     | Build script that copies images, fonts, and JS libs to the dist folder                        |
-| package.json             | File that contains npm dependencies as well as [build scripts](#what-if-a-library-isnt-on-definitelytyped)                          |
-| tsconfig.json            | Config settings for compiling server code written in TypeScript                               |
-| tsconfig.tests.json      | Config settings for compiling tests written in TypeScript                                     |
-| tslint.json              | Config settings for TSLint code style checking                                                |
+| Name                     | Description                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------- |
+| **.vscode**              | Contains VS Code specific settings                                                                         |
+| **dist**                 | Contains the distributable (or output) from your TypeScript build. This is the code you ship               |
+| **node_modules**         | Contains all your npm dependencies                                                                         |
+| **src**                  | Contains your source code that will be compiled to the dist dir                                            |
+| **src/config**           | Passport authentication strategies and login middleware. Add other complex config code here                |
+| **src/controllers**      | Controllers define functions that respond to various http requests                                         |
+| **src/models**           | Models define Mongoose schemas that will be used in storing and retrieving data from MongoDB               |
+| **src/public**           | Static assets that will be used client side                                                                |
+| **src/types**            | Holds .d.ts files not found on DefinitelyTyped. Covered more in this [section](#type-definition-dts-files) |
+| **src**/server.ts        | Entry point to your express app                                                                            |
+| **test**                 | Contains your tests. Seperate from source because there is a different build process.                      |
+| **views**                | Views define how your app renders on the client. In this case we're using pug                              |
+| .env.example             | API keys, tokens, passwords, database URI. Clone this, but don't check it in to public repos.              |
+| .travis.yml              | Used to configure Travis CI build                                                                          |
+| .copyStaticAssets.js     | Build script that copies images, fonts, and JS libs to the dist folder                                     |
+| package.json             | File that contains npm dependencies as well as [build scripts](#what-if-a-library-isnt-on-definitelytyped) |
+| tsconfig.json            | Config settings for compiling server code written in TypeScript                                            |
+| tsconfig.tests.json      | Config settings for compiling tests written in TypeScript                                                  |
+| tslint.json              | Config settings for TSLint code style checking                                                             |
 
 ## Building the project
 It is rare for JavaScript projects not to have some kind of build pipeline these days, however Node projects typically have the least amount build configuration. 
@@ -123,16 +144,16 @@ Let's dissect this project's `tsconfig.json`, starting with the `compilerOptions
     },
 ```
 
-| `compilerOptions` | Description |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `"module": "commonjs"`             | The **output** module type (in your `.js` files). Node uses commonjs, so that is what we use           |
-| `"target": "es6"`                  | The output language level. Node supports ES6, so we can target that here                               |
-| `"noImplicitAny": true`            | Enables a stricter setting which throws errors when something has a default `any` value                |
-| `"moduleResolution": "node"`       | TypeScript attempts to mimic Node's module resolution strategy. Read more [here](https://www.typescriptlang.org/docs/handbook/module-resolution.html#node)                                                                    |
-| `"sourceMap": true`                | We want source maps to be output along side our JavaScript. See the [debugging](#debugging) section          |
-| `"outDir": "dist"`                 | Location to output `.js` files after compilation                                                       |
-| `"baseUrl": "."`                   | Part of configuring module resolution. See [path mapping section](#installing-dts-files-from-definitelytyped) |
-| `paths: {...}`                     | Part of configuring module resolution. See [path mapping section](#installing-dts-files-from-definitelytyped) |
+| `compilerOptions`                  | Description                                                                                                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"module": "commonjs"`             | The **output** module type (in your `.js` files). Node uses commonjs, so that is what we use                                                               |
+| `"target": "es6"`                  | The output language level. Node supports ES6, so we can target that here                                                                                   |
+| `"noImplicitAny": true`            | Enables a stricter setting which throws errors when something has a default `any` value                                                                    |
+| `"moduleResolution": "node"`       | TypeScript attempts to mimic Node's module resolution strategy. Read more [here](https://www.typescriptlang.org/docs/handbook/module-resolution.html#node) |
+| `"sourceMap": true`                | We want source maps to be output along side our JavaScript. See the [debugging](#debugging) section                                                        |
+| `"outDir": "dist"`                 | Location to output `.js` files after compilation                                                                                                           |
+| `"baseUrl": "."`                   | Part of configuring module resolution. See [path mapping section](#installing-dts-files-from-definitelytyped)                                              |
+| `paths: {...}`                     | Part of configuring module resolution. See [path mapping section](#installing-dts-files-from-definitelytyped)                                              |
 
 
 
@@ -160,7 +181,7 @@ You'll notice that npm scripts can call each other which makes it easy to compos
 Below is a list of all the scripts this template has available:
 
 
-| Npm Script | Description |
+| Npm Script                | Description                                                                                       |
 | ------------------------- | ------------------------------------------------------------------------------------------------- |
 | `start`                   | Runs full build before starting all watch tasks. Can be invoked with `npm start`                  |
 | `build`                   | Full build. Runs ALL build tasks (`build-sass`, `build-ts`, `tslint`, `copy-static-assets`)       |
@@ -168,9 +189,9 @@ Below is a list of all the scripts this template has available:
 | `watch`                   | Runs all watch tasks (TypeScript, Sass, Node). Use this if you're not touching static assets.     |
 | `test`                    | Runs tests using Jest test runner                                                                 |
 | `build-ts`                | Compiles all source `.ts` files to `.js` files in the `dist` folder                               |
-| `watch-ts`                | Same as `build-ts` but continuously watches `.ts` files and re-compiles when needed                |
+| `watch-ts`                | Same as `build-ts` but continuously watches `.ts` files and re-compiles when needed               |
 | `build-sass`              | Compiles all `.scss` files to `.css` files                                                        |
-| `watch-sass`              | Same as `build-sass` but continuously watches `.scss` files and re-compiles when needed             |
+| `watch-sass`              | Same as `build-sass` but continuously watches `.scss` files and re-compiles when needed           |
 | `tslint`                  | Runs TSLint on project files                                                                      |
 | `copy-static-assets`      | Calls script that copies JS libs, fonts, and images to dist directory                             |
 
@@ -303,12 +324,12 @@ In this file, you can tell VS Code exactly what you want to do:
 ```
 This is mostly identical to the "Node.js: Launch Program" template with a couple minor changes:
 
-| `launch.json` Options | Description |
-| ----------------------------------------------- | --------------------------------------------------------------- |
-| `"program": "${workspaceRoot}/dist/server.js",` | Modified to point to our entry point in `dist`                  |
-| `"smartStep": true,`                            | Won't step into code that doesn't have a source map             |
-| `"outFiles": [...]`                             | Specify where output files are dropped. Use with source maps    |
-| `"protocol": inspector,`                        | Use the new Node debug protocol because we're on the latest node|
+| `launch.json` Options                           | Description                                                      |
+| ----------------------------------------------- | ---------------------------------------------------------------- |
+| `"program": "${workspaceRoot}/dist/server.js",` | Modified to point to our entry point in `dist`                   |
+| `"smartStep": true,`                            | Won't step into code that doesn't have a source map              |
+| `"outFiles": [...]`                             | Specify where output files are dropped. Use with source maps     |
+| `"protocol": inspector,`                        | Use the new Node debug protocol because we're on the latest node |
 
 With this file in place, you can hit `F5` to serve the project with the debugger already attached.
 Now just set your breakpoints and go!
@@ -355,75 +376,3 @@ Jest's configuration lives in `package.json`, so let's open it up and add the fo
 ```
 Basically we are telling Jest that we want it to consume all files that match the pattern `"**/test/**/*.test.(ts|js)"` (all `.test.ts`/`.test.js` files in the `test` folder), but we want to preprocess the `.ts` files first. 
 This preprocess step is very flexible, but in our case, we just want to compile our TypeScript to JavaScript using our `tsconfig.json`.
-This all happens in memory when you run the tests, so there are no output `.js` test files for you to manage.   
-
-### Running tests
-
-
-### Writing tests
-Writing tests for web apps has entire books dedicated to it and best practices are strongly influenced by personal style, so I'm deliberately avoiding discussing how or when to write tests in this guide.
-However, if prescriptive guidance on testing is something that you're interested in, [let me know](https://www.surveymonkey.com/r/LN2CV82), I'll do some homework and get back to you.
-
-## TSLint
-TSLint is a code linter which mainly helps catch minor code quality and style issues.
-TSLint is very similar to ESLint or JSLint but is built with TypeScript in mind.
-
-### TSLint rules
-Like most linters, TSLint has a wide set of configurable rules as well as support for custom rule sets.
-All rules are configured through `tslint.json`.
-In this project, we are using a fairly basic set of rules with no additional custom rules.
-The settings are largely based off the TSLint settings that we use to develop TypeScript itself.
-
-### Running TSLint
-Like the rest of our build steps, we use npm scripts to invoke TSLint.
-To run TSLint you can call the main build script or just the TSLint task.
-```
-npm run build   // runs full build including TSLint
-npm run tslint  // runs only TSLint
-```
-Notice that TSLint is not a part of the main watch task.
-It can be annoying for TSLint to clutter the output window while in the middle of writing a function, so I elected to only run it only during the full build.
-If you are interesting in seeing TSLint feedback as soon as possible, I strongly recommend the [TSLint extension in VS Code]().
-
-# Dependencies
-Dependencies are managed through `package.json`.
-In that file you'll find two sections:
-## `dependencies`
-
-| Package                         | Description                                                           |
-| ------------------------------- | --------------------------------------------------------------------- |
-| async                           | Utility library that provides asynchronous control flow.              |
-| bcrypt-nodejs                   | Library for hashing and salting user passwords.                       |
-| body-parser                     | Express 4 middleware.                                                 |
-| compression                     | Express 4 middleware.                                                 |
-| connect-mongo                   | MongoDB session store for Express.                                    |
-| dotenv                          | Loads environment variables from .env file.                           |
-| errorhandler                    | Express 4 middleware.                                                 |
-| express                         | Node.js web framework.                                                |
-| express-flash                   | Provides flash messages for Express.                                  |
-| express-session                 | Express 4 middleware.                                                 |
-| express-validator               | Easy form validation for Express.                                     |
-| fbgraph                         | Facebook Graph API library.                                           |
-| lusca                           | CSRF middleware.                                                      |
-| mongoose                        | MongoDB ODM.                                                          |
-| morgan                          | Express 4 middleware.                                                 |
-| nodemailer                      | Node.js library for sending emails.                                   |
-| passport                        | Simple and elegant authentication library for node.js                 |
-| passport-facebook               | Sign-in with Facebook plugin.                                         |
-| passport-local                  | Sign-in with Username and Password plugin.                            |
-| pug (jade)				      | Template engine for Express.                                          |
-| request                         | Simplified HTTP request library.                                      |
-
-## `devDependencies`
-
-| Package                         | Description                                                           |
-| ------------------------------- | --------------------------------------------------------------------- |
-| concurrently                    | Utility that manages multiple concurrent tasks. Used with npm scripts |
-| jest                            | Testing library for JavaScript.                                       |
-| node-sass                       | Allows to compile .scss files to .css                                 |
-| supertest                       | HTTP assertion library.                                               |
-| ts-test                         | A preprocessor with sourcemap support to help use TypeScript wit Jest.|
-| tslint                          | Linter (similar to ESLint) for TypeScript files                       |
-| typescript                      | JavaScript compiler/type checker that boosts JavaScript productivity  |
-
-To install or update these dependencies you can use `npm install` or `npm update`.

@@ -1,6 +1,7 @@
-import { MongooseModel } from './mongodb.model';
+import { Mongoose } from './mongoose.base';
+import * as mongoose from 'mongoose';
 
-class UserModel extends MongooseModel {
+class UserDB extends Mongoose {
     constructor() {
         const collectionName = 'User';
         const schema = {
@@ -13,9 +14,10 @@ class UserModel extends MongooseModel {
     }
 }
 
-export const UserModelInstance = new UserModel();
+export const userDB = new UserDB();
 
 export class UserClass {
+    _id?: any
     username: string;
     password: string;
     email?: string;

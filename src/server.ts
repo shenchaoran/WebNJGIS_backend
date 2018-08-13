@@ -1,25 +1,31 @@
+// process.env.DEBUG='WebNJGIS:*'
+// process.env.DEBUG_COLORS=5 
+// process.env.DEBUG_HIDE_DATE=true 
+// process.env.DEBUG_FD=1
 // inlet
 const express = require('express');
 const app = express();
 const path = require('path');
 const util = require('util');
 const http = require('http');
+import * as _ from 'lodash';
 import { Response, Request, NextFunction } from 'express';
 //////////////////////////////////////use for debug
 const debug = require('debug');
-(<any>global).debug = debug;
 const serverDebug = debug('WebNJGIS: Server');
 const initDebug = debug('WebNJGIS: Init');
 
 import { setting } from './config/setting';
-const router = require('./routes/index.route');
-const preRouter = require('./middlewares/pre-request.middleware');
-const postRouter = require('./middlewares/post-response.middleware');
-const ResponseModel = require('./models/response.model');
-import { init } from './init/index';
+import { router } from './routes/index.route';
+import { preReqMid, postResMid } from './middlewares';
+import { init } from './init';
+
 const port = setting.port;
+
+//////////////////////////////////////test
+
 //////////////////////////////////////init operation
-//TODO 创建文件夹 upload/geo_data
+//TODO 创建文件夹 upload/geo-data
 init()
     .then(() => {
         //////////////////////////////////////router
@@ -29,11 +35,11 @@ init()
         // app.set("view engine", "ejs");
 
         // pre-request
-        preRouter(app);
+        preReqMid(app);
         // request/response
         app.use('/', router);
         // post-response
-        postRouter(app);
+        postResMid(app);
         //////////////////////////////////////
         const server = http.createServer(app);
         server.listen(app.get('port'));

@@ -4,344 +4,322 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import { ObjectID } from 'mongodb';
-import * as fs from 'fs';
-const request = require('request');
+import * as fs_ from 'fs';
 import * as unzip from 'unzip';
-
 import { setting } from '../config/setting';
-import {
-    DataModelInstance,
-    GeoDataType,
-    GeoDataClass
-} from '../models/data.model';
-import * as APIModel from '../models/api.model';
-import * as RequestCtrl from './request.controller';
-const dataDebug = debug('WebNJGIS: Data');
+import * as RequestCtrl from '../utils/request.utils';
+import * as NodeCtrl from './computing-node.controller'
+import { geoDataDB, GeoDataClass, STD_DATA, UDXCfg, calcuTaskDB } from '../models';
+const fs: any = Promise.promisifyAll(fs_)
 
-/**
- * 条目保存到数据库，文件移动到upload/geo_data中
- * 如果数据为zip则解压
- * 
- * @param req
- * @param res 
- * @param next 
- */
-export const uploadFiles = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const form = new formidable.IncomingForm();
-    form.encoding = 'utf-8';
-    form.uploadDir = path.join(setting.uploadPath, 'geo_data');
-    form.keepExtensions = true;
-    form.maxFieldsSize = 500 * 1024 * 1024;
-    form.parse(req, (err, fields, files) => {
-        if (err) {
-            return next(err);
-        }
-        if (files.geo_data) {
-            const file = files.geo_data;
-            const filename = file.name;
-            const ext = filename.substr(filename.lastIndexOf('.'));
-            const oid = new ObjectID();
-            const newName = oid + ext;
+export default class DataCtrl {
+    constructor() { }
 
-            const newPath = path.join(setting.uploadPath, 'geo_data', newName);
-            fs.rename(file.path, newPath, err => {
-                if (err) {
-                    return next(err);
-                }
-                const insertItem = () => {
-                    const newItem = {
-                        _id: oid,
-                        gdid: undefined,
-                        filename: filename,
-                        tag: fields.tag,
-                        type: fields.type,
-                        path: newName
-                    };
-                    DataModelInstance.insert(newItem)
-                        .then(doc => {
-                            res.locals.resData = {
-                                _id: oid.toHexString(),
-                                gdid: undefined,
-                                filename: filename,
-                                tag: fields.tag,
-                                type: fields.type,
-                                path: newName
-                            };
-                            res.locals.template = undefined;
-                            res.locals.succeed = true;
-                            return next();
-                        })
-                        .catch(next);
-                };
-                if (ext === '.zip') {
-                    const unzipPath = path.join(
-                        setting.uploadPath,
-                        'geo_data',
-                        oid.toHexString()
-                    );
-                    const unzipExtractor = unzip.Extract({ path: unzipPath });
-                    fs.createReadStream(newPath).pipe(unzipExtractor);
-                    unzipExtractor.on('error', err => next(err));
-                    unzipExtractor.on('close', () => {
-                        insertItem();
-                    });
-                } else if (
-                    ext === '.xml' ||
-                    ext === '.txt' ||
-                    ext === '.csv' ||
-                    ext === '.xls' ||
-                    ext === '.xlsx'
-                ) {
-                    insertItem();
-                }
-            });
-        }
-    });
-};
-
-/**
- * deprecated
- * 
- * @param req 
- * @param res 
- * @param next 
- */
-export const post2Server = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    const geoData = res.locals.resData;
-    const fpath = path.join(setting.uploadPath, 'geo_data', geoData.path);
-    let url = APIModel.getAPIUrl('upload-geo-data');
-    url += `?type=file&gd_tag=${geoData.tag}`;
-    const form = {
-        myfile: fs.createReadStream(fpath)
-    };
-    RequestCtrl.postByServer(url, form, RequestCtrl.PostRequestType.File)
-        .then(response => {
-            response = JSON.parse(response);
-            if (response.res === 'suc') {
-                geoData.gdid = response.gd_id;
-                const newName =
-                    geoData.gdid + fpath.substr(fpath.lastIndexOf('.'));
-                const newPath = path.join(
-                    setting.uploadPath,
-                    'geo_data',
-                    newName
-                );
-                DataModelInstance.insert({
-                    gdid: geoData.gdid,
-                    filename: geoData.filename,
-                    path: newName,
-                    type: geoData.type,
-                    tag: geoData.tag
-                })
-                    .then(rst => {
-                        fs.rename(fpath, newPath, () => {
-                            res.locals.resData = geoData;
-                            res.locals.template = {};
-                            res.locals.succeed = true;
-                            return next();
-                        });
-                    })
-                    .catch(next);
-            } else {
-                const err: any = new Error('post into server failed!');
-                err.code = '500';
+	/**
+	 * 条目保存到数据库，文件移动到upload/geo-data中
+	 * 如果数据为zip则解压
+	 */
+    static insert = (req: Request, res: Response, next: NextFunction) => {
+        const form = new formidable.IncomingForm();
+        form.encoding = 'utf-8';
+        form.uploadDir = setting.geo_data.path;
+        form.keepExtensions = true;
+        form.maxFieldsSize = 500 * 1024 * 1024;
+        form.parse(req, (err, fields, files) => {
+            if (err) {
                 return next(err);
             }
-        })
-        .catch(err => {
-            return next(err);
-        });
-};
+            if (files['geo-data']) {
+                const file = files['geo-data'];
+                const filename = file.name;
+                const ext = filename.substr(filename.lastIndexOf('.'));
+                const oid = new ObjectID();
+                const newName = oid + ext;
 
-/**
- * 从数据库中查询数据，并post到模型服务容器中
- * 
- * @param _id 
- */
-export const pushData = (_id: string): Promise<any> => {
-    let doc = undefined;
-    let url = APIModel.getAPIUrl('upload-geo-data');
-    return new Promise((resolve, reject) => {
-        DataModelInstance.find({ _id: _id })
-            .then(rsts => {
-                if (rsts.length) {
-                    doc = rsts[0];
-                    url += `?type=file&gd_tag=${doc.tag}`;
-                    const fpath = path.join(
-                        setting.uploadPath,
-                        'geo_data',
-                        doc.path
-                    );
-                    const form = {
-                        myfile: fs.createReadStream(fpath)
-                    };
-                    return RequestCtrl.postByServer(
-                        url,
-                        form,
-                        RequestCtrl.PostRequestType.File
-                    );
-                } else {
-                    return reject(new Error("can't find data"));
-                }
-            })
-            .then(response => {
-                response = JSON.parse(response);
-                if (response.res === 'suc') {
-                    doc.gdid = response.gd_id;
-                    return DataModelInstance.update({ _id: _id }, doc);
-                } else {
-                    return reject(new Error('post to model server failed!'));
-                }
-            })
-            .then(rst => {
-                return resolve(doc.gdid);
-            })
-            .catch(err => {
-                return reject(err);
-            });
-    });
-};
-
-/**
- * 从模型服务容器中下载模型计算结果数据，并保存到本地服务器中
- * @param output 
- */
-export const pullData = (output): Promise<any> => {
-    let extName = undefined;
-    let dataType: GeoDataType;
-    const oid = new ObjectID();
-    const oidStr = oid.toHexString();
-    const url = APIModel.getAPIUrl('download-geo-data', { id: output.DataId });
-    return new Promise((resolve, reject) => {
-        RequestCtrl.getByServer(url, undefined, true)
-            .then(response => {
-                if (_.startsWith(response.statusCode, '200')) {
-                    const resHeaders = response.headers;
-                    const hName = resHeaders['content-disposition'];
-                    const fName = hName.substr(hName.indexOf('filename=') + 9);
-                    extName = fName.substr(fName.indexOf('.') + 1);
-                    let newName: string = undefined;
-                    if (extName === 'xml') {
-                        dataType = GeoDataType.UDX;
-                        newName = oidStr + '.xml';
-                    } else if (extName === 'zip' || extName === 'txt' || extName === 'csv' || extName === 'xls' || extName === 'xlsx') {
-                        dataType = GeoDataType.RAW;
-                        newName = oidStr + '.' + extName;
-                    }
-                    const fpath = path.join(setting.uploadPath, 'geo_data', newName);
-                    fs.writeFile(fpath, response.data, (err) => {
-                        if(err) {
-                            return reject(err);
-                        }
-                        else {
-                            if(extName === 'zip') {
-                                const unzipPath = path.join(
-                                    setting.uploadPath,
-                                    'geo_data',
-                                    oidStr
-                                );
-                                const unzipExtractor = unzip.Extract({ path: unzipPath });
-                                fs.createReadStream(fpath).pipe(unzipExtractor);
-                                unzipExtractor.on('error', err => reject(err));
-                                unzipExtractor.on('close', () => {
-                                    return resolve();
-                                });
-                            }
-                            else {
-                                return resolve();
-                            }
-                        }
-                    })
-                } else {
-                    return reject(new Error('download result data failed!'));
-                }
-            })
-            .then(() => {
-                const newItem = {
-                    _id: oid,
-                    gdid: output.DataId,
-                    filename: output.Tag,
-                    tag: output.Tag,
-                    type: dataType,
-                    path: oidStr + '.' + extName
-                };
-                return DataModelInstance.insert(newItem);
-            })
-            .then(doc => {
-                if (doc != undefined) {
-                    output.DataId = oidStr;
-                    return resolve(output);
-                }
-                else {
-                    return reject(new Error('insert into mongodb failed!'));
-                }
-            })
-            .catch(err => reject(err));
-    });
-};
-
-/**
- * 从本地数据库查找数据位置，并返回数据内容
- * 
- * @param req 
- * @param res 
- * @param next 
- */
-export const downloadData = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {
-    dataDebug(req.params);
-    DataModelInstance.find({ _id: req.params.id })
-        .then(gd => {
-            if (gd.length) {
-                gd = gd[0];
-                const fpath = path.join(
-                    setting.uploadPath,
-                    'geo_data',
-                    gd.path
+                const newPath = path.join(
+                    setting.geo_data.path,
+                    newName
                 );
-                fs.stat(fpath, (err, stats) => {
+                fs.rename(file.path, newPath, err => {
                     if (err) {
-                        if (err.code === 'ENOENT') {
-                            return next(new Error("can't find data file!"));
-                        }
                         return next(err);
-                    } else {
-                        fs.readFile(fpath, (err, data) => {
-                            if (err) {
-                                return next(err);
-                            } else {
-                                res.set({
-                                    'Content-Type': 'file/*',
-                                    'Content-Length': data.length,
-                                    'Content-Disposition':
-                                        'attachment;filename=' +
-                                        encodeURIComponent(req.query.filename)
+                    }
+                    if (ext === '.zip') {
+                        const unzipPath = path.join(
+                            setting.geo_data.path,
+                            oid.toHexString()
+                        );
+                        try {
+                            // console.log(newPath);
+                            // console.log(unzipPath);
+                            fs
+                                .createReadStream(newPath)
+                                .pipe(unzip.Extract({ path: unzipPath }))
+                                .on('error', err => next(err))
+                                .on('close', () => {
+                                    // TODO 为什么这里会崩？？？
+                                    const cfgPath = path.join(
+                                        unzipPath,
+                                        'index.json'
+                                    );
+                                    DataCtrl.parseUDXCfg(cfgPath).then(udxcfg => {
+                                        const newItem = {
+                                            _id: oid,
+                                            meta: {
+                                                name: filename,
+                                                path: oid.toHexString() + ext,
+                                                desc: fields.desc
+                                            },
+                                            auth: {
+                                                userId: fields.userId,
+                                                src: fields.src
+                                            },
+                                            udxcfg: udxcfg
+                                        };
+                                        geoDataDB
+                                            .insert(newItem)
+                                            .then(doc => {
+                                                // console.log(doc);
+                                                res.locals.resData = doc;
+                                                res.locals.succeed = true;
+                                                return next();
+                                            })
+                                            .catch(next);
+                                    });
                                 });
-                                return res.end(data);
-                            }
-                        });
+                        } catch (e) {
+                            console.log(e);
+                            return next(e);
+                        }
+                    } else {
+                        geoDataDB
+                            .insert({
+                                _id: oid,
+                                meta: {
+                                    name: filename,
+                                    path: oid.toHexString() + ext,
+                                    desc: fields.desc
+                                },
+                                auth: {
+                                    userId: fields.userId,
+                                    src: fields.src
+                                },
+                                udxcfg: undefined
+                            })
+                            .then(doc => {
+                                // console.log(doc);
+                                res.locals.resData = doc;
+                                res.locals.succeed = true;
+                                return next();
+                            })
+                            .catch(next);
                     }
                 });
-            } else {
-                return next(new Error("can't find data file!"));
             }
-        })
-        .catch(next);
-};
+        });
+    };
 
-export const visualization = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-) => {};
+    static download = (id: string): Promise<any> => {
+        return geoDataDB.findOne({
+            _id: id
+        })
+            .then(doc => {
+                let fpath = path.join(
+                    setting.geo_data.path,
+                    doc.meta.path,
+                );
+                return fs.statAsync(fpath)
+                    .then(stats => {
+                        return Promise.resolve({
+                            path: fpath,
+                            fname: doc.meta.name
+                        })
+                    })
+                    .catch(e => {
+                        return Promise.reject(e.code === 'ENOENT' ? 'file don\'t exist!' : 'unpredictable error!');
+                    });
+            })
+            .catch(Promise.reject);
+    };
+
+    static visualization = (req: Request, res: Response, next: NextFunction) => { };
+
+    static parseUDXCfg = (cfgPath: string): Promise<UDXCfg> => {
+        const folderPath = cfgPath.substring(
+            0,
+            cfgPath.lastIndexOf('index.json')
+        );
+        return new Promise((resolve, reject) => {
+            fs.readFile(cfgPath, (err, dataBuf) => {
+                if (err) {
+                    return reject(err);
+                }
+                try {
+                    // const udxcfg = new UDXCfg();
+                    const cfgStr = dataBuf.toString();
+                    const udxcfg = JSON.parse(cfgStr);
+                    return resolve(udxcfg);
+                } catch (e) {
+                    return reject(e);
+                }
+            });
+        });
+    };
+
+    /**
+     * resolve {stream, fname}
+     * 
+     * 如果文件有本地缓存，直接返回给前台
+     * 否则文件缓存到本地，同时更新 geodata, calcu task 数据库，并返回给前台
+     */
+    static cacheData = ({ msrId, eventId }) => {
+        let msr, eventIndex, event, eventType
+        return calcuTaskDB.findOne({ _id: msrId })
+            .then(doc => {
+                msr = doc
+                // let event = _
+                //     .chain(msr.IO)
+                //     .values()
+                //     .flatten()
+                //     .find(v => (v as any).id === eventId)
+                //     .value()
+                function indexOfEvent(type) {
+                    let events = msr.IO[type]
+                    if (!events || !events.length)
+                        return
+                    for (let i = 0; i < events.length; i++) {
+                        if (events[i].id === eventId) {
+                            eventType = type
+                            eventIndex = i
+                            event = events[i]
+                        }
+                    }
+                }
+                indexOfEvent('inputs')
+                indexOfEvent('parameters')
+                indexOfEvent('outputs')
+
+                if (event.cached) {
+                    return DataCtrl.download(event.value)
+                        .then(({ path, fname }) => {
+                            return Promise.resolve({
+                                stream: fs.createReadStream(path),
+                                fname: fname
+                            })
+                        })
+                        .catch(e => {
+                            console.error(e)
+                            return Promise.reject(e)
+                        })
+                }
+                else {
+                    return NodeCtrl.telNode(msr.ms.nodeId)
+                        .then(serverURL => {
+                            return RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path, ({ fname, fpath }) => {
+                                if(msr.progress === 100) {
+                                    let gdid = new ObjectID()
+                                    geoDataDB.insert({
+                                        _id: gdid,
+                                        meta: {
+                                            desc: '',
+                                            path: fpath,
+                                            name: fname
+                                        },
+                                        auth: {
+                                            src: _.get(msr, 'auth.src'),
+                                            userId: _.get(msr, 'auth.userId')
+                                        }
+                                    })
+    
+                                    let setObj = {}
+                                    setObj[`IO.${eventType}.${eventIndex}.value`] = gdid.toHexString()
+                                    setObj[`IO.${eventType}.${eventIndex}.cached`] = true
+                                    calcuTaskDB.update({ _id: msr._id }, {
+                                        $set: setObj
+                                    })
+                                }
+                            })
+                        })
+                        .catch(e => {
+                            console.error(e)
+                            return Promise.reject(e)
+                        })
+                }
+            })
+    }
+
+    static cacheDataBatch = msrId => {
+        calcuTaskDB.findOne({_id: msrId})
+            .then(msr => {
+                let toPulls = []
+                for(let key in msr.IO) {
+                    if(key === 'inputs' || key === 'outputs') {
+                        _.map(msr.IO[key] as any[], event => {
+                            if(!event.cached) {
+                                toPulls.push({
+                                    msrId: msrId,
+                                    eventId: event.id
+                                })
+                            }
+                        })
+                    }
+                }
+                return Promise.map(toPulls, DataCtrl.cacheData, {
+                    concurrency: 5
+                })
+            })
+            .then(rsts => {
+                console.log('****** cache data succeed of msr: ' + msrId)
+            })
+
+        return Promise.resolve({
+            code: 200
+        })
+    }
+
+    /**
+     * 如果使用上传数据运行，则需要先将所有数据 post 过去
+     */
+    static pushData2ComputingServer = (msrId) => {
+        let msr, serverURL
+        return new Promise((resolve, reject) => {
+            calcuTaskDB.findOne({ _id: msrId })
+                .then(doc => {
+                    msr = doc
+                    return NodeCtrl.telNode(msr.ms.nodeId)
+                })
+                .then(v => {
+                    serverURL = v
+                    let url = serverURL + '/data'
+                    return Promise.map(msr.IO.inputs as any[], input => {
+                        let fpath = path.join(setting.geo_data.path, input.value + input.ext)
+                        return RequestCtrl.postByServer(url, {
+                            useNewName: 'false',
+                            myfile: fs.createReadStream(fpath)
+                        }, RequestCtrl.PostRequestType.File)
+                            .then(res => {
+                                res = JSON.parse(res)
+                                if (res.code === 200) {
+                                    return Promise.resolve()
+                                }
+                                else {
+                                    throw 'transfer input file into computing server failed'
+                                }
+                            })
+                            .catch(e => {
+                                console.error(e)
+                                throw 'transfer input file into computing server failed'
+                            })
+                    }, {
+                            concurrency: 10
+                        })
+                })
+                .then(rsts => {
+                    return resolve()
+                })
+                .catch(e => {
+                    return reject(e)
+                })
+        });
+    }
+}

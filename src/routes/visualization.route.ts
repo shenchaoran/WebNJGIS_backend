@@ -1,10 +1,17 @@
 import { Response, Request, NextFunction } from "express";
-const MyRouter = require('./base.route');
+const express = require('express');
 
-const router = new MyRouter();
+const router = express.Router();
 module.exports = router;
+
+// region auth
+import { userAuthMid } from '../middlewares/user-auth.middleware';
+userAuthMid(router);
+// endregion
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
 
     });
+
+//  RouterExtends(router, db, defaultRoutes);
