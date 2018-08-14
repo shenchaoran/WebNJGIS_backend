@@ -52,7 +52,7 @@ export const findByPage = (pageOpt): Promise<any> => {
 
 export const getTaskDetail = (id: string): Promise<any> => {
     return db.findOne({ _id: id })
-        .then(expandDoc)
+        // .then(expandDoc)
         .then(Promise.resolve)
         .catch(Promise.reject);
 };
