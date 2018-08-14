@@ -63,7 +63,7 @@ export class CmpSolution {
                 desc: string
             },
             // 比较对象配置
-            schemaName: string,
+            name: string,
             methods: string[],
             dataRefers: DataRefer[],
             attached: any

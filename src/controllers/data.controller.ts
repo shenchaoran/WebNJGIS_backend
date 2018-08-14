@@ -9,7 +9,7 @@ import * as unzip from 'unzip';
 import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
-import { geoDataDB, GeoDataClass, STD_DATA, UDXCfg, calcuTaskDB } from '../models';
+import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB } from '../models';
 const fs: any = Promise.promisifyAll(fs_)
 
 export default class DataCtrl {

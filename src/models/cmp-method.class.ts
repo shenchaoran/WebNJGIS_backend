@@ -45,8 +45,8 @@ class CmpMethod {
         ]
     };
 
-    static find(schemaName: string) {
-        return _.get(CmpMethod.METHODS, schemaName);
+    static find(name: string) {
+        return _.get(CmpMethod.METHODS, name);
     }
 }
 
