@@ -5,5 +5,9 @@ export default class CmpMethodCtrl {
 
     }
 
-
+    findAllMatched(schemaType) {
+        return new Promise((resolve, reject) => {
+            
+        });
+    }
 }

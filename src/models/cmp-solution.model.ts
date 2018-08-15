@@ -14,8 +14,8 @@ class CmpSolutionDB extends Mongoose {
         const collectionName = 'CmpSolution';
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
-            cmpCfg: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
+            cmpCfg: mongoose.Schema.Types.Mixed,
             issueId: String,
             taskIds: mongoose.Schema.Types.Mixed
         };

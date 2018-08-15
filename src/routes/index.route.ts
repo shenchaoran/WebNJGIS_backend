@@ -26,7 +26,6 @@ router.use('/comparison/methods', CmpMethodRouter);
 router.use('/comparison/issues', CmpIssueRouter);
 router.use('/comparison/solutions', CmpSolutionRouter);
 router.use('/comparison/tasks', CmpTaskRouter);
-// router.use('/comparison/scenes', CmpSceneRouter);
 router.use('/nodes', NodeRouter);
 router.use('/calculation', CalcuRouter);
 router.use('/std-data', STDDataRouter);
