@@ -14,11 +14,11 @@
         "build": "npm run build-ts && npm run tslint",
         "build-ts": "tsc",
         "tslint": "tslint -c tslint.json -p tsconfig.json",
-        "serve": "node dist/server.js",
+        "serve": "node --nolazy dist/server.js",
         "watch": "run-p watch:*",
         "grunt": "grunt --force",
         "watch:ts": "tsc -w",
-        "watch:serve": "nodemon --config nodemon.json --inspect=0.0.0.0:65535 dist/server.js"
+        "watch:serve": "nodemon --nolazy --config nodemon.json --inspect=0.0.0.0:65535 dist/server.js"
     },
     "jest": {
         "globals": {

@@ -1,7 +1,6 @@
 export * from './calcu-task.model';
 export * from './cmp-method.class';
 export * from './cmp-obj.class';
-export * from './cmp-scene.model';
 export * from './cmp-solution.model';
 export * from './cmp-task.model';
 export * from './computing-node.model';

@@ -27,14 +27,12 @@ import { DataRefer } from './dataRefer.class';
 
 export class CmpObj {
     id: string;
-    meta: {
-        name: string,
-        desc: string
-    };
+    name: string;
+    desc: string;
     // 此处的数据参考是比较对象的数据参考，可能是输入，但绝大多数都是输出
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<DataRefer>;
-    schemaId: string;
-    methods: any[];
-    progress: number;
+    schemaId?: string;
+    methods: string[];
+    progress?: number;
 }
