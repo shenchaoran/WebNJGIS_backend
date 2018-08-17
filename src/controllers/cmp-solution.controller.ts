@@ -1,4 +1,3 @@
-import { cmpIssueDB } from './../models/cmp-issue.model';
 // 比较的总控制中心，控制模型的开始调用，请求模型的完成进度，请求模型的结果数据，比较这些数据
 import { Response, Request, NextFunction } from 'express';
 import * as formidable from 'formidable';
@@ -11,7 +10,7 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import { cmpSolutionDB, cmpTaskDB, modelServiceDB, ResourceSrc } from '../models';
+import { cmpSolutionDB, cmpTaskDB, modelServiceDB, ResourceSrc, cmpMethodDB } from '../models';
 const db = cmpSolutionDB;
 
 
@@ -38,7 +37,7 @@ const expandDoc = (doc): Promise<any> => {
         });
     });
     return Promise.map(Array.from(methods), methodId => {
-        return doc.findOne({_id: methodId})
+        return cmpMethodDB.findOne({_id: methodId})
     })
         .then(rsts => {
             doc.methods = rsts;

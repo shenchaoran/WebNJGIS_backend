@@ -24,7 +24,7 @@ class CmpTaskDB extends Mongoose {
             issueId: String,
             calcuTaskIds: mongoose.Schema.Types.Mixed,
             progress: Number,
-            cmpObjs: mongoose.Schema.Types.Mixed
+            state: String
         };
 
         super(collectionName, schema);
@@ -35,29 +35,22 @@ export const cmpTaskDB = new CmpTaskDB();
 
 export class CmpTask extends OgmsObj {
     _id?: any;
-    // 任务描述
     meta: {
         name: string,
         desc: string,
         time: number
     };
-    // 权限管理
     auth: {
         src: ResourceSrc,
         userId: string,
         userName: string
     };
-    // 0 未启动
-    // 1 启动
-    // -1 比较失败
-    // 100 比较成功
-    // [2, 99] 进度条
+    state: string;
     progress: number;
-    solutionId: string;
-    issueId: string;
+    solutionId?: string;
+    issueId?: string;
     calcuTaskIds: {
         _id: string,
         progress: number
     }[];
-    cmpObjs: CmpObj[];
 }
