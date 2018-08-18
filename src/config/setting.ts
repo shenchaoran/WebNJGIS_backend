@@ -23,7 +23,7 @@ export const setting = {
     })(),
     mongodb: {
         name: 'Comparison',
-        host: '192.168.1.131',
+        host: '223.2.42.210',
         port: '27017'
     },
     geo_data: {
