@@ -6,13 +6,7 @@
 import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-
-import { GeoDataClass } from './UDX-data.model';
-import { CalcuTaskState } from './calcu-task.model';
-import { CmpObj } from './cmp-obj.class';
-import { CmpState } from './cmp-state.enum';
-import { DataRefer } from './dataRefer.class';
-import { CmpResult } from './cmp-result.class';
+import { Enum } from 'typescript-string-enums/dist';
 
 class CmpTaskDB extends Mongoose {
     constructor() {
@@ -45,7 +39,7 @@ export class CmpTask extends OgmsObj {
         userId: string,
         userName: string
     };
-    state: string;
+    state: CmpState;
     progress: number;
     solutionId?: string;
     issueId?: string;
@@ -53,4 +47,36 @@ export class CmpTask extends OgmsObj {
         _id: string,
         progress: number
     }[];
+}
+
+export const CmpState = Enum(
+    'INIT',
+    'COULD_START',
+    'RUNNING',
+    'FINISHED_SUCCEED',
+    'FINISHED_FAILED'
+)
+export type CmpState = Enum<typeof CmpState>
+
+export class CmpResult {
+    image?: [{
+      extent: any,
+      path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
+      title: string,
+      progress: number
+    }];
+    chart?: {
+        show: any,
+        prop: any
+        // progress: number,
+        // path: string,               // data/:id/:entrance 同样的，这里也放一个文件路径，前台解析为二位数组，做成 chart
+        // row: any[]
+    };
+    GIF?: {
+        progress: number
+    };
+    statistic?: {
+        progress: number,
+        path: string
+    };
 }

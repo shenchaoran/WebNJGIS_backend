@@ -15,7 +15,7 @@ const url =
     setting.mongodb.port +
     '/' +
     setting.mongodb.name;
-    
+
 mongoose.connect(url, {
     useMongoClient: true
 });
@@ -48,7 +48,7 @@ export class Mongoose {
                 if (err) {
                     return reject(err);
                 } else {
-                    if(docs.length) {
+                    if (docs.length) {
                         return resolve(docs[0]._doc);
                     }
                     else {
@@ -62,16 +62,16 @@ export class Mongoose {
     public findDocs(ids: string[]): Promise<any> {
         return Promise.map(ids, id => {
             return new Promise((resolve, reject) => {
-                this.findOne({_id: id})
+                this.findOne({ _id: id })
                     .then(resolve)
                     .catch(e => {
                         console.log(e)
                         return resolve(undefined)
-                    }) 
+                    })
             });
         }, {
-            concurrency: 5
-        })
+                concurrency: 5
+            })
             .then(docs => {
                 return _.chain(docs as Array<any>)
                     .filter(doc => doc !== undefined)
@@ -85,7 +85,7 @@ export class Mongoose {
 
     public find(where): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.model.find(where).sort({_id: -1}).exec((err, docs) => {
+            this.model.find(where).sort({ _id: -1 }).exec((err, docs) => {
                 if (err) {
                     return reject(err);
                 } else {
@@ -124,9 +124,9 @@ export class Mongoose {
             new Promise((resolve, reject) => {
                 this.model
                     .find(where)
-                    .sort({_id: -1})
+                    .sort({ _id: -1 })
                     .limit(pageOpt.pageSize)
-                    .skip(pageOpt.pageSize* (pageOpt.pageNum- 1))
+                    .skip(pageOpt.pageSize * (pageOpt.pageNum - 1))
                     .exec((err, docs) => {
                         if (err) {
                             return reject(err);
@@ -160,28 +160,63 @@ export class Mongoose {
     }
 
     public insert(item): Promise<any> {
-        const model = new this.model(item);
+        let queryId
+        if(item._id) {
+            queryId = item._id;
+        }
+        else {
+            queryId = new ObjectID();
+            item._id = queryId;
+        }
         return new Promise((resolve, reject) => {
-            model.save((err, rst) => {
-                if (err) {
-                    return reject(err);
-                } else {
-                    return resolve(rst._doc);
+            this.model.findOneAndUpdate(
+                {
+                    _id: queryId
+                },
+                item,
+                {
+                    upsert: true
+                },
+                (err, doc)=> {
+                    if(err) {
+                        reject(err)
+                    }
+                    else {
+                        if(doc)
+                            resolve(doc._doc)
+                        else
+                            resolve(item)
+                    }
                 }
-            });
+            )
         });
+        // const model = new this.model(item);
+        // return new Promise((resolve, reject) => {
+        //     model.save((err, rst) => {
+        //         if (err) {
+        //             return reject(err);
+        //         } else {
+        //             return resolve(rst._doc);
+        //         }
+        //     });
+        // });
     }
 
     public insertBatch(docs, options?): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.model.collection.insert(docs, options, (err, rst) => {
-                if(err) {
-                    return reject(err);
-                }
-                else {
-                    return resolve(rst);
-                }
-            });
+            if (!docs || docs.length === 0) {
+                return resolve();
+            }
+            else {
+                this.model.collection.insert(docs, options, (err, rst) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    else {
+                        return resolve(rst);
+                    }
+                });
+            }
         });
     }
 
@@ -199,7 +234,7 @@ export class Mongoose {
 
     public upsert(where, update, options?): Promise<any> {
         return new Promise((resolve, reject) => {
-            if(options === undefined) {
+            if (options === undefined) {
                 options = {};
             }
             options.upsert = true;
@@ -217,9 +252,9 @@ export class Mongoose {
 
 export class OgmsObj {
     _id?: any;
-    
+
     constructor(obj?: any) {
-        if(obj) {
+        if (obj) {
             _.assign(this, obj);
         }
         else {

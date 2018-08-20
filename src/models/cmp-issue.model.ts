@@ -6,7 +6,7 @@
 import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
 
-import { CmpObj } from './cmp-obj.class';
+import { CmpObj } from './cmp-solution.model';
 import { ResourceSrc } from './resource.enum';
 
 class CmpIssueDB extends Mongoose {

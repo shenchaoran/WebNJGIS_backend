@@ -27,15 +27,12 @@ import { ResourceSrc } from '../models/resource.enum';
 const db = cmpTaskDB;
 
 export const insert = (doc: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        // doc = changeParticipate(doc);
-        cmpTaskDB
-            .insert(doc)
-            .then(_doc => {
-                return resolve(_doc);
-            })
-            .catch(reject);
-    });
+    return cmpTaskDB
+        .insert(doc)
+        .then(_doc => {
+            return Promise.resolve(_doc._id);
+        })
+        .catch(Promise.reject);
 };
 
 export const findByPage = (pageOpt): Promise<any> => {

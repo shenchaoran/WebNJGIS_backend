@@ -6,7 +6,6 @@
         "dist/public",
         "dist/logs",
         ".vscode",
-        "test",
         "upload"
     ]
 }

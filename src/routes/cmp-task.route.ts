@@ -57,20 +57,11 @@ router.route('/')
                 .then(rsts => {
                     res.locals = {
                         succeed: true,
-                        resData: rsts[0]._id
+                        resData: rsts[0]
                     };
                     return next();
                 })
                 .catch(next);
-            // CmpTaskCtrl.insert(req.body.doc)
-            //     .then(_doc => {
-            //         res.locals.resData = {
-            //             doc: _doc
-            //         };
-            //                     //         res.locals.succeed = true;
-            //         return next();
-            //     })
-            //     .catch(next);
         }
         else {
             return next(new Error('invalid request body!'));
