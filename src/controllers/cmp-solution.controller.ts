@@ -30,14 +30,16 @@ export const getSlnDetail = (id): Promise<any> => {
 }
 
 const expandDoc = (doc): Promise<any> => {
-    let methods = new Set();
+    let methods = [];
     _.map(doc.cmpObjs, cmpObj => {
-        _.map((cmpObj as any).methods, method => {
-            methods.add(method)
-        });
-    });
-    return Promise.map(Array.from(methods), methodId => {
-        return cmpMethodDB.findOne({_id: methodId})
+        _.map((cmpObj as any).methods as any[], method => {
+            if(methods.findIndex(v => v.id === method.id) === -1) {
+                methods.push(method)
+            }
+        })
+    })
+    return Promise.map(Array.from(methods), method => {
+        return cmpMethodDB.findOne({_id: method.id})
     })
         .then(rsts => {
             doc.methods = rsts;

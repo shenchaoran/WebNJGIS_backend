@@ -72,7 +72,10 @@ export class CmpObj {
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<DataRefer>;
     schemaId?: string;
-    methods: string[];
+    methods: {
+        id: string,
+        name: string
+    }[];
     progress?: number;
 }
 
@@ -80,6 +83,7 @@ export class DataRefer {
     msId: string;
     msName: string;
     eventId: string;
+    eventName: string;
     field?: string;
     dataId?: string;
     cmpResult?: CmpResult;
