@@ -130,5 +130,7 @@ router.route('/:id/stdResult')
             .catch(next);
     });
 
+
+
     
      RouterExtends(router, db, defaultRoutes);
