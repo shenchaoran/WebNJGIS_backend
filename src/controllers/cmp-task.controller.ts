@@ -11,6 +11,7 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
 import * as CalcuTaskCtrl from './calcu-task.controller';
+import ModelServiceCtrl from './model-tools.controller';
 import {
     cmpTaskDB,
     cmpSolutionDB,
@@ -161,4 +162,25 @@ export const getStdResult = (cmpTaskId): Promise<any> => {
 
         })
         .catch(Promise.reject);
+}
+
+export const start = (cmpTaskId): Promise<any> => {
+    let cmpTask;
+    return cmpTaskDB.findOne({_id: cmpTaskId})
+        .then(doc => {
+            cmpTask = doc;
+            return Promise.map(doc.calcuTaskIds as any[], calcuTaskId => {
+                return ModelServiceCtrl.invoke(calcuTaskId._id)
+            }, {
+                concurrency: 10
+            })
+        })
+        .then(rsts => {
+            // start in background
+
+            return Promise.resolve({
+                code: 200,
+                desc: 'start comparison task!'
+            });
+        })
 }

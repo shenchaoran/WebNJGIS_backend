@@ -1,4 +1,4 @@
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import { ObjectID } from 'mongodb';
 import { setting } from '../config/setting';
@@ -8,9 +8,10 @@ import {
     calcuTaskDB,
     CalcuTaskState,
 } from '../models';
+import * as child_process from 'child_process';
 import * as NodeCtrl from './computing-node.controller'
 import { getByServer, postByServer, PostRequestType } from '../utils/request.utils';
-import { ChildProcessUtil } from '../utils'
+// import { ChildProcessUtil } from '../utils'
 import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 
 export default class ModelServiceCtrl {
@@ -32,113 +33,104 @@ export default class ModelServiceCtrl {
      * 
      *      如果使用用户上传的数据时，还要先将数据传过去
      */
-    static invoke(msr): Promise<any> {
-        if (!msr._id) {
-            msr._id = new ObjectID()
-        }
-        let node
-        let serverURL
-        return calcuTaskDB.upsert({ _id: msr._id }, msr)
-            .then(rst => {
-                if (CalcuTaskState.INIT === msr.state) {
-                    return Promise.resolve(msr._id);
+    static invoke(msr);
+    static invoke(msrId: string);
+    static async invoke(msr) {
+        try {
+            if (typeof msr === 'string') {
+                msr = await calcuTaskDB.findOne({ _id: msr });
+            }
+            else {
+                if (!msr._id) {
+                    msr._id = new ObjectID()
                 }
-                else if (CalcuTaskState.START_PENDING === msr.state) {
-                    // 查找 node 的 host 和 port
-                    return NodeCtrl.telNode(msr.ms.nodeId)
-                        .then(v => {
-                            serverURL = v
-                            if (msr.IO.dataSrc === 'UPLOAD') {
-                                return DataCtrl.pushData2ComputingServer(msr._id)
-                            }
-                            else {
-                                return
-                            }
-                        })
-                        .then(() => {
-                            let invokeURL = `${serverURL}/services/invoke`
-                            return postByServer(invokeURL, {
-                                calcuTask: msr
-                            }, PostRequestType.JSON)
-                        })
-                        .then(res => {
-                            if (res.code === 200) {
-                                // ModelServiceCtrl.progressDaemon(msr._id)
-                                return Promise.resolve({
-                                    msrId: msr._id,
-                                    code: 200,
-                                    desc: 'start model succeed'
-                                })
-                            }
-                            else {
-                                return Promise.resolve({
-                                    msrId: msr._id,
-                                    code: 501,
-                                    desc: 'start model failed, error in calculation server'
-                                })
-                            }
+            }
+
+            await calcuTaskDB.upsert({ _id: msr._id }, msr);
+            if (CalcuTaskState.INIT === msr.state) {
+                return msr._id;
+            }
+            else if (CalcuTaskState.START_PENDING === msr.state) {
+                // 查找 node 的 host 和 port
+                let serverURL = await NodeCtrl.telNode(msr.ms.nodeId)
+                if (msr.IO.dataSrc === 'UPLOAD') {
+                    await DataCtrl.pushData2ComputingServer(msr._id);
+                }
+                let invokeURL = `${serverURL}/services/invoke`
+                let res = await postByServer(invokeURL, {
+                    calcuTask: msr
+                }, PostRequestType.JSON)
+                if (res.code === 200) {
+                    // 监控运行进度，结束后主动将数据拉过来
+                    ModelServiceCtrl.progressDaemon(msr._id)
+                        .then(msg => {
+                            if((msg as any).code === 200)
+                                DataCtrl.cacheDataBatch(msr._id)
                         })
                         .catch(e => {
                             console.log(e);
-                            if (_.get(e, 'error.code') === 'ECONNREFUSED') {
-                                return Promise.resolve({
-                                    msrId: msr._id,
-                                    code: 503,
-                                    desc: 'computing server crash or ip changed, please retry later'
-                                })
-                            }
-                            else {
-                                return Promise.resolve({
-                                    msrId: msr._id,
-                                    code: 500,
-                                    desc: 'unpredectable error'
-                                })
-                            }
-                        });
+                        })
+
+                    return {
+                        msrId: msr._id,
+                        code: 200,
+                        desc: 'start model succeed'
+                    };
                 }
-            })
+                else {
+                    return {
+                        msrId: msr._id,
+                        code: 501,
+                        desc: 'start model failed, error in calculation server'
+                    };
+                }
+
+            }
+        }
+        catch (e) {
+            console.log(e);
+            if (_.get(e, 'error.code') === 'ECONNREFUSED') {
+                return {
+                    msrId: msr._id,
+                    code: 503,
+                    desc: 'computing server crash or ip changed, please retry later'
+                }
+            }
+            else {
+                return {
+                    msrId: msr._id,
+                    code: 500,
+                    desc: 'unpredectable error'
+                }
+            }
+        };
     }
 
-    /**
-     * deprecated
-     */
-    static progressDaemon(msrId) {
-        let cpPath = path.join(__dirname, '../daemons/msrProgress.daemon.js')
-        let cp = new ChildProcessUtil(cpPath)
-        
-        let debugFn = () => {
-            let daemon = new MSRProgressDaemon (msrId)
-            daemon.start()
-                .then(msg => {
-                    if((msg as any).code === 500) {
-                        throw (msg as any).error
-                    }
-                    else if((msg as any).code === 200) {
-                        console.info('fetch data succeed!')
-                    }
-                })
-                .catch(e => {
-                    console.log(e)
-
-                })
-        }
-        
-        cp.initialization(debugFn)
-        //     .then(() => {
-        //         cp.on(500)
-        //             .then((msg) => {
-        //                 console.log((msg as any).error)
-        //             })
-
-        //         cp.on(200)
-        //             .then(() => {
-        //                 console.log('fetch data succeed!')
-        //             })
-
-        //         cp.send({
-        //             code: 'start',
-        //             msrId: msrId
-        //         })
-        //     })
+    static async progressDaemon(msrId) {
+        return new Bluebird((resolve, reject) => {
+            if (setting.debug.child_process) {
+                let daemon = new MSRProgressDaemon(msrId)
+                daemon.start()
+                    .then(msg => {
+                        resolve(msg)
+                    })
+                    .catch(e => {
+                        console.log(e);
+                        reject(e)
+                    })
+            }
+            else {
+                let cpPath = path.join(__dirname, '../daemons/msrProgress.daemon.js')
+                let cp = child_process.fork(cpPath, []);
+                cp.send({
+                    code: 'start',
+                    msrId: msrId
+                });
+                cp.on('message', msg => {
+                    cp.kill();
+                    return resolve(msg);
+                });
+            }
+        });
     }
 }

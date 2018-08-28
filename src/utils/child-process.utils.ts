@@ -23,23 +23,19 @@ export class ChildProcessUtil {
         });
     }
 
-    public async initialization(debugFn) {
-        // 子进程不方便调试，所以如果调试模式下就不启用子进程，采用阻塞的方法在本进程运行。
-        if (setting.debug.child_process) {
-            debugFn()
+    public async initialization() {
+        try {
+            // let port = await this.getPort()
+            // let port = 34835
+            // console.log('child_process port: ' + port)
+            this.cp = child_process.fork(this.cpPath, []
+                // , {
+                //     execArgv: ['--inspect=' + port]
+                // }
+            )
         }
-        else {
-            try {
-                // let port = await this.getPort()
-                let port = 34835
-                console.log('child_process port: ' + port)
-                this.cp = child_process.fork(this.cpPath, [], {
-                    execArgv: ['--inspect=' + port]
-                })
-            }
-            catch (e) {
-                throw e
-            }
+        catch (e) {
+            throw e
         }
     }
 
@@ -51,12 +47,12 @@ export class ChildProcessUtil {
         try {
             return await new Promise((resolve, reject) => {
                 this.cp.on('message', m => {
-                    if(m.code === event)
+                    if (m.code === event)
                         return resolve(m)
-                }) 
+                })
             })
         }
-        catch(e) {
+        catch (e) {
             throw e
         }
     }
@@ -65,7 +61,7 @@ export class ChildProcessUtil {
         try {
             this.cp.kill()
         }
-        catch(e) {
+        catch (e) {
             throw e
         }
     }

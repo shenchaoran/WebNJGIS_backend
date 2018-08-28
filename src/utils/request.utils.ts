@@ -109,6 +109,7 @@ export const postByPipe = (req: Request, url: string) => {
  * fn 是写完文件后执行的函数，不是回调
  */
 export const getFile = (url, folder, fn) => {
+    console.log(url)
     let fname, fpath, newName
     let ext = '';
     newName = new ObjectID().toString()
@@ -134,6 +135,7 @@ export const getFile = (url, folder, fn) => {
                     ext = fname.substr(fname.lastIndexOf('.'));
                     newName += ext
                 }
+                console.log(fname)
                 fpath = path.join(folder, newName)
                 resolve({
                     stream: res$1,
@@ -141,6 +143,7 @@ export const getFile = (url, folder, fn) => {
                 })
 
                 res$2.pipe(fs.createWriteStream(fpath))
+                // TODO some file download don't enter here???
                 res$2.on('end', chunk => {
                     fn({
                         fname: fname,

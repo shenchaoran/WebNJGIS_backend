@@ -9,9 +9,6 @@ export const setting = {
         port: 3122,
         use: true
     },
-    daemon: {
-        msr_progress: 5000
-    },
     session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
     platform: (function() {
@@ -43,5 +40,8 @@ export const setting = {
     // std output(实测数据)
     STD_DATA: {
         path: 'E:/Data/STD_Measured_Data'
+    },
+    daemon: {
+        msr_progress: 5000
     }
 };

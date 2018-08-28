@@ -97,7 +97,15 @@ router.route('/:id')
 
 router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
-
+        CmpTaskCtrl.start(req.params.id)
+            .then(msg => {
+                res.locals = {
+                    succeed: true,
+                    data: msg
+                };
+                return next()
+            })
+            .catch(next);
     });
 
 /**

@@ -48,17 +48,17 @@ router.route('/logout')
 
     });
 
-router.route('/cache-data/:msrId')
-    .get((req, res, next) => {
-        DataCtrl.cacheDataBatch(req.params.msrId)
-            .then(msg => {
-                res.locals = {
-                    resData: msg,
-                    succeed: true
-                }
-                return next()
-            })
-            .catch(next)
-    })
+// router.route('/cache-data/:msrId')
+//     .get((req, res, next) => {
+//         DataCtrl.cacheDataBatch(req.params.msrId)
+//             .then(msg => {
+//                 res.locals = {
+//                     resData: msg,
+//                     succeed: true
+//                 }
+//                 return next()
+//             })
+//             .catch(next)
+//     })
 
 RouterExtends(router, db, defaultRoutes);
