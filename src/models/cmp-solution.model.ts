@@ -84,7 +84,7 @@ export class DataRefer {
     msName: string;
     eventId: string;
     eventName: string;
+    value?: string;
     field?: string;
-    dataId?: string;
     cmpResult?: CmpResult;
 }

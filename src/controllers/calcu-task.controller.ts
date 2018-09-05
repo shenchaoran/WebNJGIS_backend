@@ -4,7 +4,6 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as CmpTaskCtrl from './cmp-task.controller';
 import { calcuTaskDB, CalcuTaskState, cmpTaskDB } from '../models';
 import { ObjectID } from 'mongodb';
 

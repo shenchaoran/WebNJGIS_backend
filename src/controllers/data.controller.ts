@@ -9,17 +9,24 @@ import * as unzip from 'unzip';
 import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
-import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB } from '../models';
+import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB, CalcuTaskState } from '../models';
 const fs: any = Bluebird.promisifyAll(fs_)
 
 export default class DataCtrl {
-    constructor() { }
+    private afterDataCached: Function = () => {};
+    private afterDataBatchCached: Function = () => {};
+    constructor(lifeCycles?: {
+        afterDataCached?: Function,
+        afterDataBatchCached?: Function
+    }) {
+        Object.assign(this, lifeCycles)
+    }
 
 	/**
 	 * 条目保存到数据库，文件移动到upload/geo-data中
 	 * 如果数据为zip则解压
 	 */
-    static insert = (req: Request, res: Response, next: NextFunction) => {
+    async insert(req: Request, res: Response, next: NextFunction){
         const form = new formidable.IncomingForm();
         form.encoding = 'utf-8';
         form.uploadDir = setting.geo_data.path;
@@ -62,7 +69,7 @@ export default class DataCtrl {
                                         unzipPath,
                                         'index.json'
                                     );
-                                    DataCtrl.parseUDXCfg(cfgPath).then(udxcfg => {
+                                    this.parseUDXCfg(cfgPath).then(udxcfg => {
                                         const newItem = {
                                             _id: oid,
                                             meta: {
@@ -119,7 +126,7 @@ export default class DataCtrl {
         });
     };
 
-    static download = (id: string): Bluebird<any> => {
+    async download(id: string){
         return geoDataDB.findOne({
             _id: id
         })
@@ -142,13 +149,10 @@ export default class DataCtrl {
             .catch(Bluebird.reject);
     };
 
-    static visualization = (req: Request, res: Response, next: NextFunction) => { };
+    async visualization(req: Request, res: Response, next: NextFunction){ };
 
-    static parseUDXCfg = (cfgPath: string): Bluebird<UDXCfg> => {
-        const folderPath = cfgPath.substring(
-            0,
-            cfgPath.lastIndexOf('index.json')
-        );
+    async parseUDXCfg(cfgPath: string){
+        const folderPath = cfgPath.substring(0, cfgPath.lastIndexOf('index.json'));
         return new Bluebird((resolve, reject) => {
             fs.readFile(cfgPath, (err, dataBuf) => {
                 if (err) {
@@ -172,7 +176,7 @@ export default class DataCtrl {
      * 如果文件有本地缓存，直接返回给前台
      * 否则文件缓存到本地，同时更新 geodata, calcu task 数据库，并返回给前台
      */
-    static async cacheData({ msrId, eventId }, afterCatchedFn?: Function) {
+    async cacheData({ msrId, eventId }) {
         let eventIndex, event, eventType
         let msr = await calcuTaskDB.findOne({ _id: msrId });
         for (let key in msr.IO) {
@@ -190,9 +194,10 @@ export default class DataCtrl {
         console.log(eventType, eventIndex)
 
         if (event.cached) {
-            if (afterCatchedFn)
-                afterCatchedFn();
-            let { path, fname } = await DataCtrl.download(event.value);
+            this.afterDataCached({
+                code: 200
+            });
+            let { path, fname } = await this.download(event.value);
             return Bluebird.resolve({
                 stream: fs.createReadStream(path),
                 fname: fname
@@ -205,12 +210,11 @@ export default class DataCtrl {
         else {
             let serverURL = await NodeCtrl.telNode(msr.ms.nodeId);
             return RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path, ({ fname, fpath }) => {
-                if (msr.progress === 100) {
+                if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
                     let gdid = new ObjectID();
                     let setObj = {}
                     setObj[`IO.${eventType}.${eventIndex}.value`] = gdid.toHexString()
                     setObj[`IO.${eventType}.${eventIndex}.cached`] = true;
-                    console.log(`IO.${eventType}.${eventIndex}.cached`);
                     Bluebird.all([
                         geoDataDB.insert({
                             _id: gdid,
@@ -224,47 +228,73 @@ export default class DataCtrl {
                                 userId: _.get(msr, 'auth.userId')
                             }
                         }),
-                        // calcuTaskDB.update({ _id: msr._id }, {
-                        //     $set: setObj
-                        // })
+                        calcuTaskDB.update({ _id: msr._id }, {
+                            $set: setObj
+                        })
                     ])
                         .then(rsts => {
-                            if (afterCatchedFn)
-                                afterCatchedFn();
+                            this.afterDataCached({
+                                code: 200
+                            });
                         })
                 }
             })
                 .catch(e => {
                     console.error(e)
+                    this.afterDataCached({
+                        code: 500
+                    });
                     return Bluebird.reject(e)
                 })
         }
     }
 
-    static async cacheDataBatch(msrId) {
+    async cacheDataBatch(msrId) {
         let msr = await calcuTaskDB.findOne({ _id: msrId });
         let toPulls = []
         for (let key in msr.IO) {
             if (key === 'inputs' || key === 'outputs') {
                 _.map(msr.IO[key] as any[], event => {
                     if (!event.cached) {
-                        if(event.id === '--m')
-                            toPulls.push({
-                                msrId: msrId,
-                                eventId: event.id
-                            })
+                        toPulls.push({
+                            msrId: msrId,
+                            eventId: event.id
+                        })
                     }
                 })
             }
         }
-        return Bluebird.map(toPulls, toPull => DataCtrl.cacheData(toPull), {
+        return Bluebird.map(toPulls, toPull => {
+            return new Promise((resolve, reject) => {
+                new DataCtrl({
+                    afterDataCached: ({code}) => {
+                        if(code === 500){
+                            console.log('cache data failed: ', toPull)
+                            resolve({code})
+                        }
+                        else {
+                            resolve({code})
+                        }
+                    }
+                })
+                    .cacheData(toPull)
+                    .catch(reject)
+            });
+        }, {
             concurrency: 1
         })
             .then(rsts => {
                 console.log('****** cache data succeed of msr: ' + msrId);
-                return Promise.resolve({
+                // 这里暂不管缓存结果，在比较时从 db 里的记录里取缓存结果
+                this.afterDataBatchCached({
                     code: 200,
                     desc: 'cache data succeed!'
+                });
+            })
+            .catch(e => {
+                this.afterDataBatchCached({
+                    code: 500,
+                    desc: 'cache data batch failed!'
                 });
             })
     }
@@ -272,7 +302,7 @@ export default class DataCtrl {
     /**
      * 如果使用上传数据运行，则需要先将所有数据 post 过去
      */
-    static pushData2ComputingServer = (msrId) => {
+    async pushData2ComputingServer(msrId) {
         let msr, serverURL
         return new Bluebird((resolve, reject) => {
             calcuTaskDB.findOne({ _id: msrId })

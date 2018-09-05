@@ -1,15 +1,26 @@
-import { DataRefer } from '../../models';
+import { DataRefer, geoDataDB } from '../../models';
 import CmpMethod from './cmp-base';
-import * as Promise from 'bluebird'
+import * as Bluebird from 'bluebird'
 
 export default class TableChartCMP extends CmpMethod {
-    constructor(dataRefers: DataRefer[]) {
+    constructor(public dataRefers: DataRefer[]) {
         super(dataRefers)
     }
 
-    start() {
-        return new Promise((resolve, reject) => {
-            
-        });
+    async initialization(): Promise<any> {
+        
+    }
+
+    /**
+     * @returns {echart-opt, statisticTable}
+     */
+    async start(): Promise<any> {
+        Bluebird.map(this.dataRefers, dataRefer => geoDataDB.findOne({
+            _id: dataRefer
+        }))
+    }
+
+    async extractData(): Promise<any> {
+
     }
 }

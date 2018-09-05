@@ -25,7 +25,7 @@ router.route('/invoke')
     .post((req, res, next) => {
         const msInstance = req.body.msInstance;
         if (msInstance) {
-            ModelServiceCtrl.invoke(msInstance)
+            new ModelServiceCtrl().invoke(msInstance)
                 .then(msg => {
                     res.locals = {
                         resData: msg,

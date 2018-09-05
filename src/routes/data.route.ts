@@ -21,14 +21,15 @@ userAuthMid(router);
 // endregion
 
 router.route('/')
-    .post(DataCtrl.insert)
+    .post(new DataCtrl().insert)
 
 router.route('/download')
     .get((req, res, next) => {
         let msrId = req.query.msrId
         let eventId = req.query.eventId
         if(msrId && eventId) {
-            DataCtrl.cacheData({msrId, eventId})
+            new DataCtrl()
+                .cacheData({msrId, eventId})
                 .then(({stream, fname}) => {
                     // return res.download(msg.path, msg.fname)
                     res.set({
@@ -51,7 +52,8 @@ router.route('/download')
         
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        DataCtrl.download(req.params.id)
+        new DataCtrl()
+            .download(req.params.id)
             .then(msg => {
                 return res.download(msg.path, msg.fname)
             })

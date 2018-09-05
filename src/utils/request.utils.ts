@@ -109,7 +109,6 @@ export const postByPipe = (req: Request, url: string) => {
  * fn 是写完文件后执行的函数，不是回调
  */
 export const getFile = (url, folder, fn) => {
-    console.log(url)
     let fname, fpath, newName
     let ext = '';
     newName = new ObjectID().toString()
@@ -117,10 +116,10 @@ export const getFile = (url, folder, fn) => {
         try {
             http.get(url, response => {
                 let res$1, res$2
-                res$1 = new PassThrough()
-                res$2 = new PassThrough()
-                response.pipe(res$1)
-                response.pipe(res$2)
+                // res$1 = new PassThrough()
+                // res$2 = new PassThrough()
+                // response.pipe(res$1)
+                // response.pipe(res$2)
 
                 fname = response.headers['content-disposition'];
                 if (fname) {
@@ -135,16 +134,15 @@ export const getFile = (url, folder, fn) => {
                     ext = fname.substr(fname.lastIndexOf('.'));
                     newName += ext
                 }
-                console.log(fname)
                 fpath = path.join(folder, newName)
                 resolve({
-                    stream: res$1,
+                    stream: response,
                     fname: fname
                 })
 
-                res$2.pipe(fs.createWriteStream(fpath))
+                response.pipe(fs.createWriteStream(fpath))
                 // TODO some file download don't enter here???
-                res$2.on('end', chunk => {
+                response.on('end', chunk => {
                     fn({
                         fname: fname,
                         fpath: newName

@@ -3,10 +3,7 @@ import { Observable, interval, from, of, forkJoin  } from 'rxjs'
 import { startWith, map, flatMap, switchMap, filter, mergeMap } from 'rxjs/operators'
 import { setting } from '../config/setting';
 import { CalcuTaskState } from '../models';
-import * as RequestCtrl from '../utils/request.utils'
-import * as NodeCtrl from '../controllers/computing-node.controller'
 import * as _ from 'lodash'
-import DataCtrl from '../controllers/data.controller';
 
 export default class MSRProgressDaemon {
 

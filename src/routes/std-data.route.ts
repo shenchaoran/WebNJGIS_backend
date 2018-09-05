@@ -1,9 +1,4 @@
-import { Response, Request, NextFunction } from "express";
-import * as path from 'path';
 import { RouterExtends } from './base.route';
-import DataCtrl from '../controllers/data.controller';
-import * as UDXPropParser from '../controllers/UDX.property.controller';
-import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
 const express = require('express');
 import {
     stdDataDB,

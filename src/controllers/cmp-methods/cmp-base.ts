@@ -1,12 +1,14 @@
 import { DataRefer } from './../../models/cmp-solution.model';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 
 export default class CmpMethod {
-    constructor(dataRefers: DataRefer[]) {}
+    constructor(public dataRefers: DataRefer[]) {}
 
-    start(): Promise<any> {
-        return new Promise((resolve, reject) => {
-            
-        });
+    async start(): Promise<any> {
+        
+    }
+
+    async extractData(): Promise<any> {
+
     }
 }

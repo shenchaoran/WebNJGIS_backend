@@ -18,23 +18,32 @@ import { setting } from '../config/setting';
 import * as child_process from 'child_process'
 let exec = child_process.exec
 
-exec('activate base && python ../child-process/test2.py', { 
-    encoding: 'binary',
-    cwd: __dirname
-}, (err, stdout, stderr) => {
-    function toGBK(str) {
-        return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
-    }
-    if (err) {
-        console.log(toGBK(err.message))
-    }
-    if (stderr) {
-        console.log(toGBK(stderr))
-    }
-    if (stdout) {
-        console.log(toGBK(stdout))
-    }
+let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
+let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))
+let write$2 = fs.createWriteStream(path.join(__dirname, './pipe2.js'))
+read$.pipe(write$1)
+read$.pipe(write$2)
+read$.on('end', chunk => {
+    console.log('end')
 })
+
+// exec('activate base && python ../child-process/test2.py', { 
+//     encoding: 'binary',
+//     cwd: __dirname
+// }, (err, stdout, stderr) => {
+//     function toGBK(str) {
+//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
+//     }
+//     if (err) {
+//         console.log(toGBK(err.message))
+//     }
+//     if (stderr) {
+//         console.log(toGBK(stderr))
+//     }
+//     if (stdout) {
+//         console.log(toGBK(stdout))
+//     }
+// })
 
 // console.log(process)
 

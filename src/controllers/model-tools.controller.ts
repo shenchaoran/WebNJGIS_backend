@@ -15,7 +15,12 @@ import { getByServer, postByServer, PostRequestType } from '../utils/request.uti
 import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 
 export default class ModelServiceCtrl {
-    constructor() { }
+    afterDataCached: Function = (msg) => {};
+    constructor(lifeCycles?: {
+        afterDataCached?: Function
+    }) {
+        Object.assign(this, lifeCycles)
+    }
 
     /**
      * resolve:
@@ -29,13 +34,13 @@ export default class ModelServiceCtrl {
      * 
      * 调用模型：
      *      插入运行记录
-     *      如果 state === START_PENDING 时启动模型实例
+     *      如果 state === COULD_START 时启动模型实例
      * 
      *      如果使用用户上传的数据时，还要先将数据传过去
      */
-    static invoke(msr);
-    static invoke(msrId: string);
-    static async invoke(msr) {
+    invoke(msr);
+    invoke(msrId: string);
+    async invoke(msr) {
         try {
             if (typeof msr === 'string') {
                 msr = await calcuTaskDB.findOne({ _id: msr });
@@ -50,11 +55,11 @@ export default class ModelServiceCtrl {
             if (CalcuTaskState.INIT === msr.state) {
                 return msr._id;
             }
-            else if (CalcuTaskState.START_PENDING === msr.state) {
+            else if (CalcuTaskState.COULD_START === msr.state) {
                 // 查找 node 的 host 和 port
                 let serverURL = await NodeCtrl.telNode(msr.ms.nodeId)
                 if (msr.IO.dataSrc === 'UPLOAD') {
-                    await DataCtrl.pushData2ComputingServer(msr._id);
+                    await new DataCtrl().pushData2ComputingServer(msr._id);
                 }
                 let invokeURL = `${serverURL}/services/invoke`
                 let res = await postByServer(invokeURL, {
@@ -62,14 +67,16 @@ export default class ModelServiceCtrl {
                 }, PostRequestType.JSON)
                 if (res.code === 200) {
                     // 监控运行进度，结束后主动将数据拉过来
-                    ModelServiceCtrl.progressDaemon(msr._id)
+                    this.progressDaemon(msr._id)
                         .then(msg => {
-                            if((msg as any).code === 200)
-                                DataCtrl.cacheDataBatch(msr._id)
+                            if ((msg as any).code === 200)
+                                new DataCtrl({
+                                    afterDataBatchCached: this.afterDataCached
+                                }).cacheDataBatch(msr._id)
                         })
                         .catch(e => {
                             console.log(e);
-                        })
+                        });
 
                     return {
                         msrId: msr._id,
@@ -85,6 +92,9 @@ export default class ModelServiceCtrl {
                     };
                 }
 
+            }
+            else if(CalcuTaskState.FINISHED_SUCCEED === msr.state) {
+                this.afterDataCached()
             }
         }
         catch (e) {
@@ -106,7 +116,7 @@ export default class ModelServiceCtrl {
         };
     }
 
-    static async progressDaemon(msrId) {
+    private async progressDaemon(msrId) {
         return new Bluebird((resolve, reject) => {
             if (setting.debug.child_process) {
                 let daemon = new MSRProgressDaemon(msrId)

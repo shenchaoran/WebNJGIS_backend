@@ -7,6 +7,7 @@ import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import { Enum } from 'typescript-string-enums/dist';
+import { DataRefer } from './cmp-solution.model';
 
 class CmpTaskDB extends Mongoose {
     constructor() {
@@ -18,7 +19,8 @@ class CmpTaskDB extends Mongoose {
             issueId: String,
             calcuTaskIds: mongoose.Schema.Types.Mixed,
             progress: Number,
-            state: String
+            state: String,
+            dataRefers: mongoose.Schema.Types.Mixed
         };
 
         super(collectionName, schema);
@@ -47,6 +49,7 @@ export class CmpTask extends OgmsObj {
         _id: string,
         progress: number
     }[];
+    dataRefers: DataRefer[]
 }
 
 export const CmpState = Enum(
