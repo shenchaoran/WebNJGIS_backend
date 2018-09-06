@@ -39,6 +39,7 @@
     "dependencies": {
         "@types/bluebird": "^3.5.17",
         "@types/nodemailer-ses-transport": "^3.1.4",
+        "@types/papaparse": "^4.5.3",
         "@types/proj4": "^2.3.4",
         "async": "^2.1.2",
         "bcrypt-nodejs": "^0.0.3",
@@ -69,6 +70,7 @@
         "mongoose": "^4.12.4",
         "morgan": "^1.9.0",
         "nodemailer": "^2.6.4",
+        "papaparse": "^4.6.0",
         "passport": "0.3.2",
         "passport-facebook": "^2.1.1",
         "passport-local": "^1.0.0",

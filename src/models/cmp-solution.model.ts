@@ -42,7 +42,7 @@ export class CmpSolution {
     issueId?: string;
     // taskIds?: string[];
     participants: string[];
-    cmpObjs: Array<CmpObj>
+    cmpObjs: Array<CmpObj>;
 }
 
 
@@ -74,9 +74,21 @@ export class CmpObj {
     schemaId?: string;
     methods: {
         id: string,
-        name: string
+        name: string,
+        result: {   // table-chart: echart-opt
+            progress: number,
+            state: string,
+        } | {       // table-statistic: 
+            progress: number,
+            state: string,
+        } | {       // ascii-img: 
+            progress: number,
+            state: string,
+            msId: string,
+            eventId: string,
+            img: any
+        }[]
     }[];
-    progress?: number;
 }
 
 export class DataRefer {
@@ -84,6 +96,9 @@ export class DataRefer {
     msName: string;
     eventId: string;
     eventName: string;
+    schemaId: string;
+    msrName?: string;
+    msrId?: string;
     value?: string;
     field?: string;
     cmpResult?: CmpResult;

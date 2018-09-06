@@ -11,6 +11,7 @@ import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
 import * as CalcuTaskCtrl from './calcu-task.controller';
 import ModelServiceCtrl from './model-tools.controller';
+import { CmpMethodFactory } from './cmp-methods';
 import {
     cmpTaskDB,
     cmpSolutionDB,
@@ -27,8 +28,11 @@ import { ResourceSrc } from '../models/resource.enum';
 const db = cmpTaskDB;
 
 export default class CmpTaskCtrl {
-    constructor() {}
-    async insert(doc: any){
+    cmpTask;
+    cmpSln;
+    calcuTasks;
+    constructor() { }
+    async insert(doc: any) {
         return cmpTaskDB
             .insert(doc)
             .then(_doc => {
@@ -37,7 +41,7 @@ export default class CmpTaskCtrl {
             .catch(Bluebird.reject);
     };
 
-    async findByPage(pageOpt){
+    async findByPage(pageOpt) {
         return db.findByPage({}, pageOpt)
             .then(rst => {
                 _.map(rst.docs, doc => {
@@ -48,9 +52,9 @@ export default class CmpTaskCtrl {
             .catch(Bluebird.reject);
     }
 
-    async getTaskDetail(id: string){
+    async getTaskDetail(id: string) {
         return db.findOne({ _id: id })
-            // .then(expandDoc)
+            .then(this.expandDoc.bind(this))
             .then(Bluebird.resolve)
             .catch(Bluebird.reject);
     };
@@ -59,7 +63,7 @@ export default class CmpTaskCtrl {
      * 以不同力度缩减文档
      * 查询list时，level = 2，查询item 时，level = 1
      */
-    private async reduceDoc(doc, level?: '1' | '2'){
+    private async reduceDoc(doc, level?: '1' | '2') {
         if (level === undefined || level === '1') {
             _.map(doc.cmpCfg.cmpObjs as any[], cmpObj => {
                 _.map(cmpObj.dataRefers as any[], dataRefer => {
@@ -82,35 +86,38 @@ export default class CmpTaskCtrl {
         return doc;
     }
 
-    private async expandDoc(doc){
-        let calcuTaskPromise = undefined;
-        if (doc.calcuTaskIds && doc.calcuTaskIds.length) {
-            calcuTaskPromise = Bluebird.all(_.map(doc.calcuTaskIds, id => {
-                return calcuTaskDB.findOne({ _id: id });
-            }));
-        }
-        return Bluebird.all([
-            doc.issueId ?
-                cmpIssueDB.findOne({ _id: doc.issueId }) : undefined,
-            doc.solutionId ?
-                cmpSolutionDB.findOne({ _id: doc.solutionId }) : undefined,
-            calcuTaskPromise ?
-                calcuTaskPromise : undefined
-        ])
-            .then(rsts => {
-                doc.issue = rsts[0];
-                doc.solution = rsts[1];
-                doc.calcuTasks = rsts[2];
-                return Bluebird.resolve(doc);
-            })
-            .catch(Bluebird.reject);
+    private async expandDoc(doc) {
+        // let calcuTaskPromise = undefined;
+        // if (doc.calcuTaskIds && doc.calcuTaskIds.length) {
+        //     calcuTaskPromise = Bluebird.all(_.map(doc.calcuTaskIds, id => {
+        //         return calcuTaskDB.findOne({ _id: id });
+        //     }));
+        // }
+        // return Bluebird.all([
+        //     doc.issueId ?
+        //         cmpIssueDB.findOne({ _id: doc.issueId }) : undefined,
+        //     doc.solutionId ?
+        //         cmpSolutionDB.findOne({ _id: doc.solutionId }) : undefined,
+        //     calcuTaskPromise ?
+        //         calcuTaskPromise : undefined
+        // ])
+        //     .then(rsts => {
+        //         doc.issue = rsts[0];
+        //         doc.solution = rsts[1];
+        //         doc.calcuTasks = rsts[2];
+        //         return Bluebird.resolve(doc);
+        //     })
+        //     .catch(Bluebird.reject);
+        let cmpSln = await cmpSolutionDB.findOne({ _id: doc.solutionId });
+        doc.participants = cmpSln.participants;
+        return doc;
     }
 
     /**
      * 根据taskId和请求的数据类型返回cmp-data的详情
      * 没有直接放在task中是因为太大了
      */
-    async getCmpResult(taskId, cmpObjId, msId){
+    async getCmpResult(taskId, cmpObjId, msId) {
         let cmpRst;
         return cmpTaskDB.findOne({ _id: taskId })
             .then(cmpTask => {
@@ -149,7 +156,7 @@ export default class CmpTaskCtrl {
      *      ascii grid 数据返回 cmpResult-> image里的结构
      *      statistic 返回 hot table 的数据源
      */
-    async getStdResult(cmpTaskId){
+    async getStdResult(cmpTaskId) {
         const stdResult = [];
         return cmpTaskDB.findOne({ _id: cmpTaskId })
             .then(cmpTask => {
@@ -164,36 +171,104 @@ export default class CmpTaskCtrl {
             .catch(Bluebird.reject);
     }
 
-    async start(cmpTaskId){
-        let cmpTask = await cmpTaskDB.findOne({ _id: cmpTaskId });
-        let cmpSln = await cmpSolutionDB.findOne({ _id: cmpTask.solutionId });
-        // start in background
-        Bluebird.map(cmpTask.calcuTaskIds as any[], calcuTaskId => {
-            return new Promise((resolve, reject) => {
-                new ModelServiceCtrl({
-                    afterDataCached: () => {
-                        calcuTaskDB.findOne({ _id: calcuTaskId._id })
-                            .then(resolve)
-                    }
+    async start(cmpTaskId) {
+        try {
+            await cmpTaskDB.update({ _id: cmpTaskId }, {
+                $set: {
+                    state: CmpState.RUNNING
+                }
+            })
+            this.cmpTask = await cmpTaskDB.findOne({ _id: cmpTaskId });
+            this.cmpSln = await cmpSolutionDB.findOne({ _id: this.cmpTask.solutionId });
+            // start in background
+            Bluebird.map(this.cmpTask.calcuTaskIds as any[], calcuTaskId => {
+                return new Promise((resolve, reject) => {
+                    new ModelServiceCtrl({
+                        afterDataCached: ({ code }) => {
+                            if (code === 200)
+                                calcuTaskDB.findOne({ _id: calcuTaskId._id })
+                                    .then(resolve)
+                            else if (code === 500)
+                                resolve(null)
+                        }
+                    })
+                        .invoke(calcuTaskId._id)
+                        .catch(reject)
                 })
-                    .invoke(calcuTaskId._id)
-                    .catch(reject)
-            })
-        }, {
-                concurrency: 10
-            })
-            .then(calcuTasks => {
-                calcuTasks
-            })
+            },
+                {
+                    concurrency: 10
+                }
+            )
+                .then(async v => {
+                    v = v.filter(v => !!v);
+                    this.calcuTasks = v;
+                    await this.updateCmpObjs();
+                    let promises = [];
+                    this.cmpTask.cmpObjs.map((cmpObj, i) => {
+                        cmpObj.methods.map((method, j) => {
+                            promises.push(new Promise((resolve, reject) => {
+                                // TODO 可能会出现并发问题
+                                var cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.cmpTask.schemas, {
+                                    afterCmp: async () => {
+                                        cmpTaskDB.update({
+                                            _id: this.cmpTask._id
+                                        }, {
+                                                $set: {
+                                                    [`cmpObjs.${i}.methods.${j}.result`]: cmpMethod.result
+                                                }
+                                            })
+                                            .then(v => resolve({code: 200}))
+                                            .catch(e => {
+                                                console.log(e);
+                                                resolve({code: 500})
+                                            })
+                                    }
+                                })
+                                cmpMethod.start();
+                            }))
+                        })
+                        Bluebird.all(promises)
+                            .then(rsts => {
+                                let state = rsts.every(v => v.code === 200)? CmpState.FINISHED_SUCCEED: CmpState.FINISHED_FAILED;
+                                cmpTaskDB.update({ _id: this.cmpTask }, {
+                                    $set: {
+                                        state: state
+                                    }
+                                })
+                            })
+                    })
+                })
+                .catch(e => {
+                    console.log(e)
+                })
 
-
-        return Bluebird.resolve({
-            code: 200,
-            desc: 'Start comparison task in background!'
-        });
+            return Bluebird.resolve({
+                code: 200,
+                desc: 'Start comparison task in background!'
+            });
+        }
+        catch (e) {
+            console.log(e)
+        }
     }
 
-    async parseDataRefers(cmpTask){
-
+    private async updateCmpObjs() {
+        this.cmpTask.cmpObjs.map(cmpObj => {
+            cmpObj.dataRefers.map(dataRefer => {
+                let msr = this.calcuTasks.find(msr => msr._id.toHexString() === dataRefer.msrId);
+                if(msr)
+                    for (let key in msr.IO) {
+                        if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
+                            let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
+                            if (event)
+                                dataRefer.value = event.value
+                        }
+                    }
+            })
+        })
+        return cmpTaskDB.update({ _id: this.cmpTask._id }, {
+            $set: this.cmpTask
+        })
     }
 }

@@ -73,9 +73,17 @@ export default class ModelServiceCtrl {
                                 new DataCtrl({
                                     afterDataBatchCached: this.afterDataCached
                                 }).cacheDataBatch(msr._id)
+                            else {
+                                this.afterDataCached({
+                                    code: 500
+                                })
+                            }
                         })
                         .catch(e => {
                             console.log(e);
+                            this.afterDataCached({
+                                code: 500
+                            })
                         });
 
                     return {
@@ -85,6 +93,9 @@ export default class ModelServiceCtrl {
                     };
                 }
                 else {
+                    this.afterDataCached({
+                        code: 500
+                    })
                     return {
                         msrId: msr._id,
                         code: 501,
@@ -94,7 +105,9 @@ export default class ModelServiceCtrl {
 
             }
             else if(CalcuTaskState.FINISHED_SUCCEED === msr.state) {
-                this.afterDataCached()
+                this.afterDataCached({
+                    code: 200
+                })
             }
         }
         catch (e) {

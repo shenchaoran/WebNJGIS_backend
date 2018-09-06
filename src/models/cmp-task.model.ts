@@ -7,7 +7,8 @@ import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import { Enum } from 'typescript-string-enums/dist';
-import { DataRefer } from './cmp-solution.model';
+import { DataRefer, CmpObj } from '.';
+import { UDXSchema } from './UDX-schema.class';
 
 class CmpTaskDB extends Mongoose {
     constructor() {
@@ -20,7 +21,8 @@ class CmpTaskDB extends Mongoose {
             calcuTaskIds: mongoose.Schema.Types.Mixed,
             progress: Number,
             state: String,
-            dataRefers: mongoose.Schema.Types.Mixed
+            cmpObjs: mongoose.Schema.Types.Mixed,
+            schemas: mongoose.Schema.Types.Mixed,
         };
 
         super(collectionName, schema);
@@ -49,17 +51,20 @@ export class CmpTask extends OgmsObj {
         _id: string,
         progress: number
     }[];
-    dataRefers: DataRefer[]
+    cmpObjs: Array<CmpObj>;
+    schemas: UDXSchema[]
 }
 
 export const CmpState = Enum(
-    'INIT',
-    'COULD_START',
+    'INIT',                     // 仅做保存状态
+    'COULD_START',              // 可以启动状态
     'RUNNING',
     'FINISHED_SUCCEED',
     'FINISHED_FAILED'
 )
 export type CmpState = Enum<typeof CmpState>
+
+
 
 export class CmpResult {
     image?: [{

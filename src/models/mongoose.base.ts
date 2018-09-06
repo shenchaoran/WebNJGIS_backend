@@ -190,32 +190,27 @@ export class Mongoose {
                 }
             )
         });
-        // const model = new this.model(item);
-        // return new Promise((resolve, reject) => {
-        //     model.save((err, rst) => {
-        //         if (err) {
-        //             return reject(err);
-        //         } else {
-        //             return resolve(rst._doc);
-        //         }
-        //     });
-        // });
     }
 
-    public insertBatch(docs, options?): Promise<any> {
+    public insertBatch(docs): Promise<any> {
         return new Promise((resolve, reject) => {
             if (!docs || docs.length === 0) {
                 return resolve();
             }
             else {
-                this.model.collection.insert(docs, options, (err, rst) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    else {
-                        return resolve(rst);
-                    }
-                });
+                Promise.map(docs, (doc)=> {
+                    return this.insert(doc)
+                })
+                    .then(resolve)
+                    .catch(reject)
+                // this.model.collection.insert(docs, options, (err, rst) => {
+                //     if (err) {
+                //         return reject(err);
+                //     }
+                //     else {
+                //         return resolve(rst);
+                //     }
+                // });
             }
         });
     }

@@ -15,17 +15,38 @@ import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
 import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
-import * as child_process from 'child_process'
+import * as child_process from 'child_process';
+import * as Papa from 'papaparse';
 let exec = child_process.exec
 
-let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
-let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))
-let write$2 = fs.createWriteStream(path.join(__dirname, './pipe2.js'))
-read$.pipe(write$1)
-read$.pipe(write$2)
-read$.on('end', chunk => {
-    console.log('end')
-})
+let csvPath = path.join(__dirname, '../test/test.csv')
+let csv$ = fs.createReadStream(csvPath, 'utf8')
+// Papa.parse(csv$, {
+//     complete: parsed => {
+//         parsed
+//     }
+// })
+let data = []
+csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
+    header: false,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+}))
+    .on('data', item => {
+        item;
+    })
+    .on('end', () => {
+
+    })
+
+// let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
+// let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))
+// let write$2 = fs.createWriteStream(path.join(__dirname, './pipe2.js'))
+// read$.pipe(write$1)
+// read$.pipe(write$2)
+// read$.on('end', chunk => {
+//     console.log('end')
+// })
 
 // exec('activate base && python ../child-process/test2.py', { 
 //     encoding: 'binary',
