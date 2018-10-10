@@ -39,11 +39,9 @@ router.route('/')
             pageNum: req.query.pageNum
         })
             .then(rst => {
-                res.locals = {
-                    resData: rst,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: rst
+                });
             })
             .catch(next);
     })
@@ -61,14 +59,12 @@ router.route('/')
                     }
                 })
                 .then(startMsg => {
-                    res.locals = {
-                        succeed: true,
-                        resData: {
+                    return res.json({
+                        data: {
                             _id: cmpTaskId,
                             ...startMsg
                         }
-                    };
-                    return next();
+                    });
                 })
                 .catch(next);
         }
@@ -81,11 +77,9 @@ router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
         new CmpTaskCtrl().getTaskDetail(req.params.id)
             .then(doc => {
-                res.locals = {
-                    resData: doc,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: doc
+                });
             })
             .catch(next);
     })
@@ -94,11 +88,11 @@ router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
         new CmpTaskCtrl().start(req.params.id)
             .then(msg => {
-                res.locals = {
-                    succeed: true,
-                    resData: msg
-                };
-                return next()
+                return res.json({
+                    data: {
+                        msg
+                    }
+                })
             })
             .catch(next);
     });
@@ -115,11 +109,9 @@ router.route('/:id/cmpResult')
     .get((req: Request, res: Response, next: NextFunction) => {
         new CmpTaskCtrl().getCmpResult(req.params.id, req.query.cmpObjId, req.query.msId)
             .then(rst => {
-                res.locals = {
-                    succeed: true,
-                    resData: rst
-                };
-                return next();
+                return res.json({
+                    data: rst
+                });
             })
             .catch(next);
     });

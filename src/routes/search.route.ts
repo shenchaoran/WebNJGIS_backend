@@ -14,11 +14,9 @@ router.route('')
     .get((req: Request, res: Response, next: NextFunction) => {
         SearchCtrl.search(req.query)
             .then(rst => {
-                res.locals = {
-                    resData: rst,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: rst
+                });
             })
             .catch(next);
     });

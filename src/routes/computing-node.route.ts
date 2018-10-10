@@ -22,22 +22,21 @@ router.route('/login')
         const nodeName = req.body.nodeName;
         const password = req.body.password;
         if(nodeName === undefined || password === undefined) {
-            res.locals.resData = {
-                succeed: false
-            }
-            res.locals.succeed = true;
-            return next();
+            return res.json({
+                data: {
+                    succeed: false,
+                    error: {}
+                }
+            });
         }
         ComputingNodeCtrl.login({
             nodeName: nodeName,
             password: password
         })
             .then(jwt => {
-                res.locals = {
-                    resData: jwt,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: jwt
+                });
             })
             .catch(next);
     });

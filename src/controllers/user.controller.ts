@@ -8,23 +8,28 @@ import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
 import { userDB, UserClass } from '../models/user.model';
 import * as crypto from 'crypto';
+const Identicon = require('identicon.js');
 const md5 = (v) => {
     return crypto.createHash('md5').update(v, 'utf8').digest('hex');
 };
 
-export const login = (req: Request, res: Response, next: NextFunction) => {
+/**
+ * return   { error: { code, desc } }
+ *          { data: { token, expires, user} }
+ */
+export const signIn = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
     const password = req.body.password;
-    if(username === undefined || password === undefined) {
-        res.locals.resData = {
-            succeed: false
-        }
-                res.locals.succeed = true;
-        return next();
+    if (username === undefined || password === undefined) {
+        return res.json({
+            error: {
+                code: 401,
+                desc: `${!username ? 'username' : 'password'} can\'t be empty`
+            }
+        });
     }
-    userDB.find({ username: username })
+    userDB.findOne({ username: username })
         .then(user => {
-            user = user[0];
             if (user.password === md5(password)) {
                 const expires = moment()
                     .add(7, 'days')
@@ -37,68 +42,102 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
                     setting.jwt_secret
                 );
 
-                user.password = 'u guess!';
-                res.locals.resData = {
-                    succeed: true,
-                    jwt: {
+                user.password = null;
+                return res.json({
+                    data: {
                         token: token,
                         expires: expires,
                         user: user
                     }
-                };
-                                res.locals.succeed = true;
-                return next();
-            } else {
-                res.locals.resData = {
-                    succeed: false
-                }
-                                res.locals.succeed = true;
-                return next();
+                });
+            }
+            else {
+                return res.json({
+                    error: {
+                        code: 401,
+                        desc: 'password error!'
+                    }
+                });
             }
         })
-        .catch(next);
+        .catch(e => {
+            res.json({
+                error: {
+                    code: 401,
+                    desc: 'your username hadn\'t registered before, please registe first!'
+                }
+            })
+        });
 };
 
 export const logout = (req: Request, res: Response, next: NextFunction) => {
-    
+
 };
 
-export const register = (req: Request, res: Response, next: NextFunction) => {
+/**
+ * return   { error: { code, desc }}
+ *          { data: { token, expires, user}}
+ */
+export const signUp = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
-    if(username !== undefined && password !== undefined && email !== undefined) {
+    if (username && password && email) {
         const user = {
             username: username,
-            password: password,
-            email: email
+            password: md5(password),
+            email: email,
+            avator: null
         };
-        userDB.find({username: username})
+        userDB.findOne({ username: username })
             .then(rst => {
-                if(rst.length === 0) {
-                    return userDB.insert(user);
-                }
-                else {
-                    const err = <any>(new Error('username has registered!'));
-                    err.status = 417;
-                    return Promise.reject(err);
-                }
+                return res.json({
+                    error: {
+                        code: 401,
+                        desc: 'Username had be registered!'
+                    }
+                });
             })
-            .then(rst => {
-                res.locals.resData = {
-                    succeed: true
+            .catch(e => {
+                if (e.message === 'No data found!') {
+                    let imgData = new Identicon(md5(user.username), {
+                        size: 45
+                    }).toString();
+                    user.avator = imgData;
+                    return userDB.insert(user)
+                        .then(rst => {
+                            var expires = moment().add(7, 'days').valueOf();
+                            user.password = null;
+                            return res.json({
+                                data: {
+                                    expires: expires,
+                                    token: jwt.encode(
+                                        {
+                                            iss: user.username,
+                                            exp: expires
+                                        },
+                                        setting.jwt_secret
+                                    ),
+                                    user: user
+                                }
+                            });
+                        })
                 }
-                                res.locals.succeed = true;
-                return next();
             })
             .catch(next);
     }
     else {
-        res.locals.resData = {
-            succeed: false
-        }
-                res.locals.succeed = true;
-        return next();
+        return res.json({
+            error: {
+                code: 401,
+                desc: 'please fill in the form completely!'
+            }
+        });
     }
 };
-export const findPst = (req: Request, res: Response, next: NextFunction) => {};
+
+/**
+ * return   { error: {code, desc}}
+ *          { data: {}}
+ */
+export const resetPassword = (req: Request, res: Response, next: NextFunction) => { };

@@ -189,7 +189,7 @@ export default class CmpTaskCtrl {
                                 calcuTaskDB.findOne({ _id: calcuTaskId._id })
                                     .then(resolve)
                             else if (code === 500)
-                                resolve(null)
+                                resolve(undefined)
                         }
                     })
                         .invoke(calcuTaskId._id)
@@ -209,7 +209,7 @@ export default class CmpTaskCtrl {
                         cmpObj.methods.map((method, j) => {
                             promises.push(new Promise((resolve, reject) => {
                                 // TODO 可能会出现并发问题
-                                var cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.cmpTask.schemas, {
+                                let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.cmpTask.schemas, {
                                     afterCmp: async () => {
                                         cmpTaskDB.update({
                                             _id: this.cmpTask._id

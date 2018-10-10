@@ -40,9 +40,9 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                             pageNum: req.query.pageNum
                         })
                         .then(docs => {
-                            res.locals.resData = docs;
-                            res.locals.succeed = true;
-                            return next();
+                            return res.json({
+                                data: docs
+                            });
                         })
                         .catch(next);
                 });
@@ -55,9 +55,9 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                         db
                             .findOne({ _id: req.params.id })
                             .then(doc => {
-                                res.locals.resData = doc;
-                                res.locals.succeed = true;
-                                return next();
+                                return res.json({
+                                    data: doc
+                                });
                             })
                             .catch(next);
                     } else {
@@ -73,9 +73,9 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                         db
                             .insert(req.body.doc)
                             .then(doc => {
-                                res.locals.resData = doc;
-                                                                res.locals.succeed = true;
-                                return next();
+                                return res.json({
+                                    data: doc
+                                });
                             })
                             .catch(next);
                     } else {
@@ -92,9 +92,9 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                             .update({ _id: req.body.id }, req.body.doc)
                             .then((doc) => {
                                 // TODO 此doc非彼doc
-                                res.locals.resData = doc;
-                                                                res.locals.succeed = true;
-                                return next();
+                                return res.json({
+                                    data: doc
+                                });
                             })
                             .catch(next);
                     } else {
@@ -109,9 +109,9 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                     db
                         .remove({ _id: req.params.id })
                         .then((doc) => {
-                            res.locals.resData = doc;
-                            res.locals.succeed = true;
-                            return next();
+                            return res.json({
+                                data: doc
+                            });
                         })
                         .catch(next);
                 });

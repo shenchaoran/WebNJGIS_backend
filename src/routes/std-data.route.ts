@@ -24,11 +24,6 @@ router.route('/docs')
         if(ids) {
             stdDataDB.findDocs(ids)
                 .then(docs => {
-                    // res.locals = {
-                    //     resData: docs,
-                    //     succeed: true
-                    // }
-                    // return next()
                     return res.json({
                         data: docs,
                         status: {

@@ -63,6 +63,7 @@
         "formidable": "^1.1.1",
         "geojson": "^0.5.0",
         "iconv-lite": "^0.4.23",
+        "identicon.js": "^2.3.3",
         "jwt-simple": "^0.5.1",
         "lodash": "^4.17.4",
         "lusca": "^1.6.1",

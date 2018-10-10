@@ -7,7 +7,8 @@ class UserDB extends Mongoose {
         const schema = {
             username: String,
             password: String,
-            email: String
+            email: String,
+            avator: String
         };
 
         super(collectionName, schema);
@@ -21,4 +22,5 @@ export class UserClass {
     username: string;
     password: string;
     email?: string;
+    avator: string;
 }

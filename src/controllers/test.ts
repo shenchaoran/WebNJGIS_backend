@@ -17,27 +17,31 @@ import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
-let exec = child_process.exec
+let exec = child_process.exec;
 
-let csvPath = path.join(__dirname, '../test/test.csv')
-let csv$ = fs.createReadStream(csvPath, 'utf8')
+geoDataDB.find({a: 1})
+    .then(console.log.bind(null, '1'))
+    .catch(console.error);
+
+// let csvPath = path.join(__dirname, '../test/test.csv')
+// let csv$ = fs.createReadStream(csvPath, 'utf8')
 // Papa.parse(csv$, {
 //     complete: parsed => {
 //         parsed
 //     }
 // })
-let data = []
-csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
-    header: false,
-    dynamicTyping: true,
-    skipEmptyLines: true,
-}))
-    .on('data', item => {
-        item;
-    })
-    .on('end', () => {
+// let data = []
+// csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
+//     header: false,
+//     dynamicTyping: true,
+//     skipEmptyLines: true,
+// }))
+//     .on('data', item => {
+//         item;
+//     })
+//     .on('end', () => {
 
-    })
+//     })
 
 // let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
 // let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))

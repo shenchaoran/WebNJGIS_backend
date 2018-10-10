@@ -26,11 +26,9 @@ router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
         CmpSolutionCtrl.getSlnDetail(req.params.id)
             .then(rst => {
-                res.locals = {
-                    resData: rst,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: rst
+                });
             })
             .catch(next);
     });

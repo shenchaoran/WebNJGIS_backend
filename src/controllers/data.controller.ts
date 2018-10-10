@@ -26,7 +26,7 @@ export default class DataCtrl {
 	 * 条目保存到数据库，文件移动到upload/geo-data中
 	 * 如果数据为zip则解压
 	 */
-    async insert(req: Request, res: Response, next: NextFunction){
+    async insert(req: Request, res: Response, next: NextFunction) {
         const form = new formidable.IncomingForm();
         form.encoding = 'utf-8';
         form.uploadDir = setting.geo_data.path;
@@ -86,10 +86,9 @@ export default class DataCtrl {
                                         geoDataDB
                                             .insert(newItem)
                                             .then(doc => {
-                                                // console.log(doc);
-                                                res.locals.resData = doc;
-                                                res.locals.succeed = true;
-                                                return next();
+                                                return res.json({
+                                                    data: doc
+                                                });
                                             })
                                             .catch(next);
                                     });
@@ -114,10 +113,9 @@ export default class DataCtrl {
                                 udxcfg: undefined
                             })
                             .then(doc => {
-                                // console.log(doc);
-                                res.locals.resData = doc;
-                                res.locals.succeed = true;
-                                return next();
+                                return res.json({
+                                    data: doc
+                                });
                             })
                             .catch(next);
                     }
@@ -126,7 +124,7 @@ export default class DataCtrl {
         });
     };
 
-    async download(id: string){
+    async download(id: string) {
         return geoDataDB.findOne({
             _id: id
         })
@@ -149,9 +147,9 @@ export default class DataCtrl {
             .catch(Bluebird.reject);
     };
 
-    async visualization(req: Request, res: Response, next: NextFunction){ };
+    async visualization(req: Request, res: Response, next: NextFunction) { };
 
-    async parseUDXCfg(cfgPath: string){
+    async parseUDXCfg(cfgPath: string) {
         const folderPath = cfgPath.substring(0, cfgPath.lastIndexOf('index.json'));
         return new Bluebird((resolve, reject) => {
             fs.readFile(cfgPath, (err, dataBuf) => {
@@ -268,7 +266,7 @@ export default class DataCtrl {
             return new Promise((resolve, reject) => {
                 new DataCtrl({
                     afterDataCached: ({code}) => {
-                        if(code === 500){
+                        if(code === 500) {
                             console.log('cache data failed: ', toPull)
                             resolve({code})
                         }

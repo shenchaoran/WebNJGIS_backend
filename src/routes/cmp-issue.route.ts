@@ -20,27 +20,27 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        if(req.query.pageSize === undefined) {
+        if (req.query.pageSize === undefined) {
             req.query.pageSize = 25;
         }
         else {
             req.query.pageSize = parseInt(req.query.pageSize);
         }
-        if(req.query.pageNum === undefined) {
+        if (req.query.pageNum === undefined) {
             req.query.pageNum = 1;
         }
         else {
             req.query.pageNum = parseInt(req.query.pageNum);
         }
-        
+
         CmpIssueCtrl.findByPage({
             pageSize: req.query.pageSize,
             pageNum: req.query.pageNum
         })
             .then(rst => {
-                res.locals.resData = rst;
-                                res.locals.succeed = true;
-                return next();
+                return res.json({
+                    data: rst
+                });
             })
             .catch(next);
     });
@@ -49,14 +49,12 @@ router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
         CmpIssueCtrl.getIssueDetail(req.params.id)
             .then(rst => {
-                res.locals = {
-                    resData: rst,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: rst
+                });
             })
             .catch(next);
     });
 
-    
-     RouterExtends(router, db, defaultRoutes);
+
+RouterExtends(router, db, defaultRoutes);

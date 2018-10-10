@@ -25,11 +25,9 @@ router.route('/matched')
         if(req.query.schemaType) {
             cmpMethodCtrl.findAllMatched(req.query.schemaType)
                 .then(rst => {
-                    res.locals = {
-                        succeed: true,
-                        resData: rst
-                    };
-                    return next();
+                    return res.json({
+                        data: rst
+                    });
                 })
         }
         else {

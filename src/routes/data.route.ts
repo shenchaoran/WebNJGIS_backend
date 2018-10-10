@@ -64,11 +64,9 @@ router.route('/:id/property')
     .get((req: Request, res: Response, next: NextFunction) => {
         UDXPropParser.parse(req.params.id)
             .then(prop => {
-                res.locals = {
-                    resData: prop,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: prop
+                });
             })
             .catch(next);
     });
@@ -77,11 +75,9 @@ router.route('/:id/show')
     .get((req: Request, res: Response, next: NextFunction) => {
         UDXVisualParser.parse(req.params.id)
             .then(visual => {
-                res.locals = {
-                    resData: visual,
-                    succeed: true
-                };
-                return next();
+                return res.json({
+                    data: visual
+                });
             })
             .catch(next);
     });

@@ -27,11 +27,9 @@ router.route('/invoke')
         if (msInstance) {
             new ModelServiceCtrl().invoke(msInstance)
                 .then(msg => {
-                    res.locals = {
-                        resData: msg,
-                        succeed: true
-                    }
-                    return next();
+                    return res.json({
+                        data: msg
+                    });
                 })
                 .catch(e => {
                     console.log(e);

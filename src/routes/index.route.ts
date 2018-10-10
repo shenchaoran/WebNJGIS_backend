@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 const express = require('express');
-const LoginRouter = require('./login.route');
+const UserRouter = require('./user.route');
 const DataRouter = require('./data.route');
 const ModelToolsRouter = require('./model-tools.route');
 const VisualizationRouter = require('./visualization.route');
@@ -17,7 +17,7 @@ const CmpMethodRouter = require('./cmp-methods.route');
 export const router = express.Router();
 
 
-router.use('/auth', LoginRouter);
+router.use('/user', UserRouter);
 router.use('/search', SearchRouter);
 router.use('/data', DataRouter);
 router.use('/model-tools', ModelToolsRouter);

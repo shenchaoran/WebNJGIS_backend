@@ -11,12 +11,12 @@ import { userAuthMid } from '../middlewares/user-auth.middleware';
 userAuthMid(router);
 // endregion
 
-router.route('/login').post(UserCtrl.login);
+router.route('/sign-in').post(UserCtrl.signIn);
 
-router.route('/register').post(UserCtrl.register);
+router.route('/sign-up').post(UserCtrl.signUp);
 
 router.route('/logout').post(UserCtrl.logout);
 
-router.route('/find-psw').post(UserCtrl.findPst);
+router.route('/password-reset').post(UserCtrl.resetPassword);
 
 //  RouterExtends(router, db, defaultRoutes);
