@@ -6,7 +6,6 @@ const ModelToolsRouter = require('./model-tools.route');
 const VisualizationRouter = require('./visualization.route');
 const CmpSolutionRouter = require('./cmp-solution.route');
 const CmpTaskRouter = require('./cmp-task.route');
-const CmpSceneRouter = require('./cmp-scene.route');
 const NodeRouter = require('./computing-node.route');
 const CmpIssueRouter = require('./cmp-issue.route');
 const SearchRouter = require('./search.route');

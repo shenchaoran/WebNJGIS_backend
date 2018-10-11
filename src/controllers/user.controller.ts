@@ -106,7 +106,7 @@ export const signUp = (req: Request, res: Response, next: NextFunction) => {
                     user.avator = imgData;
                     return userDB.insert(user)
                         .then(rst => {
-                            var expires = moment().add(7, 'days').valueOf();
+                            let expires = moment().add(7, 'days').valueOf();
                             user.password = null;
                             return res.json({
                                 data: {

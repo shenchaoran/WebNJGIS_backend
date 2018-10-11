@@ -30,7 +30,7 @@
             }
         ],
         "no-internal-module": true,
-        "no-null-keyword": true,
+        "no-null-keyword": false,
         "prefer-const": false,
         "jsdoc-format": true
     }

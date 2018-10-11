@@ -2,10 +2,7 @@ import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
 import * as _ from 'lodash';
 import { ObjectID } from 'mongodb';
-
 import { setting } from '../config/setting';
-const debug = require('debug');
-const mongooseDebug = debug('WebNJGIS: Mongoose');
 
 mongoose.Promise = require('bluebird');
 const url =
@@ -21,15 +18,15 @@ mongoose.connect(url, {
 });
 
 mongoose.connection.on('connected', () => {
-    mongooseDebug('Mongoose connected');
+    console.log('******** Mongoose connected')
 });
 
 mongoose.connection.on('error', (err: any) => {
-    mongooseDebug('Mongoose err\n' + err);
+    console.log('******** Mongoose error', err)
 });
 
 mongoose.connection.on('disconnected', () => {
-    mongooseDebug('Mongoose disconnected');
+    console.log('******** Mongoose disconnected')
 });
 
 export class Mongoose {
@@ -161,7 +158,7 @@ export class Mongoose {
 
     public insert(item): Promise<any> {
         let queryId
-        if(item._id) {
+        if (item._id) {
             queryId = item._id;
         }
         else {
@@ -177,12 +174,12 @@ export class Mongoose {
                 {
                     upsert: true
                 },
-                (err, doc)=> {
-                    if(err) {
+                (err, doc) => {
+                    if (err) {
                         reject(err)
                     }
                     else {
-                        if(doc)
+                        if (doc)
                             resolve(doc._doc)
                         else
                             resolve(item)
@@ -198,7 +195,7 @@ export class Mongoose {
                 return resolve();
             }
             else {
-                Promise.map(docs, (doc)=> {
+                Promise.map(docs, (doc) => {
                     return this.insert(doc)
                 })
                     .then(resolve)

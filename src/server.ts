@@ -1,31 +1,12 @@
-// process.env.DEBUG='WebNJGIS:*'
-// process.env.DEBUG_COLORS=5 
-// process.env.DEBUG_HIDE_DATE=true 
-// process.env.DEBUG_FD=1
-// inlet
 const express = require('express');
 const app = express();
-const path = require('path');
-const util = require('util');
 const http = require('http');
 import * as _ from 'lodash';
-import { Response, Request, NextFunction } from 'express';
-//////////////////////////////////////use for debug
-const debug = require('debug');
-const serverDebug = debug('WebNJGIS: Server');
-const initDebug = debug('WebNJGIS: Init');
-
 import { setting } from './config/setting';
 import { router } from './routes/index.route';
 import { preReqMid, postResMid } from './middlewares';
 import { init } from './init';
 
-const port = setting.port;
-
-//////////////////////////////////////test
-
-//////////////////////////////////////init operation
-//TODO 创建文件夹 upload/geo-data
 init()
     .then(() => {
         //////////////////////////////////////router
@@ -67,15 +48,13 @@ init()
         });
         server.on('listening', () => {
             const addr = server.address();
-            const bind =
-                typeof addr === 'string'
-                    ? 'Pipe: ' + addr
-                    : 'Port: ' + addr.port;
-            serverDebug(bind);
+            const bind =typeof addr === 'string' ? 'Pipe: ' + addr : 'Port: ' + addr.port;
+            console.log(`******** start server succeed`);
+            console.log(`******** ${bind}`);
         });
     })
     .catch(err => {
-        initDebug(err);
+        console.error(err)
     });
 
 module.exports = app;
