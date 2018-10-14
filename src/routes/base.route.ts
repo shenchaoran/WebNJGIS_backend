@@ -27,17 +27,17 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                     else {
                         req.query.pageSize = parseInt(req.query.pageSize);
                     }
-                    if (req.query.pageNum === undefined) {
-                        req.query.pageNum = 1;
+                    if (req.query.pageIndex === undefined) {
+                        req.query.pageIndex = 1;
                     }
                     else {
-                        req.query.pageNum = parseInt(req.query.pageNum);
+                        req.query.pageIndex = parseInt(req.query.pageIndex);
                     }
 
                     db
                         .findByPage({}, {
                             pageSize: req.query.pageSize,
-                            pageNum: req.query.pageNum
+                            pageIndex: req.query.pageIndex
                         })
                         .then(docs => {
                             return res.json({

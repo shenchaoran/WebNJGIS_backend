@@ -23,9 +23,22 @@ export class Conversation {
     // 收藏
     love_uids: string[];
     tags: (string | 'TOP' | 'HOT')[];
-    comments: Comment[];
+    comments: (string | Comment)[];
     participants: string[];
 }
+
+class CommentDB extends Mongoose {
+    constructor() {
+        const collectionName = 'Comment';
+        const schema = {
+            
+        };
+
+        super(collectionName, schema);
+    }
+}
+
+export const commentDB = new CommentDB();
 
 export class Comment {
     _id?: any;
@@ -41,7 +54,7 @@ export class Comment {
     // @ 的用户
     notified_uids?: string[];
     cid: string;
-    type: 'MAIN' | 'REPLY' | 'HIDE';
+    type: CommentType;
     hideReason?: string;
     // emoji react
     reactions?: {
@@ -49,3 +62,9 @@ export class Comment {
         count: number
     }[];
 }
+
+export enum CommentType {
+    MAIN = 'MAIN',
+    REPLY = 'REPLY',
+    HIDE = 'HIDE'
+};

@@ -103,7 +103,7 @@ export const postByPipe = (req: Request, url: string) => {
 };
 
 /**
- * return response(stream)
+ * @returnresponse(stream)
  * 
  * 从远程请求文件，将文件写到本地，并将响应流返回到前台
  * fn 是写完文件后执行的函数，不是回调

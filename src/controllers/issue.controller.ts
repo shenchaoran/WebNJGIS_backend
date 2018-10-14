@@ -15,11 +15,11 @@ export default class Issue {
 
     static findByPage(pageOpt: {
         pageSize: number,
-        pageNum: number
+        pageIndex: number
     }): Promise<any> {
         return db.findByPage({}, {
             pageSize: pageOpt.pageSize,
-            pageNum: pageOpt.pageNum
+            pageIndex: pageOpt.pageIndex
         })
             .then(rst => {
                 _.map(rst.docs, Issue.reduceDoc);

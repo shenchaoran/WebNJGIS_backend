@@ -96,7 +96,7 @@ export class Mongoose {
 
     /**
      * 分页查询
-     * return 
+     * @return
      *      {
      *          count: number,
      *          docs: any[]
@@ -104,7 +104,7 @@ export class Mongoose {
      */
     public findByPage(where, pageOpt: {
         pageSize: number,
-        pageNum: number
+        pageIndex: number
     }): Promise<any> {
         return Promise.all([
             new Promise((resolve, reject) => {
@@ -123,7 +123,7 @@ export class Mongoose {
                     .find(where)
                     .sort({ _id: -1 })
                     .limit(pageOpt.pageSize)
-                    .skip(pageOpt.pageSize * (pageOpt.pageNum - 1))
+                    .skip(pageOpt.pageSize * (pageOpt.pageIndex - 1))
                     .exec((err, docs) => {
                         if (err) {
                             return reject(err);
