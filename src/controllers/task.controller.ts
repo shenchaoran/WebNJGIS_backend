@@ -10,22 +10,21 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
 import * as CalcuTaskCtrl from './calcu-task.controller';
-import ModelServiceCtrl from './model-tools.controller';
+import ModelServiceCtrl from './model-service.controller';
 import { CmpMethodFactory } from './cmp-methods';
 import {
-    cmpTaskDB,
-    cmpSolutionDB,
-    cmpIssueDB,
+    taskDB,
+    solutionDB,
+    issueDB,
     calcuTaskDB,
     CalcuTask,
     CalcuTaskState,
     SchemaName,
-    CmpMethodEnum,
     CmpState,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 
-const db = cmpTaskDB;
+const db = taskDB;
 
 export default class CmpTaskCtrl {
     cmpTask;
@@ -33,7 +32,7 @@ export default class CmpTaskCtrl {
     calcuTasks;
     constructor() { }
     async insert(doc: any) {
-        return cmpTaskDB
+        return taskDB
             .insert(doc)
             .then(_doc => {
                 return Bluebird.resolve(_doc._id);
@@ -95,9 +94,9 @@ export default class CmpTaskCtrl {
         // }
         // return Bluebird.all([
         //     doc.issueId ?
-        //         cmpIssueDB.findOne({ _id: doc.issueId }) : undefined,
+        //         issueDB.findOne({ _id: doc.issueId }) : undefined,
         //     doc.solutionId ?
-        //         cmpSolutionDB.findOne({ _id: doc.solutionId }) : undefined,
+        //         solutionDB.findOne({ _id: doc.solutionId }) : undefined,
         //     calcuTaskPromise ?
         //         calcuTaskPromise : undefined
         // ])
@@ -108,7 +107,7 @@ export default class CmpTaskCtrl {
         //         return Bluebird.resolve(doc);
         //     })
         //     .catch(Bluebird.reject);
-        let cmpSln = await cmpSolutionDB.findOne({ _id: doc.solutionId });
+        let cmpSln = await solutionDB.findOne({ _id: doc.solutionId });
         doc.participants = cmpSln.participants;
         return doc;
     }
@@ -119,7 +118,7 @@ export default class CmpTaskCtrl {
      */
     async getCmpResult(taskId, cmpObjId, msId) {
         let cmpRst;
-        return cmpTaskDB.findOne({ _id: taskId })
+        return taskDB.findOne({ _id: taskId })
             .then(cmpTask => {
                 _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
                     if (cmpObj.id === cmpObjId) {
@@ -158,7 +157,7 @@ export default class CmpTaskCtrl {
      */
     async getStdResult(cmpTaskId) {
         const stdResult = [];
-        return cmpTaskDB.findOne({ _id: cmpTaskId })
+        return taskDB.findOne({ _id: cmpTaskId })
             .then(cmpTask => {
                 // TODO
                 _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
@@ -173,13 +172,13 @@ export default class CmpTaskCtrl {
 
     async start(cmpTaskId) {
         try {
-            await cmpTaskDB.update({ _id: cmpTaskId }, {
+            await taskDB.update({ _id: cmpTaskId }, {
                 $set: {
                     state: CmpState.RUNNING
                 }
             })
-            this.cmpTask = await cmpTaskDB.findOne({ _id: cmpTaskId });
-            this.cmpSln = await cmpSolutionDB.findOne({ _id: this.cmpTask.solutionId });
+            this.cmpTask = await taskDB.findOne({ _id: cmpTaskId });
+            this.cmpSln = await solutionDB.findOne({ _id: this.cmpTask.solutionId });
             // start in background
             Bluebird.map(this.cmpTask.calcuTaskIds as any[], calcuTaskId => {
                 return new Promise((resolve, reject) => {
@@ -211,7 +210,7 @@ export default class CmpTaskCtrl {
                                 // TODO 可能会出现并发问题
                                 let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.cmpTask.schemas, {
                                     afterCmp: async () => {
-                                        cmpTaskDB.update({
+                                        taskDB.update({
                                             _id: this.cmpTask._id
                                         }, {
                                                 $set: {
@@ -231,7 +230,7 @@ export default class CmpTaskCtrl {
                         Bluebird.all(promises)
                             .then(rsts => {
                                 let state = rsts.every(v => v.code === 200)? CmpState.FINISHED_SUCCEED: CmpState.FINISHED_FAILED;
-                                cmpTaskDB.update({ _id: this.cmpTask }, {
+                                taskDB.update({ _id: this.cmpTask }, {
                                     $set: {
                                         state: state
                                     }
@@ -267,7 +266,7 @@ export default class CmpTaskCtrl {
                     }
             })
         })
-        return cmpTaskDB.update({ _id: this.cmpTask._id }, {
+        return taskDB.update({ _id: this.cmpTask._id }, {
             $set: this.cmpTask
         })
     }

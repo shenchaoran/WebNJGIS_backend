@@ -5,8 +5,8 @@ import DataCtrl from '../controllers/data.controller';
 import * as UDXPropParser from '../controllers/UDX.property.controller';
 import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
 const express = require('express');
-import { geoDataDB } from '../models';
-const db = geoDataDB;
+import { geoDataDB as db } from '../models';
+
 const defaultRoutes = [
     'findAll',
     'remove'

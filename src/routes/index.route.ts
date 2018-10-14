@@ -2,16 +2,17 @@ import { Response, Request, NextFunction } from "express";
 const express = require('express');
 const UserRouter = require('./user.route');
 const DataRouter = require('./data.route');
-const ModelToolsRouter = require('./model-tools.route');
+const ModelToolsRouter = require('./model-service.route');
 const VisualizationRouter = require('./visualization.route');
-const CmpSolutionRouter = require('./cmp-solution.route');
-const CmpTaskRouter = require('./cmp-task.route');
+const CmpSolutionRouter = require('./solution.route');
+const CmpTaskRouter = require('./task.route');
 const NodeRouter = require('./computing-node.route');
-const CmpIssueRouter = require('./cmp-issue.route');
+const CmpIssueRouter = require('./issue.route');
 const SearchRouter = require('./search.route');
 const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
 const CmpMethodRouter = require('./cmp-methods.route');
+const ConversationRouter = require('./conversation.route');
 
 export const router = express.Router();
 
@@ -19,7 +20,7 @@ export const router = express.Router();
 router.use('/user', UserRouter);
 router.use('/search', SearchRouter);
 router.use('/data', DataRouter);
-router.use('/model-tools', ModelToolsRouter);
+router.use('/model-service', ModelToolsRouter);
 router.use('/visualization', VisualizationRouter);
 router.use('/comparison/methods', CmpMethodRouter);
 router.use('/comparison/issues', CmpIssueRouter);
@@ -28,6 +29,7 @@ router.use('/comparison/tasks', CmpTaskRouter);
 router.use('/nodes', NodeRouter);
 router.use('/calculation', CalcuRouter);
 router.use('/std-data', STDDataRouter);
+router.use('/conversations', ConversationRouter);
 
 router.route('/')
     .get((req, res, next) => {

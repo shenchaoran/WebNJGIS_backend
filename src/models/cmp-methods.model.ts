@@ -30,3 +30,15 @@ export class CmpMethod {
     };
     md: string;
 }
+
+export enum CmpMethodEnum {
+    TABLE_CHART,
+    TABLE_STATISTIC,
+    SHAPEFILE_VISUALIZATION,
+    SHAPEFILE_STATISTIC,
+    SHAPEFILE_INTERPOLATION,
+    ASCII_GRID_VISUALIZATION,
+    ASCII_GRID_STATISTIC,
+    ASCII_GRID_BATCH_VISUALIZATION,
+    GIF
+  }

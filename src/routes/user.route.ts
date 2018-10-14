@@ -1,5 +1,3 @@
-import { Response, Request, NextFunction } from 'express';
-
 const express = require('express');
 import * as UserCtrl from '../controllers/user.controller';
 

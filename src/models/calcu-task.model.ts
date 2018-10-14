@@ -6,7 +6,6 @@
 import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { ObjectID } from 'mongodb';
 import * as _ from 'lodash';
 import { Event } from './model-service.model';
 import { Enum } from 'typescript-string-enums/dist';

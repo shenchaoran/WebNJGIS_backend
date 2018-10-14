@@ -1,10 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 import { RouterExtends } from './base.route';
 const express = require('express');
-import CmpTaskCtrl from '../controllers/cmp-task.controller';
+import CmpTaskCtrl from '../controllers/task.controller';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
-import { cmpTaskDB, CmpState } from '../models';
-const db = cmpTaskDB;
+import { taskDB as db, CmpState } from '../models';
 
 const defaultRoutes = [
     'remove',
@@ -27,16 +26,16 @@ router.route('/')
         else {
             req.query.pageSize = parseInt(req.query.pageSize);
         }
-        if(req.query.pageNum === undefined) {
-            req.query.pageNum = 1;
+        if(req.query.pageIndex === undefined) {
+            req.query.pageIndex = 1;
         }
         else {
-            req.query.pageNum = parseInt(req.query.pageNum);
+            req.query.pageIndex = parseInt(req.query.pageIndex);
         }
 
         new CmpTaskCtrl().findByPage({
             pageSize: req.query.pageSize,
-            pageNum: req.query.pageNum
+            pageIndex: req.query.pageIndex
         })
             .then(rst => {
                 return res.json({
@@ -98,7 +97,7 @@ router.route('/:id/start')
     });
 
 /**
- * return {
+ * @return{
  *  cmpObjId: cmpObj.id,
  *  msId: dataRefer.msId,
  *  done: true,

@@ -3,13 +3,15 @@
  * 
  */
 
-import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
+import {
+    Mongoose,
+    Conversation,
+    CmpObj,
+    ResourceSrc
+} from '.';
 
-import { CmpObj } from './cmp-solution.model';
-import { ResourceSrc } from './resource.enum';
-
-class CmpIssueDB extends Mongoose {
+class IssueDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpIssue';
         const schema = {
@@ -18,16 +20,17 @@ class CmpIssueDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             spatial: mongoose.Schema.Types.Mixed,
             temporal: mongoose.Schema.Types.Mixed,
-            solutionIds: mongoose.Schema.Types.Mixed
+            solutionIds: mongoose.Schema.Types.Mixed,
+            cid: String
         };
 
         super(collectionName, schema);
     }
 }
 
-export const cmpIssueDB = new CmpIssueDB();
+export const issueDB = new IssueDB();
 
-export class CmpIssue {
+export class Issue {
     _id?: any;
     meta: {
         name: string,
@@ -48,5 +51,6 @@ export class CmpIssue {
         end: number;
         scale: 'YEAR' | 'DAY';
     };
-    solutionIds: string[]
+    solutionIds: string[];
+    cid: string[];
 }

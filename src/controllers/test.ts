@@ -7,7 +7,7 @@ const fs = Promise.promisifyAll(require('fs'));
 import * as unzip from 'unzip';
 import { Buffer } from 'buffer';
 import * as _ from 'lodash';
-import { cmpSolutionDB } from '../models/cmp-solution.model';
+import { solutionDB } from '../models/solution.model';
 import * as UDXCtrl from './UDX.visualization.controller';
 import { geoDataDB } from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
@@ -241,7 +241,7 @@ geoDataDB.find({a: 1})
 //             cfg: new Date().getTime()
 //         });
 //     }
-//     // Promise.map(data, cmpSolutionDB.insert, {concurrency: 5000})
+//     // Promise.map(data, solutionDB.insert, {concurrency: 5000})
 //     //     .then(rsts => {
 //     //         console.log(rsts);
 //     //     })

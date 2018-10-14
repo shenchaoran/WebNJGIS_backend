@@ -1,10 +1,9 @@
 import { Response, Request, NextFunction } from "express";
 const express = require('express');
 import { RouterExtends } from './base.route';
-import { calcuTaskDB } from '../models/calcu-task.model';
+import { calcuTaskDB as db } from '../models/calcu-task.model';
 import * as CalcuCtrl from '../controllers/calcu-task.controller';
 
-const db = calcuTaskDB;
 const defaultRoutes = [
     'findAll',
     'find',

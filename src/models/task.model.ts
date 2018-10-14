@@ -10,7 +10,7 @@ import { Enum } from 'typescript-string-enums/dist';
 import { DataRefer, CmpObj } from '.';
 import { UDXSchema } from './UDX-schema.class';
 
-class CmpTaskDB extends Mongoose {
+class TaskDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpTask';
         const schema = {
@@ -23,15 +23,16 @@ class CmpTaskDB extends Mongoose {
             state: String,
             cmpObjs: mongoose.Schema.Types.Mixed,
             schemas: mongoose.Schema.Types.Mixed,
+            cid: String,
         };
 
         super(collectionName, schema);
     }
 }
 
-export const cmpTaskDB = new CmpTaskDB();
+export const taskDB = new TaskDB();
 
-export class CmpTask extends OgmsObj {
+export class Task extends OgmsObj {
     _id?: any;
     meta: {
         name: string,
@@ -52,7 +53,8 @@ export class CmpTask extends OgmsObj {
         progress: number
     }[];
     cmpObjs: Array<CmpObj>;
-    schemas: UDXSchema[]
+    schemas: UDXSchema[];
+    cid: string;
 }
 
 export const CmpState = Enum(
@@ -63,8 +65,6 @@ export const CmpState = Enum(
     'FINISHED_FAILED'
 )
 export type CmpState = Enum<typeof CmpState>
-
-
 
 export class CmpResult {
     image?: [{

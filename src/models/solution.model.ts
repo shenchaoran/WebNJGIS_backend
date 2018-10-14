@@ -6,28 +6,29 @@ import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
 
 import { ResourceSrc } from './resource.enum';
-import { CmpResult } from './cmp-task.model';
+import { CmpResult } from './task.model';
 import * as _ from 'lodash';
 
-class CmpSolutionDB extends Mongoose {
+class SolutionDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpSolution';
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             issueId: String,
-            // taskIds: mongoose.Schema.Types.Mixed,
+            taskIds: mongoose.Schema.Types.Mixed,
             participants: mongoose.Schema.Types.Mixed,
-            cmpObjs: mongoose.Schema.Types.Mixed
+            cmpObjs: mongoose.Schema.Types.Mixed,
+            cid: String
         };
 
         super(collectionName, schema);
     }
 }
 
-export const cmpSolutionDB = new CmpSolutionDB();
+export const solutionDB = new SolutionDB();
 
-export class CmpSolution {
+export class Solution {
     _id?: any;
     meta: {
         name: string,
@@ -43,6 +44,7 @@ export class CmpSolution {
     // taskIds?: string[];
     participants: string[];
     cmpObjs: Array<CmpObj>;
+    cid: string;
 }
 
 

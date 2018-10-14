@@ -1,6 +1,6 @@
-import { cmpTaskDB } from '../models';
+import { taskDB } from '../models';
 
-cmpTaskDB.insert({
+taskDB.insert({
     meta: {
         name: 'tes'
     }

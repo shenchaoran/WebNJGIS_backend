@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 
 import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
-import { userDB, UserClass } from '../models/user.model';
+import { userDB, User } from '../models/user.model';
 import * as crypto from 'crypto';
 const Identicon = require('identicon.js');
 const md5 = (v) => {
@@ -14,7 +14,7 @@ const md5 = (v) => {
 };
 
 /**
- * return   { error: { code, desc } }
+ * @return  { error: { code, desc } }
  *          { data: { token, expires, user} }
  */
 export const signIn = (req: Request, res: Response, next: NextFunction) => {
@@ -75,7 +75,7 @@ export const logout = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * return   { error: { code, desc }}
+ * @return  { error: { code, desc }}
  *          { data: { token, expires, user}}
  */
 export const signUp = (req: Request, res: Response, next: NextFunction) => {
@@ -137,7 +137,7 @@ export const signUp = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * return   { error: {code, desc}}
+ * @return  { error: {code, desc}}
  *          { data: {}}
  */
 export const resetPassword = (req: Request, res: Response, next: NextFunction) => { };

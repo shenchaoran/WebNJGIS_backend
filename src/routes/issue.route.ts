@@ -1,9 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import CmpIssueCtrl from '../controllers/cmp-issue.controller';
-import { cmpIssueDB } from '../models';
-const db = cmpIssueDB;
+import CmpIssueCtrl from '../controllers/issue.controller';
+import { issueDB as db } from '../models';
 
 const defaultRoutes = [
     'insert',
@@ -26,16 +25,16 @@ router.route('/')
         else {
             req.query.pageSize = parseInt(req.query.pageSize);
         }
-        if (req.query.pageNum === undefined) {
-            req.query.pageNum = 1;
+        if (req.query.pageIndex === undefined) {
+            req.query.pageIndex = 1;
         }
         else {
-            req.query.pageNum = parseInt(req.query.pageNum);
+            req.query.pageIndex = parseInt(req.query.pageIndex);
         }
 
         CmpIssueCtrl.findByPage({
             pageSize: req.query.pageSize,
-            pageNum: req.query.pageNum
+            pageIndex: req.query.pageIndex
         })
             .then(rst => {
                 return res.json({
