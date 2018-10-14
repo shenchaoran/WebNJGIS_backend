@@ -1,9 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import { cmpMethodDB } from '../models';
+import { cmpMethodDB as db } from '../models';
 import CmpMethodCtrl from '../controllers/cmp-methods.controller';
-const db = cmpMethodDB;
+
 const cmpMethodCtrl = new CmpMethodCtrl();
 
 const defaultRoutes = [

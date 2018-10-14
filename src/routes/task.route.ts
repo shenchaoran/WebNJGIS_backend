@@ -3,8 +3,7 @@ import { RouterExtends } from './base.route';
 const express = require('express');
 import CmpTaskCtrl from '../controllers/task.controller';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
-import { taskDB, CmpState } from '../models';
-const db = taskDB;
+import { taskDB as db, CmpState } from '../models';
 
 const defaultRoutes = [
     'remove',

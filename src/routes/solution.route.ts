@@ -2,8 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
 import * as CmpSolutionCtrl from '../controllers/solution.controller';
-import { solutionDB } from '../models/solution.model';
-const db = solutionDB;
+import { solutionDB as db } from '../models/solution.model';
 
 const defaultRoutes = [
     'findAll',

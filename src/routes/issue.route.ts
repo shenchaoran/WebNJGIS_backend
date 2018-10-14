@@ -2,8 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
 import CmpIssueCtrl from '../controllers/issue.controller';
-import { issueDB } from '../models';
-const db = issueDB;
+import { issueDB as db } from '../models';
 
 const defaultRoutes = [
     'insert',

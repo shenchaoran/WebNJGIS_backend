@@ -15,3 +15,4 @@ export * from './issue.model';
 export * from './std-data.model';
 export * from './site.model';
 export * from './cmp-methods.model';
+export * from './conversation.model';

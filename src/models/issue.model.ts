@@ -3,11 +3,13 @@
  * 
  */
 
-import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
-
-import { CmpObj } from './solution.model';
-import { ResourceSrc } from './resource.enum';
+import {
+    Mongoose,
+    Conversation,
+    CmpObj,
+    ResourceSrc
+} from '.';
 
 class IssueDB extends Mongoose {
     constructor() {
@@ -18,7 +20,8 @@ class IssueDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             spatial: mongoose.Schema.Types.Mixed,
             temporal: mongoose.Schema.Types.Mixed,
-            solutionIds: mongoose.Schema.Types.Mixed
+            solutionIds: mongoose.Schema.Types.Mixed,
+            cid: String
         };
 
         super(collectionName, schema);
@@ -48,5 +51,6 @@ export class Issue {
         end: number;
         scale: 'YEAR' | 'DAY';
     };
-    solutionIds: string[]
+    solutionIds: string[];
+    cid: string[];
 }

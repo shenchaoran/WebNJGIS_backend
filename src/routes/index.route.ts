@@ -12,6 +12,7 @@ const SearchRouter = require('./search.route');
 const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
 const CmpMethodRouter = require('./cmp-methods.route');
+const ConversationRouter = require('./conversation.route');
 
 export const router = express.Router();
 
@@ -28,6 +29,7 @@ router.use('/comparison/tasks', CmpTaskRouter);
 router.use('/nodes', NodeRouter);
 router.use('/calculation', CalcuRouter);
 router.use('/std-data', STDDataRouter);
+router.use('/conversations', ConversationRouter);
 
 router.route('/')
     .get((req, res, next) => {

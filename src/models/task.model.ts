@@ -23,6 +23,7 @@ class TaskDB extends Mongoose {
             state: String,
             cmpObjs: mongoose.Schema.Types.Mixed,
             schemas: mongoose.Schema.Types.Mixed,
+            cid: String,
         };
 
         super(collectionName, schema);
@@ -52,7 +53,8 @@ export class Task extends OgmsObj {
         progress: number
     }[];
     cmpObjs: Array<CmpObj>;
-    schemas: UDXSchema[]
+    schemas: UDXSchema[];
+    cid: string;
 }
 
 export const CmpState = Enum(
@@ -63,8 +65,6 @@ export const CmpState = Enum(
     'FINISHED_FAILED'
 )
 export type CmpState = Enum<typeof CmpState>
-
-
 
 export class CmpResult {
     image?: [{

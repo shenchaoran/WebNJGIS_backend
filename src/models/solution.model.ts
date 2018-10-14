@@ -16,9 +16,10 @@ class SolutionDB extends Mongoose {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             issueId: String,
-            // taskIds: mongoose.Schema.Types.Mixed,
+            taskIds: mongoose.Schema.Types.Mixed,
             participants: mongoose.Schema.Types.Mixed,
-            cmpObjs: mongoose.Schema.Types.Mixed
+            cmpObjs: mongoose.Schema.Types.Mixed,
+            cid: String
         };
 
         super(collectionName, schema);
@@ -43,6 +44,7 @@ export class Solution {
     // taskIds?: string[];
     participants: string[];
     cmpObjs: Array<CmpObj>;
+    cid: string;
 }
 
 
