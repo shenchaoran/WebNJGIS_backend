@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 const express = require('express');
-import ModelServiceCtrl from '../controllers/model-tools.controller';
+import ModelServiceCtrl from '../controllers/model-service.controller';
 import { modelServiceDB } from '../models/model-service.model';
 import { calcuTaskDB } from '../models/calcu-task.model';
 import { RouterExtends } from './base.route';

@@ -6,10 +6,10 @@ import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
 
 import { ResourceSrc } from './resource.enum';
-import { CmpResult } from './cmp-task.model';
+import { CmpResult } from './task.model';
 import * as _ from 'lodash';
 
-class CmpSolutionDB extends Mongoose {
+class SolutionDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpSolution';
         const schema = {
@@ -25,9 +25,9 @@ class CmpSolutionDB extends Mongoose {
     }
 }
 
-export const cmpSolutionDB = new CmpSolutionDB();
+export const solutionDB = new SolutionDB();
 
-export class CmpSolution {
+export class Solution {
     _id?: any;
     meta: {
         name: string,

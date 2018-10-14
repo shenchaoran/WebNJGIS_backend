@@ -10,7 +10,7 @@ import { Enum } from 'typescript-string-enums/dist';
 import { DataRefer, CmpObj } from '.';
 import { UDXSchema } from './UDX-schema.class';
 
-class CmpTaskDB extends Mongoose {
+class TaskDB extends Mongoose {
     constructor() {
         const collectionName = 'CmpTask';
         const schema = {
@@ -29,9 +29,9 @@ class CmpTaskDB extends Mongoose {
     }
 }
 
-export const cmpTaskDB = new CmpTaskDB();
+export const taskDB = new TaskDB();
 
-export class CmpTask extends OgmsObj {
+export class Task extends OgmsObj {
     _id?: any;
     meta: {
         name: string,

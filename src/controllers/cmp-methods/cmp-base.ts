@@ -1,5 +1,5 @@
 import { UDXSchema } from './../../models/UDX-schema.class';
-import { DataRefer } from './../../models/cmp-solution.model';
+import { DataRefer } from '../../models/solution.model';
 import * as Bluebird from 'bluebird';
 
 export default class CmpMethod {

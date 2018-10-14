@@ -10,8 +10,8 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import { cmpSolutionDB, cmpTaskDB, modelServiceDB, ResourceSrc, cmpMethodDB } from '../models';
-const db = cmpSolutionDB;
+import { solutionDB, taskDB, modelServiceDB, ResourceSrc, cmpMethodDB } from '../models';
+const db = solutionDB;
 
 
 export const findByPage = (pageOpt): Promise<any> => {

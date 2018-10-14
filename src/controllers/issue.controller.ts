@@ -5,12 +5,12 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { cmpIssueDB } from '../models';
-import { cmpSolutionDB } from '../models/cmp-solution.model';
+import { issueDB } from '../models';
+import { solutionDB } from '../models/solution.model';
 
-const db = cmpIssueDB;
+const db = issueDB;
 
-export default class CmpIssue {
+export default class Issue {
     constructor() {}
 
     static findByPage(pageOpt: {
@@ -22,7 +22,7 @@ export default class CmpIssue {
             pageNum: pageOpt.pageNum
         })
             .then(rst => {
-                _.map(rst.docs, CmpIssue.reduceDoc);
+                _.map(rst.docs, Issue.reduceDoc);
                 return Promise.resolve(rst);
             })
             .catch(Promise.reject);
@@ -30,7 +30,7 @@ export default class CmpIssue {
 
     static getIssueDetail(id): Promise<any> {
         return db.findOne({ _id: id})
-            .then(CmpIssue.expandDoc)
+            .then(Issue.expandDoc)
             .then(Promise.resolve)
             .catch(Promise.reject);
     }
@@ -41,7 +41,7 @@ export default class CmpIssue {
 
     static expandDoc(doc): Promise<any> {
         return Promise.all(_.map(doc.solutionIds, slnId => {
-            return cmpSolutionDB.findOne({ _id: slnId});
+            return solutionDB.findOne({ _id: slnId});
         }))
             .then(rsts => {
                 if(doc.solutions === undefined) {

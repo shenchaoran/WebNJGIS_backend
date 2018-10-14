@@ -1,9 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import CmpIssueCtrl from '../controllers/cmp-issue.controller';
-import { cmpIssueDB } from '../models';
-const db = cmpIssueDB;
+import CmpIssueCtrl from '../controllers/issue.controller';
+import { issueDB } from '../models';
+const db = issueDB;
 
 const defaultRoutes = [
     'insert',

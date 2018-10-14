@@ -1,10 +1,10 @@
 import { Response, Request, NextFunction } from 'express';
 import { RouterExtends } from './base.route';
 const express = require('express');
-import CmpTaskCtrl from '../controllers/cmp-task.controller';
+import CmpTaskCtrl from '../controllers/task.controller';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
-import { cmpTaskDB, CmpState } from '../models';
-const db = cmpTaskDB;
+import { taskDB, CmpState } from '../models';
+const db = taskDB;
 
 const defaultRoutes = [
     'remove',

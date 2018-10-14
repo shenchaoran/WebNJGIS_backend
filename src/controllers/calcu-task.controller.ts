@@ -4,7 +4,7 @@ import * as Promise from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
-import { calcuTaskDB, CalcuTaskState, cmpTaskDB } from '../models';
+import { calcuTaskDB, CalcuTaskState, taskDB } from '../models';
 import { ObjectID } from 'mongodb';
 
 export const insertBatch = (docs): Promise<any> => {
