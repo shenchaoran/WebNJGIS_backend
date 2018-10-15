@@ -7,7 +7,11 @@ class ConversationDB extends Mongoose {
     constructor() {
         const collectionName = 'Conversation';
         const schema = {
-            
+            like_uids: Array,
+            love_uids: Array,
+            tags: Array,
+            comments: Array,
+            participants: Array,
         };
 
         super(collectionName, schema);
@@ -31,7 +35,15 @@ class CommentDB extends Mongoose {
     constructor() {
         const collectionName = 'Comment';
         const schema = {
-            
+            content: Array,
+            from_uid: String,
+            anonymous: Boolean,
+            to_uid: String,
+            notified_uids: Array,
+            cid: String,
+            type: String,
+            hide_reason: String,
+            reactions: Array,
         };
 
         super(collectionName, schema);
