@@ -7,6 +7,7 @@ class ConversationDB extends Mongoose {
     constructor() {
         const collectionName = 'Conversation';
         const schema = {
+            pid: String,
             like_uids: Array,
             love_uids: Array,
             tags: Array,
@@ -22,6 +23,7 @@ export const conversationDB = new ConversationDB();
 
 export class Conversation {
     _id?: any;
+    pid: string;
     // 点赞
     like_uids: string[];
     // 收藏
