@@ -28,6 +28,12 @@ export default class Issue {
             .catch(Promise.reject);
     }
 
+    /**
+     * @return {
+     *      issue: Issue,
+     *      conversation: Conversation 
+     * }
+     */
     static getIssueDetail(id): Promise<any> {
         return db.findOne({ _id: id})
             .then(Issue.expandDoc)

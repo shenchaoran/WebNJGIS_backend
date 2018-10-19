@@ -20,7 +20,7 @@ class IssueDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             spatial: mongoose.Schema.Types.Mixed,
             temporal: mongoose.Schema.Types.Mixed,
-            solutionIds: mongoose.Schema.Types.Mixed,
+            solutionIds: Array,
             cid: String
         };
 

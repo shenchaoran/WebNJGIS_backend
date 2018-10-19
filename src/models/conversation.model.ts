@@ -7,7 +7,12 @@ class ConversationDB extends Mongoose {
     constructor() {
         const collectionName = 'Conversation';
         const schema = {
-            
+            pid: String,
+            like_uids: Array,
+            love_uids: Array,
+            tags: Array,
+            comments: Array,
+            participants: Array,
         };
 
         super(collectionName, schema);
@@ -18,6 +23,7 @@ export const conversationDB = new ConversationDB();
 
 export class Conversation {
     _id?: any;
+    pid: string;
     // 点赞
     like_uids: string[];
     // 收藏
@@ -31,7 +37,15 @@ class CommentDB extends Mongoose {
     constructor() {
         const collectionName = 'Comment';
         const schema = {
-            
+            content: Array,
+            from_uid: String,
+            anonymous: Boolean,
+            to_uid: String,
+            notified_uids: Array,
+            cid: String,
+            type: String,
+            hide_reason: String,
+            reactions: Array,
         };
 
         super(collectionName, schema);
