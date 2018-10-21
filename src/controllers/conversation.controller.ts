@@ -16,40 +16,86 @@ export default class ConversationCtrl {
      * @return { count, docs }
      */
     getCommentsByPage(cid, pageIndex, pageSize) {
-        return commentDB.findByPage({
+        return conversationDB.findOne({
             cid: cid
-        }, {
-                pageIndex,
-                pageSize
-            });
+        })
+        .then(conversation => {
+            return {
+                docs: conversation.comments.slice((pageIndex-1)*pageSize, pageIndex*pageSize),
+                count: conversation.comments.length
+            };
+        });
     }
 
     /**
-     * @return _id: string
-     *
+     * @return true/false
      */
     addComment(cid, comment: Comment) {
         comment.cid = cid;
-        comment._id = new ObjectID();
-        return Promise.all([
-            commentDB.insert(comment)
-                .then(({ _id }) => {
-                    return _id;
-                }),
-            conversationDB.update(
-                {
-                    _id: cid
-                },
-                {
-                    $push: {
-                        comments: comment._id
+        return conversationDB.update(
+            {
+                _id: cid
+            },
+            {
+                $push: {
+                    comments: comment
+                }
+            }
+        )
+        .then(v => true)
+        .catch(e => {
+            console.log(e);
+            return false;
+        })
+    }
+
+    /**
+     * @return comment: Comment
+     */
+    updateComment(cid, comment: Comment) {
+        return conversationDB.update(
+            {
+                _id: cid,
+                comments: {
+                    $elemMatch: {
+                        _id: comment._id
                     }
                 }
-            )
-        ])
-            .then(([doc]) => {
-                return doc._id;
-            });
+            }, 
+            {
+                $set: {
+                    'comments.$': comment
+                }
+            }
+        )
+        .then(v => true)
+        .catch(e => {
+            console.log(e);
+            return false;
+        })
+    }
+
+    /**
+     * @return true/false
+     */
+    deleteComment(cid, commentId) {
+        return conversationDB.update(
+            {
+                _id: cid
+            },
+            {
+                $pull: {
+                    comments: {_id: commentId}
+                }
+            }
+        )
+        .then(() => {
+            return true;
+        })
+        .catch(e => {
+            console.log(e);
+            return false;
+        })
     }
 
     /**
@@ -96,5 +142,21 @@ export default class ConversationCtrl {
                     commentCount
                 };
             })
+    }
+
+    findByPage(pageIndex, pageSize) {
+        return conversationDB.findByPage({}, {pageSize, pageIndex});
+    }
+
+    /**
+     * @return true/false
+     */
+    addConversation(conversation) {
+        return conversationDB.insert(conversation)
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            });
     }
 }

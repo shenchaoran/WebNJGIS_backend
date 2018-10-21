@@ -58,7 +58,7 @@ export const preReqMid = (app) => {
         );
         res.header(
             'Access-Control-Allow-Methods',
-            'PUT,POST,GET,DELETE,OPTIONS'
+            'PUT,POST,GET,DELETE,PATCH,OPTIONS'
         );
         if (req.method == 'OPTIONS') {
             // 预检请求直接返回

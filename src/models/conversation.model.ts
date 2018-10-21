@@ -59,7 +59,9 @@ export class Comment {
     // 编辑的历史
     content: {
         time: number,
-        value: string
+        html: string,
+        md: string,
+        state?: CommentState
     }[];
     from_uid: string;
     anonymous: boolean;
@@ -82,3 +84,9 @@ export enum CommentType {
     REPLY = 'REPLY',
     HIDE = 'HIDE'
 };
+
+
+export enum CommentState {
+    WRITE = 'WRITE',
+    READ = 'READ'
+}
