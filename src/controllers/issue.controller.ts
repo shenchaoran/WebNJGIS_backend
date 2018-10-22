@@ -10,42 +10,10 @@ import { solutionDB } from '../models/solution.model';
 
 const db = issueDB;
 
-export default class Issue {
+export default class IssueCtrl {
     constructor() {}
 
-    static findByPage(pageOpt: {
-        pageSize: number,
-        pageIndex: number
-    }): Promise<any> {
-        return db.findByPage({}, {
-            pageSize: pageOpt.pageSize,
-            pageIndex: pageOpt.pageIndex
-        })
-            .then(rst => {
-                _.map(rst.docs, Issue.reduceDoc);
-                return Promise.resolve(rst);
-            })
-            .catch(Promise.reject);
-    }
-
-    /**
-     * @return {
-     *      issue: Issue,
-     *      conversation: Conversation 
-     * }
-     */
-    static getIssueDetail(id): Promise<any> {
-        return db.findOne({ _id: id})
-            .then(Issue.expandDoc)
-            .then(Promise.resolve)
-            .catch(Promise.reject);
-    }
-
-    static reduceDoc(doc, level: '1' | '2') {
-
-    }
-
-    static expandDoc(doc): Promise<any> {
+    private expand(doc): Promise<any> {
         return Promise.all(_.map(doc.solutionIds, slnId => {
             return solutionDB.findOne({ _id: slnId});
         }))
@@ -61,9 +29,77 @@ export default class Issue {
                         mss: rst.cmpCfg.ms
                     });
                 });
-                return Promise.resolve(doc);
+                return doc;
             })
+            .catch(Promise.reject);   
+    }
+
+    /**
+     * @return {
+     *      issue: Issue,
+     *      conversation: Conversation 
+     * }
+     */
+    findOne(id) {
+        return issueDB.findOne({_id: id})
+            .then(this.expand)
             .catch(Promise.reject);
-        
+    }
+
+    /**
+     * @return {docs, count}
+     */
+    findByPage(pageOpt: {
+        pageSize: number,
+        pageIndex: number
+    }): Promise<any> {
+        return db.findByPage({}, {
+            pageSize: pageOpt.pageSize,
+            pageIndex: pageOpt.pageIndex
+        })
+            .catch(Promise.reject);
+    }
+
+    /**
+     * @return true/false
+     */
+    addIssue(issue) {
+        return issueDB.insert(issue)
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
+    }
+
+    /**
+     * @return true/false
+     */
+    deleteIssue(issueId) {
+        return issueDB.remove({_id: issueId})
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            });
+    }
+
+    /**
+     * @return true/false
+     */
+    updateIssue(issue) {
+        return issueDB.update(
+            {
+                _id: issue._id
+            },
+            {
+                $set: issue
+            }
+        )
+        .then(v => true)
+        .catch(e => {
+            console.log(e);
+            return false;
+        })
     }
 }

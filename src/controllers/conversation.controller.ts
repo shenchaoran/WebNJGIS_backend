@@ -50,7 +50,7 @@ export default class ConversationCtrl {
     }
 
     /**
-     * @return comment: Comment
+     * @return true/false
      */
     updateComment(cid, comment: Comment) {
         return conversationDB.update(
@@ -89,9 +89,7 @@ export default class ConversationCtrl {
                 }
             }
         )
-        .then(() => {
-            return true;
-        })
+        .then(v => true)
         .catch(e => {
             console.log(e);
             return false;
@@ -144,6 +142,9 @@ export default class ConversationCtrl {
             })
     }
 
+    /**
+     * @return{ docs, count }
+     */
     findByPage(pageIndex, pageSize) {
         return conversationDB.findByPage({}, {pageSize, pageIndex});
     }
