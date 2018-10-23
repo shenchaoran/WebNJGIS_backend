@@ -1,10 +1,10 @@
 import { Response, Request, NextFunction } from 'express';
 import * as express from 'express';
 import { RouterExtends } from './base.route';
-import { issueDB as db, conversationDB } from '../models';
-import IssueCtrl from '../controllers/issue.controller';
+import { topicDB as db, conversationDB } from '../models';
+import TopicCtrl from '../controllers/topic.controller';
 import ConversationCtrl from '../controllers/conversation.controller';
-let issueCtrl = new IssueCtrl();
+let topicCtrl = new TopicCtrl();
 let conversationCtrl = new ConversationCtrl();
 
 const defaultRoutes = [
@@ -34,7 +34,7 @@ router.route('/')
             req.query.pageIndex = parseInt(req.query.pageIndex);
         }
 
-        issueCtrl.findByPage({
+        topicCtrl.findByPage({
             pageSize: req.query.pageSize,
             pageIndex: req.query.pageIndex
         })
@@ -46,11 +46,11 @@ router.route('/')
             .catch(next);
     })
     .post((req, res, next) => {
-        let issue = req.body.issue,
+        let topic = req.body.topic,
             conversation = req.body.conversation;
-        if(issue && conversation) {
+        if(topic && conversation) {
             Promise.all([
-                issueCtrl.addIssue(issue),
+                topicCtrl.addTopic(topic),
                 conversationCtrl.addConversation(conversation)
             ])
             .then(rsts => {
@@ -70,7 +70,7 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        issueCtrl.findOne(req.params.id)
+        topicCtrl.findOne(req.params.id)
             .then(rst => {
                 return res.json({
                     data: rst
@@ -79,9 +79,9 @@ router.route('/:id')
             .catch(next);
     })
     .patch((req, res, next) => {
-        let issue = req.body.issue;
-        if(issue) {
-            issueCtrl.updateIssue(issue)
+        let topic = req.body.topic;
+        if(topic) {
+            topicCtrl.updateTopic(topic)
                 .then(v => res.json({data: v}))
                 .catch(next);
         }
@@ -90,8 +90,8 @@ router.route('/:id')
         }
     })
     .delete((req, res, next) => {
-        let issueId = req.params.id;
-        issueCtrl.deleteIssue(issueId)
+        let topicId = req.params.id;
+        topicCtrl.deleteTopic(topicId)
             .then(v => res.json({data: v}))
             .catch(next);
     });

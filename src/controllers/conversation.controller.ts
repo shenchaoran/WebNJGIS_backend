@@ -101,14 +101,14 @@ export default class ConversationCtrl {
      *      conversation,
      *      users: User[],
      *      commentCount: number,
-     *      comments: Comment[],
      * }
      */
     findOne(cid) {
         return Promise.all([
             conversationDB.findOne({ _id: cid })
                 .then(conversation => {
-                    return userDB.findDocs(conversation.participants)
+                    let userIds = conversation.comments.map(v => v.from_uid);
+                    return userDB.findDocs(userIds)
                         .then(users => {
                             return {
                                 conversation,

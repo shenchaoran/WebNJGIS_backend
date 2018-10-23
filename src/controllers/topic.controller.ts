@@ -5,12 +5,12 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { issueDB } from '../models';
+import { topicDB } from '../models';
 import { solutionDB } from '../models/solution.model';
 
-const db = issueDB;
+const db = topicDB;
 
-export default class IssueCtrl {
+export default class TopicCtrl {
     constructor() {}
 
     private expand(doc): Promise<any> {
@@ -36,13 +36,16 @@ export default class IssueCtrl {
 
     /**
      * @return {
-     *      issue: Issue,
-     *      conversation: Conversation 
+     *      topic: Topic,
+     *      // conversation: Conversation 
      * }
      */
     findOne(id) {
-        return issueDB.findOne({_id: id})
+        return topicDB.findOne({_id: id})
             .then(this.expand)
+            .then(v => {
+                return {topic: v};
+            })
             .catch(Promise.reject);
     }
 
@@ -63,8 +66,8 @@ export default class IssueCtrl {
     /**
      * @return true/false
      */
-    addIssue(issue) {
-        return issueDB.insert(issue)
+    addTopic(topic) {
+        return topicDB.insert(topic)
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -75,8 +78,8 @@ export default class IssueCtrl {
     /**
      * @return true/false
      */
-    deleteIssue(issueId) {
-        return issueDB.remove({_id: issueId})
+    deleteTopic(topicId) {
+        return topicDB.remove({_id: topicId})
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -87,13 +90,13 @@ export default class IssueCtrl {
     /**
      * @return true/false
      */
-    updateIssue(issue) {
-        return issueDB.update(
+    updateTopic(topic) {
+        return topicDB.update(
             {
-                _id: issue._id
+                _id: topic._id
             },
             {
-                $set: issue
+                $set: topic
             }
         )
         .then(v => true)

@@ -70,7 +70,7 @@ router.route('/:conversationId/comments/:commentId')
     .patch((req, res, next) => {
         let cid = req.params.conversationId;
         let commentId = req.params.commentId;
-        let comment = req.body;
+        let comment = req.body.comment;
         if (comment) {
             conversationCtrl.updateComment(cid, comment)
                 .then(v => res.json({ data: v }))

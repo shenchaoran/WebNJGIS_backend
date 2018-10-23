@@ -17,7 +17,7 @@ class TaskDB extends Mongoose {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             solutionId: String,
-            issueId: String,
+            topicId: String,
             calcuTaskIds: mongoose.Schema.Types.Mixed,
             progress: Number,
             state: String,
@@ -47,7 +47,7 @@ export class Task extends OgmsObj {
     state: CmpState;
     progress: number;
     solutionId?: string;
-    issueId?: string;
+    topicId?: string;
     calcuTaskIds: {
         _id: string,
         progress: number

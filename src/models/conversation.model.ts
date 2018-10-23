@@ -12,7 +12,6 @@ class ConversationDB extends Mongoose {
             love_uids: Array,
             tags: Array,
             comments: Array,
-            participants: Array,
         };
 
         super(collectionName, schema);
@@ -30,7 +29,6 @@ export class Conversation {
     love_uids: string[];
     tags: (string | 'TOP' | 'HOT')[];
     comments: (string | Comment)[];
-    participants: string[];
 }
 
 class CommentDB extends Mongoose {

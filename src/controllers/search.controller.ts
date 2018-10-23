@@ -19,7 +19,7 @@ export default class SearchCtrl {
     static search(options): Promise<any> {
         const categories = [
             {
-                name: 'Issues',
+                name: 'Topics',
                 num: '5',
                 children: [
                     {

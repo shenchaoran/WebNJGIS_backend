@@ -11,9 +11,9 @@ import {
     ResourceSrc
 } from '.';
 
-class IssueDB extends Mongoose {
+class TopicDB extends Mongoose {
     constructor() {
-        const collectionName = 'CmpIssue';
+        const collectionName = 'Topic';
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             cmpCfg: mongoose.Schema.Types.Mixed,
@@ -28,13 +28,14 @@ class IssueDB extends Mongoose {
     }
 }
 
-export const issueDB = new IssueDB();
+export const topicDB = new TopicDB();
 
-export class Issue {
+export class Topic {
     _id?: any;
     meta: {
         name: string,
-        desc: string,
+        descMD: string,
+        descHTML: string,
         time: number
     };
     auth: {

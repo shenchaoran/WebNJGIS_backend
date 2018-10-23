@@ -15,7 +15,7 @@ import { CmpMethodFactory } from './cmp-methods';
 import {
     taskDB,
     solutionDB,
-    issueDB,
+    topicDB,
     calcuTaskDB,
     CalcuTask,
     CalcuTaskState,
@@ -93,15 +93,15 @@ export default class CmpTaskCtrl {
         //     }));
         // }
         // return Bluebird.all([
-        //     doc.issueId ?
-        //         issueDB.findOne({ _id: doc.issueId }) : undefined,
+        //     doc.topicId ?
+        //         topicDB.findOne({ _id: doc.topicId }) : undefined,
         //     doc.solutionId ?
         //         solutionDB.findOne({ _id: doc.solutionId }) : undefined,
         //     calcuTaskPromise ?
         //         calcuTaskPromise : undefined
         // ])
         //     .then(rsts => {
-        //         doc.issue = rsts[0];
+        //         doc.topic = rsts[0];
         //         doc.solution = rsts[1];
         //         doc.calcuTasks = rsts[2];
         //         return Bluebird.resolve(doc);

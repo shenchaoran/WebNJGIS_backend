@@ -15,7 +15,7 @@ class SolutionDB extends Mongoose {
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
-            issueId: String,
+            topicId: String,
             taskIds: mongoose.Schema.Types.Mixed,
             participants: mongoose.Schema.Types.Mixed,
             cmpObjs: mongoose.Schema.Types.Mixed,
@@ -40,7 +40,7 @@ export class Solution {
         userName: string,
         src: ResourceSrc
     };
-    issueId?: string;
+    topicId?: string;
     // taskIds?: string[];
     participants: string[];
     cmpObjs: Array<CmpObj>;

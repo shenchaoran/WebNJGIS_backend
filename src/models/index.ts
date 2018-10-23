@@ -11,7 +11,7 @@ export * from './UDX-data.model';
 export * from './UDX-schema.class';
 export * from './UDX-type.class';
 export * from './user.model';
-export * from './issue.model';
+export * from './topic.model';
 export * from './std-data.model';
 export * from './site.model';
 export * from './cmp-methods.model';
