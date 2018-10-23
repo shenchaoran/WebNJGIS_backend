@@ -25,7 +25,7 @@ router.route('/')
 router.route('/:id')
     .get((req, res, next) => {
         let cid = req.params.id;
-        conversationCtrl.findOne(cid)
+        conversationCtrl.findOne({_id: cid})
             .then(v => res.json({ data: v }))
             .catch(next);
     });

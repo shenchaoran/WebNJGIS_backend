@@ -5,8 +5,10 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { topicDB } from '../models';
+import { topicDB, conversationDB } from '../models';
 import { solutionDB } from '../models/solution.model';
+import ConversationCtrl from './conversation.controller';
+let conversationCtrl = new ConversationCtrl();
 
 const db = topicDB;
 
@@ -37,14 +39,30 @@ export default class TopicCtrl {
     /**
      * @return {
      *      topic: Topic,
-     *      // conversation: Conversation 
+     *      // conversation: Conversation,
+     *      users: User[],
      * }
      */
     findOne(id) {
-        return topicDB.findOne({_id: id})
-            .then(this.expand)
-            .then(v => {
-                return {topic: v};
+        let rst;
+        return Promise.all([
+            topicDB.findOne({_id: id}),
+            conversationCtrl.findOne({pid: id})
+        ])
+            .then(([
+                topic,
+                {
+                    conversation,
+                    users,
+                    commentCount
+                }
+            ]) => {
+                return {
+                    topic,
+                    // conversation,
+                    users,
+                    // commentCount
+                };
             })
             .catch(Promise.reject);
     }

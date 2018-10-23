@@ -19,12 +19,12 @@ export default class ConversationCtrl {
         return conversationDB.findOne({
             cid: cid
         })
-        .then(conversation => {
-            return {
-                docs: conversation.comments.slice((pageIndex-1)*pageSize, pageIndex*pageSize),
-                count: conversation.comments.length
-            };
-        });
+            .then(conversation => {
+                return {
+                    docs: conversation.comments.slice((pageIndex - 1) * pageSize, pageIndex * pageSize),
+                    count: conversation.comments.length
+                };
+            });
     }
 
     /**
@@ -42,11 +42,11 @@ export default class ConversationCtrl {
                 }
             }
         )
-        .then(v => true)
-        .catch(e => {
-            console.log(e);
-            return false;
-        })
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
     }
 
     /**
@@ -61,18 +61,18 @@ export default class ConversationCtrl {
                         _id: comment._id
                     }
                 }
-            }, 
+            },
             {
                 $set: {
                     'comments.$': comment
                 }
             }
         )
-        .then(v => true)
-        .catch(e => {
-            console.log(e);
-            return false;
-        })
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
     }
 
     /**
@@ -85,68 +85,45 @@ export default class ConversationCtrl {
             },
             {
                 $pull: {
-                    comments: {_id: commentId}
+                    comments: { _id: commentId }
                 }
             }
         )
-        .then(v => true)
-        .catch(e => {
-            console.log(e);
-            return false;
-        })
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
     }
 
     /**
      * @return { 
      *      conversation,
      *      users: User[],
-     *      commentCount: number,
+     *      commentCount: number,       // TODO 一次性返回，暂时先不按分页返回
      * }
      */
-    findOne(cid) {
-        return Promise.all([
-            conversationDB.findOne({ _id: cid })
-                .then(conversation => {
-                    let userIds = conversation.comments.map(v => v.from_uid);
-                    return userDB.findDocs(userIds)
-                        .then(users => {
-                            return {
-                                conversation,
-                                users
-                            };
-                        })
-                }),
-            commentDB.findByPage({
-                cid: cid
-            }, {
-                    pageIndex: 1,
-                    pageSize: 20
-                })
-        ])
-            .then(([
-                {
-                    conversation,
-                    users
-                },
-                {
-                    count: commentCount,
-                    docs: comments
-                }
-            ]) => {
-                return {
-                    conversation,
-                    users,
-                    comments,
-                    commentCount
-                };
-            })
+    findOne(where) {
+        return conversationDB.findOne(where)
+            .then(conversation => {
+                let userIds = new Set();
+                conversation.comments.map(v => userIds.add(v.from_uid));
+                return userDB.findDocs(Array.from(userIds))
+                    .then(users => {
+                        return {
+                            conversation,
+                            users,
+                            commentCount: conversation.comments.length
+                        };
+                    })
+            });
     }
 
     /**
      * @return{ docs, count }
      */
     findByPage(pageIndex, pageSize) {
-        return conversationDB.findByPage({}, {pageSize, pageIndex});
+        return conversationDB.findByPage({}, { pageSize, pageIndex });
     }
 
     /**
