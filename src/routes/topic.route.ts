@@ -48,20 +48,20 @@ router.route('/')
     .post((req, res, next) => {
         let topic = req.body.topic,
             conversation = req.body.conversation;
-        if(topic && conversation) {
+        if (topic && conversation) {
             Promise.all([
                 topicCtrl.addTopic(topic),
                 conversationCtrl.addConversation(conversation)
             ])
-            .then(rsts => {
-                if(rsts.every(rst => rst === true)) {
-                    return res.json({data: true});
-                }
-                else {
-                    return res.json({data: false});
-                }
-            })
-            .catch(next);
+                .then(rsts => {
+                    if (rsts.every(rst => rst === true)) {
+                        return res.json({ data: true });
+                    }
+                    else {
+                        return res.json({ data: false });
+                    }
+                })
+                .catch(next);
         }
         else {
             next();
@@ -80,9 +80,17 @@ router.route('/:id')
     })
     .patch((req, res, next) => {
         let topic = req.body.topic;
-        if(topic) {
+        let ac = req.body.ac;
+        let uid = req.body.uid;
+        let topicId = req.params.id;
+        if(ac === 'subscribe' || ac === 'unsubscribe') {
+            topicCtrl.subscribeToggle(topicId, ac, uid)
+                .then(v => res.json({ data: v }))
+                .catch(next);
+        }
+        else if (topic) {
             topicCtrl.updateTopic(topic)
-                .then(v => res.json({data: v}))
+                .then(v => res.json({ data: v }))
                 .catch(next);
         }
         else {
@@ -92,9 +100,24 @@ router.route('/:id')
     .delete((req, res, next) => {
         let topicId = req.params.id;
         topicCtrl.deleteTopic(topicId)
-            .then(v => res.json({data: v}))
+            .then(v => res.json({ data: v }))
             .catch(next);
     });
+
+router.route('/:id/solution')
+    .patch((req, res, next) => {
+        let topicId = req.params.id;
+        let ac = req.body.ac;
+        let solutionId = req.body.solutionId;
+        if (solutionId && (ac === 'add' || ac === 'remove')) {
+            topicCtrl.patchSolutionIds(topicId, ac, solutionId)
+                .then(v => res.json({ data: v }))
+                .catch(next);
+        }
+        else {
+            return next();
+        }
+    })
 
 
 RouterExtends(router, db, defaultRoutes);

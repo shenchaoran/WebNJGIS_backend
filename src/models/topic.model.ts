@@ -21,7 +21,8 @@ class TopicDB extends Mongoose {
             spatial: mongoose.Schema.Types.Mixed,
             temporal: mongoose.Schema.Types.Mixed,
             solutionIds: Array,
-            cid: String
+            cid: String,
+            subscribed_uids: Array,
         };
 
         super(collectionName, schema);
@@ -54,4 +55,5 @@ export class Topic {
     };
     solutionIds: string[];
     cid: string[];
+    subscribed_uids: string[];
 }

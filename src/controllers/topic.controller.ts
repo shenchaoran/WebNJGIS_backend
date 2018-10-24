@@ -5,8 +5,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { topicDB, conversationDB } from '../models';
-import { solutionDB } from '../models/solution.model';
+import { topicDB, conversationDB, solutionDB } from '../models';
 import ConversationCtrl from './conversation.controller';
 let conversationCtrl = new ConversationCtrl();
 
@@ -39,7 +38,8 @@ export default class TopicCtrl {
     /**
      * @return {
      *      topic: Topic,
-     *      // conversation: Conversation,
+     *      conversation: Conversation,
+     *      commentCount: number
      *      users: User[],
      * }
      */
@@ -47,7 +47,12 @@ export default class TopicCtrl {
         let rst;
         return Promise.all([
             topicDB.findOne({_id: id}),
-            conversationCtrl.findOne({pid: id})
+            conversationCtrl.findOne({pid: id}),
+            // TODO 这里暂时全部给前端
+            solutionDB.findByPage({}, {
+                pageSize: 50,
+                pageIndex: 1,
+            })
         ])
             .then(([
                 topic,
@@ -55,13 +60,23 @@ export default class TopicCtrl {
                     conversation,
                     users,
                     commentCount
-                }
+                },
+                {
+                    count: solutionCount,
+                    docs: solutions
+                },
             ]) => {
+                solutions.map(sln => {
+                    sln.cmpObjs = null;
+                    sln.participants = null;
+                });
                 return {
                     topic,
-                    // conversation,
+                    conversation,
                     users,
-                    // commentCount
+                    commentCount,
+                    solutions,
+                    solutionCount,
                 };
             })
             .catch(Promise.reject);
@@ -122,5 +137,72 @@ export default class TopicCtrl {
             console.log(e);
             return false;
         })
+    }
+
+    /**
+     * @return true/false
+     */
+    patchSolutionIds(topicId, ac, solutionId) {
+        let updateTopicDB, updateSolutionDB;
+        if(ac === 'add') {
+            updateTopicDB = () => topicDB.update({_id: topicId}, {
+                $addToSet: {
+                    solutionIds: solutionId
+                }
+            });
+            updateSolutionDB = () => solutionDB.update({_id: solutionId}, {
+                $set: {
+                    topicId: topicId
+                }
+            });
+        }
+        else if(ac === 'remove') {
+            updateTopicDB = () => topicDB.update({_id: topicId}, {
+                $pull: {
+                    solutionIds: solutionId
+                }
+            });
+            updateSolutionDB = () => solutionDB.update({_id: solutionId}, {
+                $set: {
+                    topicId: null
+                }
+            });
+        }
+        return Promise.all([
+            updateTopicDB(),
+            updateSolutionDB()
+        ]).then(rsts => {
+            return true;
+        }).catch(e => {
+            console.log(e);
+            return false;
+        });
+    }
+
+    /**
+     * @return true/false
+     */
+    subscribeToggle(topicId, ac, uid) {
+        let updatePattern;
+        if(ac === 'subscribe') {
+            updatePattern = {
+                $addToSet: {
+                    subscribed_uids: uid
+                }
+            };
+        }
+        else if(ac === 'unsubscribe') {
+            updatePattern = {
+                $pull: {
+                    subscribed_uids: uid
+                }
+            }
+        }
+        return topicDB.update({_id: topicId}, updatePattern)
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            });
     }
 }
