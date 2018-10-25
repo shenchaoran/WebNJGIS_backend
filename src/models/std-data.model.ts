@@ -27,7 +27,9 @@ export const stdDataDB = new STDDataDB();
 class STDData {
     _id: any;
     meta: {
-        desc: string,
+        desc?: string,
+        descMD?: string,
+        descHTML?: string,
         name: string
     };
     models: string[];

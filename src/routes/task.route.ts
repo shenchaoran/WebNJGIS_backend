@@ -20,22 +20,12 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        if(req.query.pageSize === undefined) {
-            req.query.pageSize = 25;
-        }
-        else {
-            req.query.pageSize = parseInt(req.query.pageSize);
-        }
-        if(req.query.pageIndex === undefined) {
-            req.query.pageIndex = 1;
-        }
-        else {
-            req.query.pageIndex = parseInt(req.query.pageIndex);
-        }
+        let pageIndex = parseInt(req.query.pageIndex) || 1;
+        let pageSize = parseInt(req.query.pageSize) || 20;
 
         new CmpTaskCtrl().findByPage({
-            pageSize: req.query.pageSize,
-            pageIndex: req.query.pageIndex
+            pageSize: pageSize,
+            pageIndex: pageIndex
         })
             .then(rst => {
                 return res.json({

@@ -19,7 +19,8 @@ class SolutionDB extends Mongoose {
             taskIds: mongoose.Schema.Types.Mixed,
             participants: mongoose.Schema.Types.Mixed,
             cmpObjs: mongoose.Schema.Types.Mixed,
-            cid: String
+            cid: String,
+            subscribed_uids: Array,
         };
 
         super(collectionName, schema);
@@ -32,7 +33,9 @@ export class Solution {
     _id?: any;
     meta: {
         name: string,
-        desc: string,
+        desc?: string,
+        descMD?: string,
+        descHTML?: string,
         time: number
     };
     auth: {
@@ -41,10 +44,12 @@ export class Solution {
         src: ResourceSrc
     };
     topicId?: string;
-    // taskIds?: string[];
+    taskIds?: string[];
+    msIds?: string[];
     participants: string[];
     cmpObjs: Array<CmpObj>;
     cid: string;
+    subscribed_uids: string[];
 }
 
 

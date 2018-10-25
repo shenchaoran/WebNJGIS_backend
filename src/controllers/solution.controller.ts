@@ -10,36 +10,138 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import { solutionDB, taskDB, modelServiceDB, ResourceSrc, cmpMethodDB } from '../models';
-const db = solutionDB;
+import { topicDB, solutionDB, taskDB, modelServiceDB, ResourceSrc, cmpMethodDB, conversationDB } from '../models';
+import ConversationCtrl from './conversation.controller';
+const conversationCtrl = new ConversationCtrl();
 
+export default class SolutionCtrl {
+    db = solutionDB;
+    constructor() { }
 
-export const findByPage = (pageOpt): Promise<any> => {
-    return db.findByPage({}, pageOpt)
-        .then(rst => {
-            return Promise.resolve(rst);
+    private expand(doc) { }
+
+    /**
+     *
+     *
+     * @param {*} sid
+     * @returns { solution, topic, tasks, mss, conversation, commentCount, users }
+     * @memberof SolutionCtrl
+     */
+    findOne(sid) {
+        return solutionDB.findOne({ _id: sid }).then(solution => {
+            return Promise.all([
+                solution.topicId? topicDB.findOne({_id: solution.topicId}): {},
+                solution.taskIds? taskDB.findDocs(solution.taskIds): [],
+                solution.msIds? modelServiceDB.findDocs(solution.msIds): [],
+                solution.cid? conversationCtrl.findOne({_id: solution.cid}): {},
+            ])
+                .then(([topic, tasks, mss, {conversation, users, commentCount}]) => {
+                    return {
+                        solution,
+                        topic: {
+                            _id: topic._id,
+                            meta: topic.meta,
+                            auth: topic.auth,
+                        },
+                        tasks: tasks.map(task => {
+                            return {
+                                _id: task._id,
+                                meta: task.meta,
+                                auth: task.auth,
+                            };
+                        }),
+                        mss: mss.map(ms => {
+                            return {
+                                _id: ms._id,
+                                meta: ms.MDL.meta,
+                                auth: ms.auth
+                            };
+                        }),
+                        conversation,
+                        users,
+                        commentCount,
+                    }
+                })
         })
         .catch(Promise.reject);
-}
+    }
 
-export const getSlnDetail = (id): Promise<any> => {
-    return db.findOne({ _id: id })
-        .then(expandDoc)
-        .then(Promise.resolve)
-        .catch(Promise.reject);
+    findByPage(pageOpt: {
+        pageSize: number,
+        pageIndex: number
+    }) {
+        return this.db.findByPage({}, {
+            pageSize: pageOpt.pageSize,
+            pageIndex: pageOpt.pageIndex
+        })
+            .catch(Promise.reject);
+    }
+
+    insert(doc) {
+        return this.db.insert(doc)
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
+    }
+
+    update(doc) {
+        return this.db.update(
+            {
+                _id: doc._id
+            },
+            {
+                $set: doc
+            }
+        )
+        .then(v => true)
+        .catch(e => {
+            console.log(e);
+            return false;
+        })
+    }
+
+    patch() {
+
+    }
+
+    subscribeToggle(solutionId, ac, uid) {
+        let updatePattern;
+        if(ac === 'subscribe') {
+            updatePattern = {
+                $addToSet: {
+                    subscribed_uids: uid
+                }
+            };
+        }
+        else if(ac === 'unsubscribe') {
+            updatePattern = {
+                $pull: {
+                    subscribed_uids: uid
+                }
+            }
+        }
+        return this.db.update({_id: solutionId}, updatePattern)
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            });
+    }
 }
 
 const expandDoc = (doc): Promise<any> => {
     let methods = [];
     _.map(doc.cmpObjs, cmpObj => {
         _.map((cmpObj as any).methods as any[], method => {
-            if(methods.findIndex(v => v.id === method.id) === -1) {
+            if (methods.findIndex(v => v.id === method.id) === -1) {
                 methods.push(method)
             }
         })
     })
     return Promise.map(Array.from(methods), method => {
-        return cmpMethodDB.findOne({_id: method.id})
+        return cmpMethodDB.findOne({ _id: method.id })
     })
         .then(rsts => {
             doc.methods = rsts;

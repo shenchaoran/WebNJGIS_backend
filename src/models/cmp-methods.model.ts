@@ -20,7 +20,9 @@ export class CmpMethod {
     _id?: any;
     meta: {
         name: string,
-        desc: string,
+        desc?: string,
+        descMD?: string,
+        descHTML?: string,
         time: number
     };
     IO: {

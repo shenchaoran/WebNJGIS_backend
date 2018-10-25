@@ -15,9 +15,9 @@ module.exports = router;
 
 router.route('/')
     .get((req, res, next) => {
-        let pageIndex = req.query.pageIndex || 1;
-        let pageSize = req.query.pageSize || 20;
-        return conversationCtrl.findByPage(pageIndex, pageSize)
+        let pageIndex = parseInt(req.query.pageIndex) || 1;
+        let pageSize = parseInt(req.query.pageSize) || 20;
+        return conversationCtrl.findByPage({pageIndex, pageSize})
             .then(v => res.json({ data: v }))
             .catch(next);
     });

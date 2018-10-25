@@ -89,17 +89,14 @@ export default class TopicCtrl {
         pageSize: number,
         pageIndex: number
     }): Promise<any> {
-        return db.findByPage({}, {
-            pageSize: pageOpt.pageSize,
-            pageIndex: pageOpt.pageIndex
-        })
+        return db.findByPage({}, pageOpt)
             .catch(Promise.reject);
     }
 
     /**
      * @return true/false
      */
-    addTopic(topic) {
+    insert(topic) {
         return topicDB.insert(topic)
             .then(v => true)
             .catch(e => {
@@ -111,7 +108,7 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    deleteTopic(topicId) {
+    delete(topicId) {
         return topicDB.remove({_id: topicId})
             .then(v => true)
             .catch(e => {
@@ -123,7 +120,7 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    updateTopic(topic) {
+    update(topic) {
         return topicDB.update(
             {
                 _id: topic._id

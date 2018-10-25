@@ -49,7 +49,7 @@ export class Mongoose {
                         return resolve(docs[0]._doc);
                     }
                     else {
-                        return reject(new Error('No data found!'));
+                        return resolve(null);
                     }
                 }
             });

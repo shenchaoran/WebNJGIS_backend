@@ -21,22 +21,12 @@ userAuthMid(router);
 
 router.route('/')
     .get((req: Request, res: Response, next: NextFunction) => {
-        if (req.query.pageSize === undefined) {
-            req.query.pageSize = 25;
-        }
-        else {
-            req.query.pageSize = parseInt(req.query.pageSize);
-        }
-        if (req.query.pageIndex === undefined) {
-            req.query.pageIndex = 1;
-        }
-        else {
-            req.query.pageIndex = parseInt(req.query.pageIndex);
-        }
+        let pageIndex = parseInt(req.query.pageIndex) || 1;
+        let pageSize = parseInt(req.query.pageSize) || 20;
 
         topicCtrl.findByPage({
-            pageSize: req.query.pageSize,
-            pageIndex: req.query.pageIndex
+            pageSize: pageSize,
+            pageIndex: pageIndex
         })
             .then(rst => {
                 return res.json({
@@ -50,7 +40,7 @@ router.route('/')
             conversation = req.body.conversation;
         if (topic && conversation) {
             Promise.all([
-                topicCtrl.addTopic(topic),
+                topicCtrl.insert(topic),
                 conversationCtrl.addConversation(conversation)
             ])
                 .then(rsts => {
@@ -71,11 +61,7 @@ router.route('/')
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
         topicCtrl.findOne(req.params.id)
-            .then(rst => {
-                return res.json({
-                    data: rst
-                });
-            })
+            .then(rst => res.json({data: rst}))
             .catch(next);
     })
     .patch((req, res, next) => {
@@ -89,7 +75,7 @@ router.route('/:id')
                 .catch(next);
         }
         else if (topic) {
-            topicCtrl.updateTopic(topic)
+            topicCtrl.update(topic)
                 .then(v => res.json({ data: v }))
                 .catch(next);
         }
@@ -99,7 +85,7 @@ router.route('/:id')
     })
     .delete((req, res, next) => {
         let topicId = req.params.id;
-        topicCtrl.deleteTopic(topicId)
+        topicCtrl.delete(topicId)
             .then(v => res.json({ data: v }))
             .catch(next);
     });

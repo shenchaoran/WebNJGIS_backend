@@ -110,6 +110,7 @@ export default class ConversationCtrl {
                 conversation.comments.map(v => userIds.add(v.from_uid));
                 return userDB.findDocs(Array.from(userIds))
                     .then(users => {
+                        users.map(user => user.password = null);
                         return {
                             conversation,
                             users,
@@ -122,8 +123,8 @@ export default class ConversationCtrl {
     /**
      * @return{ docs, count }
      */
-    findByPage(pageIndex, pageSize) {
-        return conversationDB.findByPage({}, { pageSize, pageIndex });
+    findByPage(pageOpt) {
+        return conversationDB.findByPage({}, pageOpt);
     }
 
     /**
