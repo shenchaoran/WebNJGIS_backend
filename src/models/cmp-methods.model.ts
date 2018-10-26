@@ -21,8 +21,8 @@ export class CmpMethod {
     meta: {
         name: string,
         desc?: string,
-        descMD?: string,
-        descHTML?: string,
+        wikiMD?: string,
+        wikiHTML?: string,
         time: number
     };
     IO: {

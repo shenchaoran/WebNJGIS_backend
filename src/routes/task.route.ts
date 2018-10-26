@@ -35,15 +35,15 @@ router.route('/')
             .catch(next);
     })
     .post((req: Request, res: Response, next: NextFunction) => {
-        if(req.body.calcuTasks && req.body.cmpTask) {
+        if(req.body.calcuTasks && req.body.task) {
             let cmpTaskId
             Promise.all([
-                new CmpTaskCtrl().insert(req.body.cmpTask),
+                new CmpTaskCtrl().insert(req.body.task),
                 CalcuTaskCtrl.insertBatch(req.body.calcuTasks)
             ])
                 .then(rsts => {
                     cmpTaskId = rsts[0]
-                    if(req.body.cmpTask.state === CmpState.COULD_START) {
+                    if(req.body.task.state === CmpState.COULD_START) {
                         return new CmpTaskCtrl().start(cmpTaskId)
                     }
                 })
