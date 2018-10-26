@@ -25,6 +25,9 @@ export const postResMid = app => {
 
     app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         console.log(err);
+        if(err.status === 404) {
+            console.log(`404: ${req.originalUrl}`);
+        }
         const response = new ResponseModel();
         // resData.token = res.locals.token;
         // resData.username = res.locals.username;

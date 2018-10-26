@@ -28,8 +28,8 @@ class STDData {
     _id: any;
     meta: {
         desc?: string,
-        descMD?: string,
-        descHTML?: string,
+        wikiMD?: string,
+        wikiHTML?: string,
         name: string
     };
     models: string[];

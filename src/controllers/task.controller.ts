@@ -27,7 +27,7 @@ import { ResourceSrc } from '../models/resource.enum';
 const db = taskDB;
 
 export default class CmpTaskCtrl {
-    cmpTask;
+    task;
     cmpSln;
     calcuTasks;
     constructor() { }
@@ -124,8 +124,8 @@ export default class CmpTaskCtrl {
     async getCmpResult(taskId, cmpObjId, msId) {
         let cmpRst;
         return taskDB.findOne({ _id: taskId })
-            .then(cmpTask => {
-                _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
+            .then(task => {
+                _.map(task.cmpCfg.cmpObjs as any[], cmpObj => {
                     if (cmpObj.id === cmpObjId) {
                         _.map(cmpObj.dataRefers as any[], dataRefer => {
                             if (dataRefer.msId === msId) {
@@ -163,9 +163,9 @@ export default class CmpTaskCtrl {
     async getStdResult(cmpTaskId) {
         const stdResult = [];
         return taskDB.findOne({ _id: cmpTaskId })
-            .then(cmpTask => {
+            .then(task => {
                 // TODO
-                _.map(cmpTask.cmpCfg.cmpObjs as any[], cmpObj => {
+                _.map(task.cmpCfg.cmpObjs as any[], cmpObj => {
                     _.map(cmpObj.methods as any[], method => {
 
                     });
@@ -182,10 +182,10 @@ export default class CmpTaskCtrl {
                     state: CmpState.RUNNING
                 }
             })
-            this.cmpTask = await taskDB.findOne({ _id: cmpTaskId });
-            this.cmpSln = await solutionDB.findOne({ _id: this.cmpTask.solutionId });
+            this.task = await taskDB.findOne({ _id: cmpTaskId });
+            this.cmpSln = await solutionDB.findOne({ _id: this.task.solutionId });
             // start in background
-            Bluebird.map(this.cmpTask.calcuTaskIds as any[], calcuTaskId => {
+            Bluebird.map(this.task.calcuTaskIds as any[], calcuTaskId => {
                 return new Promise((resolve, reject) => {
                     new ModelServiceCtrl({
                         afterDataCached: ({ code }) => {
@@ -209,14 +209,14 @@ export default class CmpTaskCtrl {
                     this.calcuTasks = v;
                     await this.updateCmpObjs();
                     let promises = [];
-                    this.cmpTask.cmpObjs.map((cmpObj, i) => {
+                    this.task.cmpObjs.map((cmpObj, i) => {
                         cmpObj.methods.map((method, j) => {
                             promises.push(new Promise((resolve, reject) => {
                                 // TODO 可能会出现并发问题
-                                let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.cmpTask.schemas, {
+                                let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.task.schemas, {
                                     afterCmp: async () => {
                                         taskDB.update({
-                                            _id: this.cmpTask._id
+                                            _id: this.task._id
                                         }, {
                                                 $set: {
                                                     [`cmpObjs.${i}.methods.${j}.result`]: cmpMethod.result
@@ -234,8 +234,8 @@ export default class CmpTaskCtrl {
                         })
                         Bluebird.all(promises)
                             .then(rsts => {
-                                let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
-                                taskDB.update({ _id: this.cmpTask }, {
+                                let state = rsts.every(v => v.code === 200)? CmpState.FINISHED_SUCCEED: CmpState.FINISHED_FAILED;
+                                taskDB.update({ _id: this.task }, {
                                     $set: {
                                         state: state
                                     }
@@ -258,7 +258,7 @@ export default class CmpTaskCtrl {
     }
 
     private async updateCmpObjs() {
-        this.cmpTask.cmpObjs.map(cmpObj => {
+        this.task.cmpObjs.map(cmpObj => {
             cmpObj.dataRefers.map(dataRefer => {
                 let msr = this.calcuTasks.find(msr => msr._id.toHexString() === dataRefer.msrId);
                 if (msr)
@@ -271,8 +271,8 @@ export default class CmpTaskCtrl {
                     }
             })
         })
-        return taskDB.update({ _id: this.cmpTask._id }, {
-            $set: this.cmpTask
+        return taskDB.update({ _id: this.task._id }, {
+            $set: this.task
         })
     }
 }

@@ -30,12 +30,14 @@ export default class SolutionCtrl {
     findOne(sid) {
         return solutionDB.findOne({ _id: sid }).then(solution => {
             return Promise.all([
-                solution.topicId? topicDB.findOne({_id: solution.topicId}): {},
+                solution.topicId? topicDB.findOne({_id: solution.topicId}): {} as any,
                 solution.taskIds? taskDB.findDocs(solution.taskIds): [],
                 solution.msIds? modelServiceDB.findDocs(solution.msIds): [],
-                solution.cid? conversationCtrl.findOne({_id: solution.cid}): {},
+                solution.cid? conversationCtrl.findOne({_id: solution.cid}): {} as any,
+                solution.participants? modelServiceDB.findDocs(solution.participants): [],
             ])
-                .then(([topic, tasks, mss, {conversation, users, commentCount}]) => {
+                .then(([topic, tasks, mss, {conversation, users, commentCount}, participants]) => {
+                    solution.participants = participants;
                     return {
                         solution,
                         topic: {
@@ -60,6 +62,7 @@ export default class SolutionCtrl {
                         conversation,
                         users,
                         commentCount,
+                        // participants,
                     }
                 })
         })

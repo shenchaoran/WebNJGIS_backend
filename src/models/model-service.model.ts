@@ -36,8 +36,8 @@ export class ModelService {
             abstract: string,
             topic: string,
             desc?: string,
-            descMD?: string,
-            descHTML?: string,
+            wikiMD?: string,
+            wikiHTML?: string,
         },
         IO: {
             schemas: UDXSchema[],
