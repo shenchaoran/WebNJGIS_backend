@@ -41,7 +41,8 @@ export default class CmpTaskCtrl {
     };
 
     async findByPage(pageOpt) {
-        return db.findByPage({}, pageOpt)
+        if(pageOpt.userId === undefined){
+            return db.findByPage({}, pageOpt)
             .then(rst => {
                 _.map(rst.docs, doc => {
                     this.reduceDoc(doc, '2');
@@ -49,6 +50,10 @@ export default class CmpTaskCtrl {
                 return Bluebird.resolve(rst);
             })
             .catch(Bluebird.reject);
+        }else{
+            return db.findByUserid(pageOpt.userId).catch(Promise.reject);
+        }
+        
     }
 
     async getTaskDetail(id: string) {

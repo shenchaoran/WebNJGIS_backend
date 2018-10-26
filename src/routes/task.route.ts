@@ -25,7 +25,8 @@ router.route('/')
 
         new CmpTaskCtrl().findByPage({
             pageSize: pageSize,
-            pageIndex: pageIndex
+            pageIndex: pageIndex,
+            userId: req.query.userId,
         })
             .then(rst => {
                 return res.json({

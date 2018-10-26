@@ -68,13 +68,19 @@ export default class SolutionCtrl {
 
     findByPage(pageOpt: {
         pageSize: number,
-        pageIndex: number
+        pageIndex: number,
+        userId: string,
     }) {
-        return this.db.findByPage({}, {
-            pageSize: pageOpt.pageSize,
-            pageIndex: pageOpt.pageIndex
-        })
-            .catch(Promise.reject);
+        if (pageOpt.userId === undefined) {
+            return this.db.findByPage({}, {
+                pageSize: pageOpt.pageSize,
+                pageIndex: pageOpt.pageIndex
+            })
+                .catch(Promise.reject);
+        } else {
+            return this.db.findByUserid(pageOpt.userId).catch(Promise.reject);
+        }
+        
     }
 
     insert(doc) {

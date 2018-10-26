@@ -28,7 +28,11 @@ router.route('/')
     .get((req, res, next) => {
         let pageIndex = parseInt(req.query.pageIndex) || 1;
         let pageSize = parseInt(req.query.pageSize) || 20;
-        solutionCtrl.findByPage({pageIndex, pageSize})
+        solutionCtrl.findByPage({
+            pageSize: pageSize,
+            pageIndex: pageIndex,
+            userId: req.query.userId,
+        })
             .then(rst => res.json({data: rst}))
             .catch(next);
     })
