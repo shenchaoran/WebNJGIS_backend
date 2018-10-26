@@ -97,7 +97,7 @@ export default class TopicCtrl {
             })
                 .catch(Promise.reject);
         } else {
-            return db.findByUserid(pageOpt.userId).catch(Promise.reject);
+            return db.findByUserId(pageOpt.userId).catch(Promise.reject);
         }
 
     }

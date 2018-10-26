@@ -249,7 +249,7 @@ export class Mongoose {
      *          docs: any[]
      *      }
      */
-    public findByUserid(userId): Promise<any> {
+    public findByUserId(userId): Promise<any> {
         return Promise.all([
             new Promise((resolve, reject) => {
                 this.model
@@ -284,9 +284,12 @@ export class Mongoose {
             })
         ])
             .then(rsts => {
+                let docs_created: any[];
+                let docs_subscribed: any[];
+                docs_created = rsts[0] === null ? [] : rsts[0] as any[];
+                docs_subscribed = rsts[1] === null ? [] : rsts[1] as any[];
                 return Promise.resolve({
-                    created: rsts[0],
-                    subscribed: rsts[1]
+                    docs: _.concat(docs_created, docs_subscribed),
                 });
             })
             .catch(Promise.reject);

@@ -41,19 +41,19 @@ export default class CmpTaskCtrl {
     };
 
     async findByPage(pageOpt) {
-        if(pageOpt.userId === undefined){
+        if (pageOpt.userId === undefined) {
             return db.findByPage({}, pageOpt)
-            .then(rst => {
-                _.map(rst.docs, doc => {
-                    this.reduceDoc(doc, '2');
-                });
-                return Bluebird.resolve(rst);
-            })
-            .catch(Bluebird.reject);
-        }else{
-            return db.findByUserid(pageOpt.userId).catch(Promise.reject);
+                .then(rst => {
+                    _.map(rst.docs, doc => {
+                        this.reduceDoc(doc, '2');
+                    });
+                    return Bluebird.resolve(rst);
+                })
+                .catch(Bluebird.reject);
+        } else {
+            return db.findByUserId(pageOpt.userId).catch(Promise.reject);
         }
-        
+
     }
 
     async getTaskDetail(id: string) {
@@ -222,10 +222,10 @@ export default class CmpTaskCtrl {
                                                     [`cmpObjs.${i}.methods.${j}.result`]: cmpMethod.result
                                                 }
                                             })
-                                            .then(v => resolve({code: 200}))
+                                            .then(v => resolve({ code: 200 }))
                                             .catch(e => {
                                                 console.log(e);
-                                                resolve({code: 500})
+                                                resolve({ code: 500 })
                                             })
                                     }
                                 })
@@ -234,7 +234,7 @@ export default class CmpTaskCtrl {
                         })
                         Bluebird.all(promises)
                             .then(rsts => {
-                                let state = rsts.every(v => v.code === 200)? CmpState.FINISHED_SUCCEED: CmpState.FINISHED_FAILED;
+                                let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
                                 taskDB.update({ _id: this.cmpTask }, {
                                     $set: {
                                         state: state
@@ -261,7 +261,7 @@ export default class CmpTaskCtrl {
         this.cmpTask.cmpObjs.map(cmpObj => {
             cmpObj.dataRefers.map(dataRefer => {
                 let msr = this.calcuTasks.find(msr => msr._id.toHexString() === dataRefer.msrId);
-                if(msr)
+                if (msr)
                     for (let key in msr.IO) {
                         if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
                             let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
