@@ -33,10 +33,14 @@ router.route('/')
         else {
             req.query.pageIndex = parseInt(req.query.pageIndex);
         }
+        if(req.query.userId!==undefined) {
+            console.log("userid:"+ req.query.userId);
+        }
 
         topicCtrl.findByPage({
             pageSize: req.query.pageSize,
-            pageIndex: req.query.pageIndex
+            pageIndex: req.query.pageIndex,
+            userId: req.query.userId,
         })
             .then(rst => {
                 return res.json({

@@ -12,14 +12,14 @@ let conversationCtrl = new ConversationCtrl();
 const db = topicDB;
 
 export default class TopicCtrl {
-    constructor() {}
+    constructor() { }
 
     private expand(doc): Promise<any> {
         return Promise.all(_.map(doc.solutionIds, slnId => {
-            return solutionDB.findOne({ _id: slnId});
+            return solutionDB.findOne({ _id: slnId });
         }))
             .then(rsts => {
-                if(doc.solutions === undefined) {
+                if (doc.solutions === undefined) {
                     doc.solutions = [];
                 }
                 _.map(rsts as any[], rst => {
@@ -32,7 +32,7 @@ export default class TopicCtrl {
                 });
                 return doc;
             })
-            .catch(Promise.reject);   
+            .catch(Promise.reject);
     }
 
     /**
@@ -46,8 +46,8 @@ export default class TopicCtrl {
     findOne(id) {
         let rst;
         return Promise.all([
-            topicDB.findOne({_id: id}),
-            conversationCtrl.findOne({pid: id}),
+            topicDB.findOne({ _id: id }),
+            conversationCtrl.findOne({ pid: id }),
             // TODO 这里暂时全部给前端
             solutionDB.findByPage({}, {
                 pageSize: 50,
@@ -87,14 +87,21 @@ export default class TopicCtrl {
      */
     findByPage(pageOpt: {
         pageSize: number,
-        pageIndex: number
+        pageIndex: number,
+        userId: string,
     }): Promise<any> {
-        return db.findByPage({}, {
-            pageSize: pageOpt.pageSize,
-            pageIndex: pageOpt.pageIndex
-        })
-            .catch(Promise.reject);
+        if (pageOpt.userId === undefined) {
+            return db.findByPage({}, {
+                pageSize: pageOpt.pageSize,
+                pageIndex: pageOpt.pageIndex
+            })
+                .catch(Promise.reject);
+        } else {
+            return db.findByUserid(pageOpt.userId).catch(Promise.reject);
+        }
+
     }
+
 
     /**
      * @return true/false
@@ -112,7 +119,7 @@ export default class TopicCtrl {
      * @return true/false
      */
     deleteTopic(topicId) {
-        return topicDB.remove({_id: topicId})
+        return topicDB.remove({ _id: topicId })
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -132,11 +139,11 @@ export default class TopicCtrl {
                 $set: topic
             }
         )
-        .then(v => true)
-        .catch(e => {
-            console.log(e);
-            return false;
-        })
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
     }
 
     /**
@@ -144,25 +151,25 @@ export default class TopicCtrl {
      */
     patchSolutionIds(topicId, ac, solutionId) {
         let updateTopicDB, updateSolutionDB;
-        if(ac === 'add') {
-            updateTopicDB = () => topicDB.update({_id: topicId}, {
+        if (ac === 'add') {
+            updateTopicDB = () => topicDB.update({ _id: topicId }, {
                 $addToSet: {
                     solutionIds: solutionId
                 }
             });
-            updateSolutionDB = () => solutionDB.update({_id: solutionId}, {
+            updateSolutionDB = () => solutionDB.update({ _id: solutionId }, {
                 $set: {
                     topicId: topicId
                 }
             });
         }
-        else if(ac === 'remove') {
-            updateTopicDB = () => topicDB.update({_id: topicId}, {
+        else if (ac === 'remove') {
+            updateTopicDB = () => topicDB.update({ _id: topicId }, {
                 $pull: {
                     solutionIds: solutionId
                 }
             });
-            updateSolutionDB = () => solutionDB.update({_id: solutionId}, {
+            updateSolutionDB = () => solutionDB.update({ _id: solutionId }, {
                 $set: {
                     topicId: null
                 }
@@ -184,21 +191,21 @@ export default class TopicCtrl {
      */
     subscribeToggle(topicId, ac, uid) {
         let updatePattern;
-        if(ac === 'subscribe') {
+        if (ac === 'subscribe') {
             updatePattern = {
                 $addToSet: {
                     subscribed_uids: uid
                 }
             };
         }
-        else if(ac === 'unsubscribe') {
+        else if (ac === 'unsubscribe') {
             updatePattern = {
                 $pull: {
                     subscribed_uids: uid
                 }
             }
         }
-        return topicDB.update({_id: topicId}, updatePattern)
+        return topicDB.update({ _id: topicId }, updatePattern)
             .then(v => true)
             .catch(e => {
                 console.log(e);

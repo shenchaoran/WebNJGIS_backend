@@ -1,3 +1,4 @@
+import { filter } from 'rxjs/operators';
 import * as Promise from 'bluebird';
 const mongoose = require('mongoose');
 import * as _ from 'lodash';
@@ -239,6 +240,59 @@ export class Mongoose {
             });
         });
     }
+
+    /**
+     * 查询用户相关的数据 包括用户创建和用户订阅的
+     * @return
+     *      {
+     *          count: number,
+     *          docs: any[]
+     *      }
+     */
+    public findByUserid(userId): Promise<any> {
+        return Promise.all([
+            new Promise((resolve, reject) => {
+                this.model
+                    .find({ "auth.userId": userId })
+                    .sort({ _id: -1 })
+                    .exec((err, docs) => {
+                        if (err) {
+                            return reject(err);
+                        } else {
+                            return resolve(_.map(docs as any[], doc => {
+                                return doc.toJSON();
+                            }));
+                        }
+                    })
+            }),
+            new Promise((resolve, reject) => {
+                this.model
+                    .find()
+                    .sort({ _id: -1 })
+                    .exec((err, docs) => {
+                        if (err) {
+                            return reject(err);
+                        } else {
+                            let subscribed_docs = docs.filter(doc => {
+                                return doc.subscribed_uids.indexOf(userId) !== -1;
+                            });
+                            return resolve(_.map(subscribed_docs as any[], doc => {
+                                return doc.toJSON();
+                            }));
+                        }
+                    })
+            })
+        ])
+            .then(rsts => {
+                return Promise.resolve({
+                    created: rsts[0],
+                    subscribed: rsts[1]
+                });
+            })
+            .catch(Promise.reject);
+    }
+
+
 }
 
 
