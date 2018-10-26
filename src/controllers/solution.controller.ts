@@ -78,7 +78,7 @@ export default class SolutionCtrl {
             })
                 .catch(Promise.reject);
         } else {
-            return this.db.findByUserid(pageOpt.userId).catch(Promise.reject);
+            return this.db.findByUserId(pageOpt.userId).catch(Promise.reject);
         }
         
     }
