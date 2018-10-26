@@ -106,7 +106,7 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    addTopic(topic) {
+    insert(topic) {
         return topicDB.insert(topic)
             .then(v => true)
             .catch(e => {
@@ -118,8 +118,8 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    deleteTopic(topicId) {
-        return topicDB.remove({ _id: topicId })
+    delete(topicId) {
+        return topicDB.remove({_id: topicId})
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -130,7 +130,7 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    updateTopic(topic) {
+    update(topic) {
         return topicDB.update(
             {
                 _id: topic._id

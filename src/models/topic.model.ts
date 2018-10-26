@@ -35,8 +35,9 @@ export class Topic {
     _id?: any;
     meta: {
         name: string,
-        descMD: string,
-        descHTML: string,
+        desc?: string,
+        descMD?: string,
+        descHTML?: string,
         time: number
     };
     auth: {

@@ -24,6 +24,7 @@ class TaskDB extends Mongoose {
             cmpObjs: mongoose.Schema.Types.Mixed,
             schemas: mongoose.Schema.Types.Mixed,
             cid: String,
+            subscribed_uids: Array,
         };
 
         super(collectionName, schema);
@@ -36,7 +37,9 @@ export class Task extends OgmsObj {
     _id?: any;
     meta: {
         name: string,
-        desc: string,
+        desc?: string,
+        descMD?: string,
+        descHTML?: string,
         time: number
     };
     auth: {
@@ -55,6 +58,7 @@ export class Task extends OgmsObj {
     cmpObjs: Array<CmpObj>;
     schemas: UDXSchema[];
     cid: string;
+    subscribed_uids: string[];
 }
 
 export const CmpState = Enum(

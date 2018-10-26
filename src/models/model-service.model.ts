@@ -12,7 +12,8 @@ class ModelServiceDB extends Mongoose {
             stdIds: mongoose.Schema.Types.Mixed,
             nodeId: String,
             topic: String,
-            exeName: String
+            exeName: String,
+            subscribed_uids: Array,
         };
   
         super(collectionName, schema);
@@ -33,7 +34,10 @@ export class ModelService {
             name: string,
             keywords: string[],
             abstract: string,
-            topic: string
+            topic: string,
+            desc?: string,
+            descMD?: string,
+            descHTML?: string,
         },
         IO: {
             schemas: UDXSchema[],
@@ -48,6 +52,7 @@ export class ModelService {
     stdIds: string[];
     topic: string;
     exeName: string;
+    subscribed_uids: string[];
 }
 
 // 暂时不考虑 可选、多选一、级联

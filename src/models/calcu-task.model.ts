@@ -22,7 +22,8 @@ class CalcuTaskDB extends Mongoose {
             std: mongoose.Schema.Types.Mixed,
             log: mongoose.Schema.Types.Mixed,
             state: String,
-            progress: Number
+            progress: Number,
+            subscribed_uids: Array,
         };
 
         super(collectionName, schema);
@@ -35,7 +36,9 @@ export class CalcuTask extends OgmsObj {
     _id?: any;
     meta: {
         name: string,
-        desc: string,
+        desc?: string,
+        descMD?: string,
+        descHTML?: string,
         time: number
     };
     auth: {
@@ -62,6 +65,7 @@ export class CalcuTask extends OgmsObj {
     state: CalcuTaskState;
     // 只表示进度条
     progress: number;
+    subscribed_uids: string[];
 }
 
 export const CalcuTaskState = Enum(
