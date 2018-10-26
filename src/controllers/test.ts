@@ -19,9 +19,23 @@ import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
 let exec = child_process.exec;
 
-geoDataDB.find({a: 1})
-    .then(console.log.bind(null, '1'))
-    .catch(console.error);
+// solutionDB.find({}).then(docs => {
+//     Promise.map(docs as any[], doc => {
+//         return solutionDB.update({_id: doc._id}, {
+//             $set: {
+//                 msIds: doc.participants.map(v => v._id)
+//             }
+//         })
+//     })
+//     .catch(e => {
+//         console.log(e);
+//     })
+// })
+
+
+// geoDataDB.find({a: 1})
+//     .then(console.log.bind(null, '1'))
+//     .catch(console.error);
 
 // let csvPath = path.join(__dirname, '../test/test.csv')
 // let csv$ = fs.createReadStream(csvPath, 'utf8')

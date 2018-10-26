@@ -34,10 +34,8 @@ export default class SolutionCtrl {
                 solution.taskIds? taskDB.findDocs(solution.taskIds): [],
                 solution.msIds? modelServiceDB.findDocs(solution.msIds): [],
                 solution.cid? conversationCtrl.findOne({_id: solution.cid}): {} as any,
-                solution.participants? modelServiceDB.findDocs(solution.participants): [],
             ])
-                .then(([topic, tasks, mss, {conversation, users, commentCount}, participants]) => {
-                    solution.participants = participants;
+                .then(([topic, tasks, mss, {conversation, users, commentCount}]) => {
                     return {
                         solution,
                         topic: {
@@ -62,7 +60,6 @@ export default class SolutionCtrl {
                         conversation,
                         users,
                         commentCount,
-                        // participants,
                     }
                 })
         })
