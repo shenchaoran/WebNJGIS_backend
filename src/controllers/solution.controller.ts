@@ -38,11 +38,11 @@ export default class SolutionCtrl {
                 .then(([topic, tasks, mss, {conversation, users, commentCount}]) => {
                     return {
                         solution,
-                        topic: {
+                        topic: topic? {
                             _id: topic._id,
                             meta: topic.meta,
                             auth: topic.auth,
-                        },
+                        }: {},
                         tasks: tasks.map(task => {
                             return {
                                 _id: task._id,

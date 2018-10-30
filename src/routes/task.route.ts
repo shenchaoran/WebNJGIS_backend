@@ -4,6 +4,9 @@ const express = require('express');
 import CmpTaskCtrl from '../controllers/task.controller';
 import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import { taskDB as db, CmpState } from '../models';
+import ConversationCtrl from '../controllers/conversation.controller';
+const conversationCtrl = new ConversationCtrl();
+const taskCtrl = new CmpTaskCtrl();
 
 const defaultRoutes = [
     'remove',
@@ -23,7 +26,7 @@ router.route('/')
         let pageIndex = parseInt(req.query.pageIndex) || 1;
         let pageSize = parseInt(req.query.pageSize) || 20;
 
-        new CmpTaskCtrl().findByPage({
+        taskCtrl.findByPage({
             pageSize: pageSize,
             pageIndex: pageIndex
         })
@@ -35,16 +38,20 @@ router.route('/')
             .catch(next);
     })
     .post((req: Request, res: Response, next: NextFunction) => {
-        if(req.body.calcuTasks && req.body.task) {
+        let calcuTasks = req.body.calcuTasks,
+            task = req.body.task,
+            conversation = req.body.conversation;
+        if(calcuTasks && task && conversation) {
             let cmpTaskId
             Promise.all([
-                new CmpTaskCtrl().insert(req.body.task),
-                CalcuTaskCtrl.insertBatch(req.body.calcuTasks)
+                taskCtrl.insert(req.body.task),
+                CalcuTaskCtrl.insertBatch(req.body.calcuTasks),
+                conversationCtrl.addConversation(conversation)
             ])
                 .then(rsts => {
                     cmpTaskId = rsts[0]
                     if(req.body.task.state === CmpState.COULD_START) {
-                        return new CmpTaskCtrl().start(cmpTaskId)
+                        return taskCtrl.start(cmpTaskId);
                     }
                 })
                 .then(startMsg => {
@@ -64,7 +71,7 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        new CmpTaskCtrl().getTaskDetail(req.params.id)
+        taskCtrl.getTaskDetail(req.params.id)
             .then(doc => {
                 return res.json({
                     data: doc
@@ -75,7 +82,7 @@ router.route('/:id')
 
 router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
-        new CmpTaskCtrl().start(req.params.id)
+        taskCtrl.start(req.params.id)
             .then(msg => {
                 return res.json({
                     data: {
@@ -96,7 +103,7 @@ router.route('/:id/start')
  */
 router.route('/:id/cmpResult')
     .get((req: Request, res: Response, next: NextFunction) => {
-        new CmpTaskCtrl().getCmpResult(req.params.id, req.query.cmpObjId, req.query.msId)
+        taskCtrl.getCmpResult(req.params.id, req.query.cmpObjId, req.query.msId)
             .then(rst => {
                 return res.json({
                     data: rst
@@ -107,7 +114,7 @@ router.route('/:id/cmpResult')
 
 router.route('/:id/stdResult')
     .get((req: Request, res: Response, next: NextFunction) => {
-        new CmpTaskCtrl().getStdResult(req.params.id)
+        taskCtrl.getStdResult(req.params.id)
             .then(rst => {
 
             })

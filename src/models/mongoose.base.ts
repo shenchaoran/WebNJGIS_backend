@@ -128,17 +128,16 @@ export class Mongoose {
                         if (err) {
                             return reject(err);
                         } else {
-                            return resolve(_.map(docs as any[], doc => {
-                                return doc.toJSON();
-                            }));
+                            // TODO ????
+                            return resolve(docs.map(doc => doc._doc));
                         }
                     })
             })
         ])
-            .then(rsts => {
+            .then(([count, docs]) => {
                 return Promise.resolve({
-                    count: rsts[0],
-                    docs: rsts[1]
+                    count,
+                    docs
                 });
             })
             .catch(Promise.reject);
