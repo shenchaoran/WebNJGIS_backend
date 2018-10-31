@@ -8,7 +8,10 @@ class UserDB extends Mongoose {
             username: String,
             password: String,
             email: String,
-            avator: String
+            avator: String,
+            url: String,
+            group: String,
+            location: String
         };
 
         super(collectionName, schema);
@@ -23,4 +26,7 @@ export class User {
     password: string;
     email?: string;
     avator: string;
+    url?: string;
+    group?: string;
+    location?: string;
 }

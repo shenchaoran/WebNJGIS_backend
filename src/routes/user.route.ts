@@ -17,4 +17,6 @@ router.route('/logout').post(UserCtrl.logout);
 
 router.route('/password-reset').post(UserCtrl.resetPassword);
 
+router.route('/set-up').post(UserCtrl.setUp);
+
 //  RouterExtends(router, db, defaultRoutes);

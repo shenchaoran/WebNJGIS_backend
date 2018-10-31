@@ -20,6 +20,8 @@ const md5 = (v) => {
 export const signIn = (req: Request, res: Response, next: NextFunction) => {
     const username = req.body.username;
     const password = req.body.password;
+
+
     if (username === undefined || password === undefined) {
         return res.json({
             error: {
@@ -103,7 +105,7 @@ export const signUp = (req: Request, res: Response, next: NextFunction) => {
                     let imgData = new Identicon(md5(user.username), {
                         size: 45
                     }).toString();
-                    user.avator = imgData;
+                    user.avator = "data:image/png;base64," + imgData;
                     return userDB.insert(user)
                         .then(rst => {
                             let expires = moment().add(7, 'days').valueOf();
@@ -141,3 +143,69 @@ export const signUp = (req: Request, res: Response, next: NextFunction) => {
  *          { data: {}}
  */
 export const resetPassword = (req: Request, res: Response, next: NextFunction) => { };
+
+
+export const setUp = (req: Request, res: Response, next: NextFunction) => {
+    const url = req.body.url;
+    const group = req.body.group;
+    const location = req.body.location;
+    const avator = req.body.file;
+    const id = req.body.id;
+    const user = {
+        url: url,
+        group: group,
+        location: location,
+        avator: avator
+    };
+    console.log("id:" + id);
+    userDB.findOne({ _id: id })
+        .then(user_rst => {
+            if (user_rst.url !== null && url === '') {
+                user.url = user_rst.url;
+            }
+            if (user_rst.group !== null && group === '') {
+                user.group = user_rst.group;
+            }
+            if (user_rst.location !== null && location === '') {
+                user.location = user_rst.location;
+            }
+            if (avator === "") {
+                if (user_rst.avator === null) {
+                    let imgData = new Identicon(md5(user_rst.username), {
+                        size: 45
+                    }).toString();
+                    user.avator = "data:image/png;base64," + imgData;
+                } else {
+                    user.avator = user_rst.avator;
+                }
+            }
+            userDB.update({ _id: id }, user)
+                .then(rst => {
+                    return res.json({
+                        data: {
+                            updateInfo: rst,
+                            user: user
+                        },
+                        message: "",
+                        code: "1",
+                    });
+                })
+                .catch(e => {
+                    return res.json({
+                        error: {
+                            code: 401,
+                            desc: 'Failed to update'
+                        }
+                    });
+                })
+        })
+        .catch(e => {
+            return res.json({
+                error: {
+                    code: 401,
+                    desc: 'your username hadn\'t registered before, please registe first!'
+                }
+            });
+        })
+        .catch(next);
+}
