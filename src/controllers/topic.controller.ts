@@ -68,7 +68,6 @@ export default class TopicCtrl {
             ]) => {
                 solutions.map(sln => {
                     sln.cmpObjs = null;
-                    sln.participants = null;
                 });
                 return {
                     topic,
