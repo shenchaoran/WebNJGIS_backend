@@ -22,7 +22,7 @@ router.route('/docs')
             ids = [ids]
         }
         if(ids) {
-            stdDataDB.findDocs(ids)
+            stdDataDB.findByIds(ids)
                 .then(docs => {
                     return res.json({
                         data: docs,

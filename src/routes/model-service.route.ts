@@ -20,6 +20,26 @@ import { userAuthMid } from '../middlewares/user-auth.middleware';
 userAuthMid(router);
 // endregion
 
+router.route('/')
+    .get((req, res, next) => {
+        let ids = req.query.ids;
+        if (ids) {
+            db.findByIds(ids)
+                .then(msg => res.json({data: { docs: msg }}))
+                .catch(next);
+        }
+        else {
+            let pageSize = parseInt(req.query.pageSize) || 15,
+                pageIndex = parseInt(req.query.pageIndex) || 1;
+            db.findByPage({}, {
+                    pageSize: pageSize,
+                    pageIndex: pageIndex
+                })
+                .then(docs => res.json({ data: docs }))
+                .catch(next);
+        }
+    });
+
 router.route('/invoke')
     .post((req, res, next) => {
         const msInstance = req.body.msInstance;

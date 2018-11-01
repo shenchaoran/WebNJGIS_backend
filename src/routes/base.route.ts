@@ -21,28 +21,15 @@ export const RouterExtends = (router, db, defaultRoutes) => {
             router
                 .route('/')
                 .get((req: Request, res: Response, next: NextFunction) => {
-                    if (req.query.pageSize === undefined) {
-                        req.query.pageSize = 15;
-                    }
-                    else {
-                        req.query.pageSize = parseInt(req.query.pageSize);
-                    }
-                    if (req.query.pageIndex === undefined) {
-                        req.query.pageIndex = 1;
-                    }
-                    else {
-                        req.query.pageIndex = parseInt(req.query.pageIndex);
-                    }
-
+                    let pageSize = parseInt(req.query.pageSize) || 15,
+                        pageIndex = parseInt(req.query.pageIndex) || 1;
                     db
                         .findByPage({}, {
-                            pageSize: req.query.pageSize,
-                            pageIndex: req.query.pageIndex
+                            pageSize: pageSize,
+                            pageIndex: pageIndex
                         })
                         .then(docs => {
-                            return res.json({
-                                data: docs
-                            });
+                            return res.json({ data: docs });
                         })
                         .catch(next);
                 });
