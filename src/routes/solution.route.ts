@@ -57,18 +57,28 @@ router.route('/')
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
         let solutionId = req.params.id;
-        
-        solutionCtrl.findOne(req.params.id)
+        solutionCtrl.findOne(solutionId)
             .then(rst => res.json({data: rst}))
             .catch(next);
     })
     .patch((req, res, next) => {
-        let solution = req.body.solution;
-        let ac = req.body.ac;
-        let uid = req.body.uid;
-        let solutionId = req.params.id;
+        let solution = req.body.solution,
+            ac = req.body.ac,
+            uid = req.body.uid,
+            solutionId = req.params.id,
+            ids = req.body.ids;
         if(ac === 'subscribe' || ac === 'unsubscribe') {
             solutionCtrl.subscribeToggle(solutionId, ac, uid)
+                .then(v => res.json({ data: v }))
+                .catch(next);
+        }
+        else if(ac === 'updatePts') {
+            solutionCtrl.updatePts(solutionId, ids)
+                .then(v => res.json({ data: v }))
+                .catch(next);
+        }
+        else if(ac === 'updateCmpObjs') {
+            solutionCtrl.updateCmpObjs(solution)
                 .then(v => res.json({ data: v }))
                 .catch(next);
         }

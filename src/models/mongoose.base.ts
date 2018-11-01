@@ -56,7 +56,7 @@ export class Mongoose {
         });
     }
 
-    public findDocs(ids: string[]): Promise<any> {
+    public findByIds(ids: string[]): Promise<any> {
         return Promise.map(ids, id => {
             return new Promise((resolve, reject) => {
                 this.findOne({ _id: id })

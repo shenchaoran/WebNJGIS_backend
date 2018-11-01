@@ -100,6 +100,7 @@ export class CmpObj {
 export class DataRefer {
     msId: string;
     msName: string;
+    eventType: 'inputs' | 'outputs';
     eventId: string;
     eventName: string;
     schemaId: string;
