@@ -145,6 +145,10 @@ export const signUp = (req: Request, res: Response, next: NextFunction) => {
 export const resetPassword = (req: Request, res: Response, next: NextFunction) => { };
 
 
+/**
+ * @return  { error: { code, desc }}
+ *          { data: { updateInfo, user},message,code}
+ */
 export const setUp = (req: Request, res: Response, next: NextFunction) => {
     const url = req.body.url;
     const group = req.body.group;
@@ -209,3 +213,24 @@ export const setUp = (req: Request, res: Response, next: NextFunction) => {
         })
         .catch(next);
 }
+
+export const getUserInfo = (req: Request, res: Response, next: NextFunction) => {
+    let userId = req.query.id;
+    userDB.findOne({ _id: userId })
+        .then(user => {
+            user.password = null;
+            return res.json({
+                data: {
+                    user: user
+                }
+            })
+        })
+        .catch(e => {
+            res.json({
+                error: {
+                    code: 401,
+                    desc: 'Can not find the user information.'
+                }
+            })
+        })
+};
