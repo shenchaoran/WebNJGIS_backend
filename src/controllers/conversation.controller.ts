@@ -108,7 +108,7 @@ export default class ConversationCtrl {
             .then(conversation => {
                 let userIds = new Set();
                 conversation.comments.map(v => userIds.add(v.from_uid));
-                return userDB.findDocs(Array.from(userIds))
+                return userDB.findByIds(Array.from(userIds))
                     .then(users => {
                         users.map(user => user.password = null);
                         return {

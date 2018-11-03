@@ -1,7 +1,7 @@
 // 比较的总控制中心，控制模型的开始调用，请求模型的完成进度，请求模型的结果数据，比较这些数据
 import { Response, Request, NextFunction } from 'express';
 import * as formidable from 'formidable';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -24,25 +24,28 @@ export default class SolutionCtrl {
      *
      *
      * @param {*} sid
-     * @returns { solution, topic, tasks, mss, conversation, commentCount, users }
+     * @returns { solution, topic, tasks, mss, ptMSs, conversation, commentCount, users, cmpMethods }
      * @memberof SolutionCtrl
      */
-    findOne(sid) {
-        return solutionDB.findOne({ _id: sid }).then(solution => {
-            return Promise.all([
-                solution.topicId? topicDB.findOne({_id: solution.topicId}): {} as any,
-                solution.taskIds? taskDB.findDocs(solution.taskIds): [],
-                solution.msIds? modelServiceDB.findDocs(solution.msIds): [],
-                solution.cid? conversationCtrl.findOne({_id: solution.cid}): {} as any,
+    async findOne(sid) {
+        try {
+            let solution = await solutionDB.findOne({ _id: sid });
+            return Bluebird.all([
+                solution.topicId ? topicDB.findOne({ _id: solution.topicId }) : {} as any,
+                solution.taskIds ? taskDB.findByIds(solution.taskIds) : [],
+                modelServiceDB.find({}),
+                solution.cid ? conversationCtrl.findOne({ _id: solution.cid }) : {} as any,
+                cmpMethodDB.find({}),
             ])
-                .then(([topic, tasks, mss, {conversation, users, commentCount}]) => {
+                .then(([topic, tasks, mss, { conversation, users, commentCount }, cmpMethods]) => {
+                    let ptMSs = mss.filter(ms => solution.msIds.includes(ms._id.toString()))
                     return {
                         solution,
-                        topic: topic? {
+                        topic: topic ? {
                             _id: topic._id,
                             meta: topic.meta,
                             auth: topic.auth,
-                        }: {},
+                        } : {},
                         tasks: tasks.map(task => {
                             return {
                                 _id: task._id,
@@ -50,6 +53,7 @@ export default class SolutionCtrl {
                                 auth: task.auth,
                             };
                         }),
+                        ptMSs,
                         mss: mss.map(ms => {
                             return {
                                 _id: ms._id,
@@ -57,13 +61,22 @@ export default class SolutionCtrl {
                                 auth: ms.auth
                             };
                         }),
+                        cmpMethods: cmpMethods.map(method => {
+                            return {
+                                _id: method._id,
+                                meta: method.meta,
+                            };
+                        }),
                         conversation,
                         users,
                         commentCount,
                     }
-                })
-        })
-        .catch(Promise.reject);
+                });
+        }
+        catch(e) {
+            console.log(e);
+            return Promise.reject(e);
+        }
     }
 
     findByPage(pageOpt: {
@@ -101,11 +114,11 @@ export default class SolutionCtrl {
                 $set: doc
             }
         )
-        .then(v => true)
-        .catch(e => {
-            console.log(e);
-            return false;
-        })
+            .then(v => true)
+            .catch(e => {
+                console.log(e);
+                return false;
+            })
     }
 
     patch() {
@@ -114,30 +127,62 @@ export default class SolutionCtrl {
 
     subscribeToggle(solutionId, ac, uid) {
         let updatePattern;
-        if(ac === 'subscribe') {
+        if (ac === 'subscribe') {
             updatePattern = {
                 $addToSet: {
                     subscribed_uids: uid
                 }
             };
         }
-        else if(ac === 'unsubscribe') {
+        else if (ac === 'unsubscribe') {
             updatePattern = {
                 $pull: {
                     subscribed_uids: uid
                 }
             }
         }
-        return this.db.update({_id: solutionId}, updatePattern)
+        return this.db.update({ _id: solutionId }, updatePattern)
             .then(v => true)
             .catch(e => {
                 console.log(e);
                 return false;
             });
     }
+
+    /**
+     * @returns { docs: MS[] }
+     */
+    async updatePts(solutionId, ids) {
+        try {
+            await this.db.update({ _id: solutionId }, {
+                $set: {
+                    msIds: ids
+                }
+            });
+            let mss = await modelServiceDB.findByIds(ids);
+            return { docs: mss };
+        }
+        catch (e) {
+            return Bluebird.reject(e);
+        }
+    }
+
+    /**
+     * @returns true/false
+     */
+    async updateCmpObjs(solution) {
+        return this.db.update({_id: solution._id}, {
+            $set: solution
+        })
+        .then(rst => true)
+        .catch(e => {
+            console.log(e)
+            return false;
+        });
+    }
 }
 
-const expandDoc = (doc): Promise<any> => {
+const expandDoc = (doc): Bluebird<any> => {
     let methods = [];
     _.map(doc.cmpObjs, cmpObj => {
         _.map((cmpObj as any).methods as any[], method => {
@@ -146,17 +191,17 @@ const expandDoc = (doc): Promise<any> => {
             }
         })
     })
-    return Promise.map(Array.from(methods), method => {
+    return Bluebird.map(Array.from(methods), method => {
         return cmpMethodDB.findOne({ _id: method.id })
     })
         .then(rsts => {
             doc.methods = rsts;
-            return Promise.resolve(doc);
+            return Bluebird.resolve(doc);
         })
-        .catch(Promise.reject);
+        .catch(Bluebird.reject);
 }
 
-export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
+export const convert2Tree = (user, docs: Array<any>): Bluebird<any> => {
     const trees = {
         public: [{
             type: 'root',
@@ -200,5 +245,5 @@ export const convert2Tree = (user, docs: Array<any>): Promise<any> => {
         });
     });
 
-    return Promise.resolve(trees);
+    return Bluebird.resolve(trees);
 }

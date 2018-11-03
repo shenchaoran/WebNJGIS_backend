@@ -16,7 +16,7 @@ export class ChildProcessUtil {
             const server = http.createServer();
             server.listen(0);
             server.on('listening', () => {
-                const port = server.address().port;
+                const port = (server.address() as any).port;
                 server.close();
                 resolve(port);
             });
