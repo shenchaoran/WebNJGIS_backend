@@ -33,13 +33,17 @@ router.use('/conversations', ConversationRouter);
 
 router.route('/')
     .get((req, res, next) => {
-        return res.redirect('/index')
-    })
-
-router.route('/index')
-    .get((req, res, next) => {
         return res.json({
             code: 200,
             data: 'model comparison container'
         })
+        // return res.redirect('/index')
     })
+
+// router.route('/index')
+//     .get((req, res, next) => {
+//         return res.json({
+//             code: 200,
+//             data: 'model comparison container'
+//         })
+//     })
