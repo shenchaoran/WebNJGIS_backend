@@ -18,7 +18,7 @@ init()
         // pre-request
         preReqMid(app);
         // request/response
-        app.use('/', router);
+        app.use(setting.API_prefix, router);
         // post-response
         postResMid(app);
         //////////////////////////////////////
