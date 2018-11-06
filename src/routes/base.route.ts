@@ -23,13 +23,12 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                 .get((req: Request, res: Response, next: NextFunction) => {
                     let pageSize = parseInt(req.query.pageSize) || 15,
                         pageIndex = parseInt(req.query.pageIndex) || 1;
-                    db
-                        .findByPage({}, {
+                    db.findByPage({}, {
                             pageSize: pageSize,
                             pageIndex: pageIndex
                         })
-                        .then(docs => {
-                            return res.json({ data: docs });
+                        .then(rst => {
+                            return res.json({ data: rst });
                         })
                         .catch(next);
                 });

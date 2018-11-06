@@ -7,6 +7,7 @@ import * as fs from 'fs';
 
 import { topicDB, conversationDB, solutionDB } from '../models';
 import ConversationCtrl from './conversation.controller';
+import SolutionCtrl from './solution.controller';
 let conversationCtrl = new ConversationCtrl();
 
 const db = topicDB;
@@ -148,41 +149,9 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    patchSolutionIds(topicId, ac, solutionId) {
-        let updateTopicDB, updateSolutionDB;
-        if (ac === 'add') {
-            updateTopicDB = () => topicDB.update({ _id: topicId }, {
-                $addToSet: {
-                    solutionIds: solutionId
-                }
-            });
-            updateSolutionDB = () => solutionDB.update({ _id: solutionId }, {
-                $set: {
-                    topicId: topicId
-                }
-            });
-        }
-        else if (ac === 'remove') {
-            updateTopicDB = () => topicDB.update({ _id: topicId }, {
-                $pull: {
-                    solutionIds: solutionId
-                }
-            });
-            updateSolutionDB = () => solutionDB.update({ _id: solutionId }, {
-                $set: {
-                    topicId: null
-                }
-            });
-        }
-        return Promise.all([
-            updateTopicDB(),
-            updateSolutionDB()
-        ]).then(rsts => {
-            return true;
-        }).catch(e => {
-            console.log(e);
-            return false;
-        });
+    patchSolutionIds(topicId, ac, originalTopicId, solutionId) {
+        let newAC = ac === 'addSolution'? 'addTopic': 'removeTopic';
+        return new SolutionCtrl().patchTopicId(solutionId, newAC, originalTopicId, topicId);
     }
 
     /**

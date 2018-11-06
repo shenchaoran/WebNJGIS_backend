@@ -10,8 +10,9 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import { topicDB, solutionDB, taskDB, modelServiceDB, ResourceSrc, cmpMethodDB, conversationDB } from '../models';
+import { topicDB, solutionDB, taskDB, modelServiceDB, ResourceSrc, cmpMethodDB, conversationDB, Solution, stdDataDB } from '../models';
 import ConversationCtrl from './conversation.controller';
+import TopicCtrl from './topic.controller';
 const conversationCtrl = new ConversationCtrl();
 
 export default class SolutionCtrl {
@@ -24,20 +25,21 @@ export default class SolutionCtrl {
      *
      *
      * @param {*} sid
-     * @returns { solution, topic, tasks, mss, ptMSs, conversation, commentCount, users, cmpMethods }
+     * @returns { solution, topic, topicList, tasks, mss, ptMSs, conversation, commentCount, users, cmpMethods }
      * @memberof SolutionCtrl
      */
     async findOne(sid) {
         try {
             let solution = await solutionDB.findOne({ _id: sid });
             return Bluebird.all([
-                solution.topicId ? topicDB.findOne({ _id: solution.topicId }) : {} as any,
+                solution.topicId ? topicDB.findOne({ _id: solution.topicId }) : null,
                 solution.taskIds ? taskDB.findByIds(solution.taskIds) : [],
                 modelServiceDB.find({}),
                 solution.cid ? conversationCtrl.findOne({ _id: solution.cid }) : {} as any,
                 cmpMethodDB.find({}),
+                topicDB.find({}),
             ])
-                .then(([topic, tasks, mss, { conversation, users, commentCount }, cmpMethods]) => {
+                .then(([topic, tasks, mss, { conversation, users, commentCount }, cmpMethods, topicList]) => {
                     let ptMSs = mss.filter(ms => solution.msIds.includes(ms._id.toString()))
                     return {
                         solution,
@@ -45,7 +47,7 @@ export default class SolutionCtrl {
                             _id: topic._id,
                             meta: topic.meta,
                             auth: topic.auth,
-                        } : {},
+                        } : null,
                         tasks: tasks.map(task => {
                             return {
                                 _id: task._id,
@@ -70,12 +72,53 @@ export default class SolutionCtrl {
                         conversation,
                         users,
                         commentCount,
+                        topicList: topicList.map(topic => {
+                            return {
+                                _id: topic._id,
+                                meta: topic.meta,
+                                auth: topic.auth,
+                                solutionIds: topic.solutionIds,
+                            };
+                        })
                     }
                 });
         }
-        catch(e) {
+        catch (e) {
             console.log(e);
-            return Promise.reject(e);
+            return Bluebird.reject(e);
+        }
+    }
+
+    /**
+     * 创建比较任务页面
+     *
+     * @param {*} sid
+     * @returns { Solution, ptMSs,  }
+     * @memberof SolutionCtrl
+     */
+    async createTask(sid) {
+        try {
+            let solution = await solutionDB.findOne({ _id: sid });
+            return Bluebird.all([
+                solution.msIds && solution.msIds.length ?
+                    modelServiceDB.findByIds(solution.msIds) :
+                    [],
+                stdDataDB.find({}),
+                // solution.cid ? 
+                //     conversationCtrl.findOne({ _id: solution.cid }) : 
+                //     {} as any,
+            ])
+                .then(([ptMSs, stds]) => {
+                    return {
+                        solution,
+                        ptMSs,
+                        stds,
+                    };
+                })
+        }
+        catch (e) {
+            console.log(e);
+            return Bluebird.reject(e);
         }
     }
 
@@ -89,11 +132,11 @@ export default class SolutionCtrl {
                 pageSize: pageOpt.pageSize,
                 pageIndex: pageOpt.pageIndex
             })
-                .catch(Promise.reject);
+                .catch(Bluebird.reject);
         } else {
-            return this.db.findByUserId(pageOpt.userId).catch(Promise.reject);
+            return this.db.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
-        
+
     }
 
     insert(doc) {
@@ -171,14 +214,72 @@ export default class SolutionCtrl {
      * @returns true/false
      */
     async updateCmpObjs(solution) {
-        return this.db.update({_id: solution._id}, {
+        return this.db.update({ _id: solution._id }, {
             $set: solution
         })
-        .then(rst => true)
-        .catch(e => {
-            console.log(e)
-            return false;
-        });
+            .then(rst => true)
+            .catch(e => {
+                console.log(e)
+                return false;
+            });
+    }
+
+    /**
+     *
+     *
+     * @param {*} solutionId
+     * @param {*} topicId
+     * @returns true/false
+     * @memberof SolutionCtrl
+     */
+    async patchTopicId(solutionId, ac, originalTopicId, topicId) {
+        if (ac === 'addTopic') {
+            return Bluebird.all([
+                topicDB.update({_id: topicId}, {
+                    $addToSet: {
+                        solutionIds: solutionId
+                    }
+                }),
+                originalTopicId? topicDB.update({_id: originalTopicId}, {
+                    $pull: {
+                        solutionIds: solutionId
+                    }
+                }): null,
+                solutionDB.update({_id: solutionId}, {
+                    $set: {
+                        topicId: topicId
+                    }
+                }),
+            ])
+                .then(rsts => {
+                    return true;
+                })
+                .catch(e => {
+                    console.log(e);
+                    return false;
+                })
+        }
+        else if (ac === 'removeTopic') {
+            return Bluebird.all([
+                topicDB.update({_id: topicId}, {
+                    $pull: {
+                        solutionIds: solutionId
+                    }
+                }),
+                solutionDB.update({_id: solutionId}, {
+                    $set: {
+                        topicId: null
+                    }
+                }),
+            ])
+                .then(rsts => {
+                    return true;
+                })
+                .catch(e => {
+                    console.log(e);
+                    return false;
+                })
+        }
     }
 }
 

@@ -61,39 +61,41 @@ router.route('/')
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
         let solutionId = req.params.id;
-        solutionCtrl.findOne(solutionId)
-            .then(rst => res.json({data: rst}))
-            .catch(next);
+        let ac = req.query.ac;
+        let fn;
+        if(ac === 'createTask') {
+            fn = () => solutionCtrl.createTask(solutionId);
+        }
+        else {
+            fn = () => solutionCtrl.findOne(solutionId);
+        }
+        fn().then(rst => res.json({data: rst})).catch(next);
     })
     .patch((req, res, next) => {
         let solution = req.body.solution,
             ac = req.body.ac,
             uid = req.body.uid,
             solutionId = req.params.id,
-            ids = req.body.ids;
+            ids = req.body.ids,
+            topicId = req.body.topicId,
+            originalTopicId = req.body.originalTopicId,
+            fn;
         if(ac === 'subscribe' || ac === 'unsubscribe') {
-            solutionCtrl.subscribeToggle(solutionId, ac, uid)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn = () => solutionCtrl.subscribeToggle(solutionId, ac, uid)
+        }
+        else if(ac === 'addTopic' || ac === 'removeTopic') {
+            fn = () => solutionCtrl.patchTopicId(solutionId, ac, originalTopicId, topicId)
         }
         else if(ac === 'updatePts') {
-            solutionCtrl.updatePts(solutionId, ids)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn = () => solutionCtrl.updatePts(solutionId, ids)
         }
         else if(ac === 'updateCmpObjs') {
-            solutionCtrl.updateCmpObjs(solution)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn = () => solutionCtrl.updateCmpObjs(solution)
         }
         else if (solution) {
-            solutionCtrl.update(solution)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn = () => solutionCtrl.update(solution);
         }
-        else {
-            return next();
-        }
+        fn().then(v => res.json({ data: v })).catch(next);
     })
     .delete((req, res, next) => {
 

@@ -15,27 +15,23 @@ const defaultRoutes = [
 const router = express.Router();
 module.exports = router;
 
-router.route('/docs')
+router.route('/')
     .get((req, res, next) => {
         let ids = req.query.ids;
-        if(typeof ids === 'string') {
-            ids = [ids]
-        }
-        if(ids) {
+        if (ids) {
             stdDataDB.findByIds(ids)
-                .then(docs => {
-                    return res.json({
-                        data: docs,
-                        status: {
-                            code: '200',
-                            desc: 'succeed'
-                        }
-                    })
-                })
-                .catch(next)
+                .then(docs => res.json({ data: docs }))
+                .catch(next);
         }
         else {
-            return next('invalid request body!')
+            let pageSize = parseInt(req.query.pageSize) || 15,
+                pageIndex = parseInt(req.query.pageIndex) || 1;
+            stdDataDB.findByPage({}, {
+                pageSize: pageSize,
+                pageIndex: pageIndex
+            })
+                .then(rst => res.json({ data: rst }))
+                .catch(next);
         }
     })
 
