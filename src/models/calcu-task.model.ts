@@ -20,6 +20,9 @@ class CalcuTaskDB extends Mongoose {
             IO: mongoose.Schema.Types.Mixed,
             // ms: mongoose.Schema.Types.Mixed,
             msId: String,
+            msName: String,
+            topicId: String,
+            topicName: String,
             // std: mongoose.Schema.Types.Mixed,
             stdId: String,
             log: mongoose.Schema.Types.Mixed,
@@ -50,6 +53,9 @@ export class CalcuTask extends OgmsObj {
     };
     // ms: string;
     msId: string;
+    msName: string;
+    topicId: string;
+    topicName: string;
     cmpTaskId: string;
     IO: {
         dataSrc: 'STD' | 'UPLOAD',

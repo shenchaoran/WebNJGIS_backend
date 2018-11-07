@@ -7,6 +7,8 @@ import * as path from 'path'
 import {
     calcuTaskDB,
     CalcuTaskState,
+    modelServiceDB,
+    stdDataDB,
 } from '../models';
 import * as child_process from 'child_process';
 import * as NodeCtrl from './computing-node.controller'
@@ -15,11 +17,28 @@ import { getByServer, postByServer, PostRequestType } from '../utils/request.uti
 import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 
 export default class ModelServiceCtrl {
+    db = modelServiceDB;
     afterDataCached: Function = (msg) => {};
     constructor(lifeCycles?: {
         afterDataCached?: Function
     }) {
         Object.assign(this, lifeCycles)
+    }
+
+    findOne(id) {
+        return Bluebird.all([
+            this.db.findOne({_id: id}),
+            stdDataDB.find({'models': id}),
+        ]).then(([ms, stds]) => {
+            return {
+                ms,
+                stds,
+            };
+        })
+        .catch(e => {
+            console.log(e);
+            Bluebird.reject(e);
+        })
     }
 
     /**
@@ -57,7 +76,8 @@ export default class ModelServiceCtrl {
             }
             else if (CalcuTaskState.COULD_START === msr.state) {
                 // 查找 node 的 host 和 port
-                let serverURL = await NodeCtrl.telNode(msr.ms.nodeId)
+                let ms = await modelServiceDB.findOne({_id: msr.msId});
+                let serverURL = await NodeCtrl.telNode(ms.nodeId)
                 if (msr.IO.dataSrc === 'UPLOAD') {
                     await new DataCtrl().pushData2ComputingServer(msr._id);
                 }
@@ -155,5 +175,12 @@ export default class ModelServiceCtrl {
                 });
             }
         });
+    }
+
+    public findByPage(pageOpt: {
+        pageSize: number,
+        pageIndex: number,
+    }) {
+        return this.db.findByPage({}, pageOpt);
     }
 }
