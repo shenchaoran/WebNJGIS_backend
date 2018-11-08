@@ -3,8 +3,14 @@ import {
     conversationDB,
     Comment,
     Conversation,
-    userDB
+    userDB,
+    solutionDB,
+    taskDB,
+    calcuTaskDB,
+    modelServiceDB,
+    topicDB,
 } from '../models';
+import * as Bluebird from 'bluebird';
 import { ObjectID } from 'mongodb';
 
 export default class ConversationCtrl {
@@ -103,21 +109,25 @@ export default class ConversationCtrl {
      *      commentCount: number,       // TODO 一次性返回，暂时先不按分页返回
      * }
      */
-    findOne(where) {
-        return conversationDB.findOne(where)
-            .then(conversation => {
-                let userIds = new Set();
-                conversation.comments.map(v => userIds.add(v.from_uid));
-                return userDB.findByIds(Array.from(userIds))
-                    .then(users => {
-                        users.map(user => user.password = null);
-                        return {
-                            conversation,
-                            users,
-                            commentCount: conversation.comments.length
-                        };
-                    })
-            });
+    async findOne(where) {
+        try {
+            let conversation = await conversationDB.findOne(where);
+            if (!conversation)
+                return {};
+            let userIds = new Set();
+            conversation.comments.map(v => userIds.add(v.from_uid));
+            let users = await userDB.findByIds(Array.from(userIds));
+            users.map(user => user.password = null);
+            return {
+                conversation,
+                users,
+                commentCount: conversation.comments.length
+            };
+        }
+        catch (e) {
+            console.log(e)
+            return Bluebird.reject(e);
+        }
     }
 
     /**
@@ -130,12 +140,39 @@ export default class ConversationCtrl {
     /**
      * @return true/false
      */
-    addConversation(conversation) {
-        return conversationDB.insert(conversation)
-            .then(v => true)
-            .catch(e => {
-                console.log(e);
-                return false;
-            });
+    async addConversation(conversation) {
+        try {
+            let pDB;
+            switch (conversation.ptype) {
+                case 'solution':
+                    pDB = solutionDB;
+                    break;
+                case 'task':
+                    pDB = taskDB;
+                    break;
+                case 'calcuTask':
+                    pDB = calcuTaskDB;
+                    break;
+                case 'ms':
+                    pDB = modelServiceDB;
+                    break;
+                case 'topic':
+                    pDB = topicDB;
+                    break;
+            }
+            await Bluebird.all([
+                conversationDB.insert(conversation),
+                pDB.update({ _id: conversation.pid }, {
+                    $set: {
+                        conversationId: conversation._id
+                    }
+                }),
+            ]);
+            return true;
+        }
+        catch (e) {
+            console.log(e);
+            return false;
+        }
     }
 }

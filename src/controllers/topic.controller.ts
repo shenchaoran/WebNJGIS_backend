@@ -45,7 +45,6 @@ export default class TopicCtrl {
      * }
      */
     findOne(id) {
-        let rst;
         return Promise.all([
             topicDB.findOne({ _id: id }),
             conversationCtrl.findOne({ pid: id }),
