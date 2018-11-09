@@ -7,10 +7,8 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 
 export default class TableChartCMP extends CmpMethod {
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], lifeCycles?: {
-        afterCmp?: Function
-    }) {
-        super(dataRefers, schemas, lifeCycles)
+    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
+        super(dataRefers, schemas)
     }
 
     /**
@@ -55,7 +53,7 @@ export default class TableChartCMP extends CmpMethod {
                             }
                         })
                     };
-                    this.afterCmp();
+                    this.emit('afterCmp');
                     console.log(`******table chart cmp finished!`)
                 }
             })

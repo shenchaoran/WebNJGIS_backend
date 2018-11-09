@@ -16,6 +16,7 @@ import {
     taskDB,
     solutionDB,
     topicDB,
+    modelServiceDB,
     calcuTaskDB,
     CalcuTask,
     CalcuTaskState,
@@ -27,9 +28,6 @@ import { ResourceSrc } from '../models/resource.enum';
 const db = taskDB;
 
 export default class CmpTaskCtrl {
-    task;
-    cmpSln;
-    calcuTasks;
     constructor() { }
     async insert(doc: any) {
         return taskDB
@@ -51,16 +49,23 @@ export default class CmpTaskCtrl {
                 })
                 .catch(Bluebird.reject);
         } else {
-            return db.findByUserId(pageOpt.userId).catch(Promise.reject);
+            return db.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
 
     }
 
-    async getTaskDetail(id: string) {
-        return db.findOne({ _id: id })
-            .then(this.expandDoc.bind(this))
-            .then(Bluebird.resolve)
-            .catch(Bluebird.reject);
+    async findOne(id: string) {
+        try {
+            // TODO 数据库设计 及 异步流程控制
+            let task = await db.findOne({ _id: id })
+            let solution = await solutionDB.findOne({ _id: task.solutionId });
+            let ptMSs = await modelServiceDB.findByIds(solution.msIds);
+            return { task, solution, ptMSs, }
+        }
+        catch (e) {
+            console.log(e);
+            return Bluebird.reject(e);
+        }
     };
 
     /**
@@ -87,33 +92,6 @@ export default class CmpTaskCtrl {
 
             _.set(doc, 'cmpCfg.cmpObjs', undefined);
         }
-        return doc;
-    }
-
-    private async expandDoc(doc) {
-        // let calcuTaskPromise = undefined;
-        // if (doc.calcuTaskIds && doc.calcuTaskIds.length) {
-        //     calcuTaskPromise = Bluebird.all(_.map(doc.calcuTaskIds, id => {
-        //         return calcuTaskDB.findOne({ _id: id });
-        //     }));
-        // }
-        // return Bluebird.all([
-        //     doc.topicId ?
-        //         topicDB.findOne({ _id: doc.topicId }) : undefined,
-        //     doc.solutionId ?
-        //         solutionDB.findOne({ _id: doc.solutionId }) : undefined,
-        //     calcuTaskPromise ?
-        //         calcuTaskPromise : undefined
-        // ])
-        //     .then(rsts => {
-        //         doc.topic = rsts[0];
-        //         doc.solution = rsts[1];
-        //         doc.calcuTasks = rsts[2];
-        //         return Bluebird.resolve(doc);
-        //     })
-        //     .catch(Bluebird.reject);
-        let cmpSln = await solutionDB.findOne({ _id: doc.solutionId });
-        doc.participants = cmpSln.participants;
         return doc;
     }
 
@@ -177,73 +155,78 @@ export default class CmpTaskCtrl {
 
     async start(cmpTaskId) {
         try {
-            await taskDB.update({ _id: cmpTaskId }, {
-                $set: {
-                    state: CmpState.RUNNING
-                }
-            })
-            this.task = await taskDB.findOne({ _id: cmpTaskId });
-            this.cmpSln = await solutionDB.findOne({ _id: this.task.solutionId });
-            // start in background
-            Bluebird.map(this.task.calcuTaskIds as any[], calcuTaskId => {
-                return new Promise((resolve, reject) => {
-                    let msCtrl = new ModelServiceCtrl()
-                    msCtrl.on('afterDataBatchCached', ({ code }) => {
-                        if (code === 200)
-                            calcuTaskDB.findOne({ _id: calcuTaskId._id }).then(resolve)
-                        else if (code === 500)
-                            resolve(undefined)
-                    })
-                    msCtrl.invoke(calcuTaskId._id).catch(reject)
+            new Bluebird(async (resolve, reject) => {
+                await taskDB.update({ _id: cmpTaskId }, {
+                    $set: {
+                        state: CmpState.RUNNING
+                    }
                 })
-            },
-                {
-                    concurrency: 10
-                }
-            )
-                .then(async v => {
-                    v = v.filter(v => !!v);
-                    this.calcuTasks = v;
-                    await this.updateCmpObjs();
-                    let promises = [];
-                    this.task.cmpObjs.map((cmpObj, i) => {
-                        cmpObj.methods.map((method, j) => {
-                            promises.push(new Promise((resolve, reject) => {
-                                // TODO 可能会出现并发问题
-                                let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, this.task.schemas, {
-                                    afterCmp: async () => {
-                                        taskDB.update({
-                                            _id: this.task._id
-                                        }, {
-                                                $set: {
-                                                    [`cmpObjs.${i}.methods.${j}.result`]: cmpMethod.result
-                                                }
-                                            })
-                                            .then(v => resolve({ code: 200 }))
-                                            .catch(e => {
-                                                console.log(e);
-                                                resolve({ code: 500 })
-                                            })
-                                    }
-                                })
-                                cmpMethod.start();
-                            }))
-                        })
-                        Bluebird.all(promises)
-                            .then(rsts => {
-                                let state = rsts.every(v => v.code === 200)? CmpState.FINISHED_SUCCEED: CmpState.FINISHED_FAILED;
-                                taskDB.update({ _id: this.task }, {
-                                    $set: {
-                                        state: state
-                                    }
-                                })
+                let task = await taskDB.findOne({ _id: cmpTaskId });
+                let solution = await solutionDB.findOne({ _id: task.solutionId });
+                // start in background
+                let calcuTasks = await Bluebird.map(
+                    task.calcuTaskIds as any[],
+                    calcuTaskId => {
+                        return new Bluebird((resolve, reject) => {
+                            let msCtrl = new ModelServiceCtrl()
+                            msCtrl.on('afterDataBatchCached', ({ code }) => {
+                                if (code === 200)
+                                    calcuTaskDB.findOne({ _id: calcuTaskId._id }).then(resolve)
+                                else if (code === 500)
+                                    resolve(undefined)
                             })
+                            msCtrl.invoke(calcuTaskId._id).catch(reject)
+                        })
+                    },
+                    { concurrency: 10 }
+                )
+                calcuTasks = calcuTasks.filter(v => !!v);
+                // updateCmpObjs
+                task.cmpObjs.map(cmpObj => {
+                    cmpObj.dataRefers.map(dataRefer => {
+                        let msr = (calcuTasks as any[]).find(msr => msr._id.toHexString() === dataRefer.msrId);
+                        if (msr)
+                            for (let key in msr.IO) {
+                                if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
+                                    let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
+                                    if (event)
+                                        dataRefer.value = event.value
+                                }
+                            }
                     })
                 })
-                .catch(e => {
-                    console.log(e)
+                await taskDB.update({ _id: task._id }, { $set: task })
+                let promises = [];
+                task.cmpObjs.map((cmpObj, i) => {
+                    cmpObj.methods.map((method, j) => {
+                        promises.push(new Bluebird((resolve, reject) => {
+                            // TODO 可能会出现并发问题
+                            let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, task.schemas)
+                            cmpMethod.on('afterCmp', async () => {
+                                try {
+                                    await taskDB.update({ _id: task._id }, {
+                                        $set: { [`cmpObjs.${i}.methods.${j}.result`]: cmpMethod.result }
+                                    })
+                                    resolve({ code: 200 })
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                    resolve({ code: 500 })
+                                }
+                            })
+                            cmpMethod.start();
+                        }))
+                    })
                 })
-
+                Bluebird.all(promises).then(rsts => {
+                    let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
+                    taskDB.update({ _id: task }, {
+                        $set: {
+                            state: state
+                        }
+                    })
+                })
+            })
             return Bluebird.resolve({
                 code: 200,
                 desc: 'Start comparison task in background!'
@@ -252,24 +235,5 @@ export default class CmpTaskCtrl {
         catch (e) {
             console.log(e)
         }
-    }
-
-    private async updateCmpObjs() {
-        this.task.cmpObjs.map(cmpObj => {
-            cmpObj.dataRefers.map(dataRefer => {
-                let msr = this.calcuTasks.find(msr => msr._id.toHexString() === dataRefer.msrId);
-                if (msr)
-                    for (let key in msr.IO) {
-                        if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
-                            let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
-                            if (event)
-                                dataRefer.value = event.value
-                        }
-                    }
-            })
-        })
-        return taskDB.update({ _id: this.task._id }, {
-            $set: this.task
-        })
     }
 }

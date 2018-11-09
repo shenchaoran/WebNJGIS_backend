@@ -1,12 +1,12 @@
 import { Response, Request, NextFunction } from 'express';
 import { RouterExtends } from './base.route';
 const express = require('express');
-import CmpTaskCtrl from '../controllers/task.controller';
+import TaskCtrl from '../controllers/task.controller';
 import CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import { taskDB as db, CmpState } from '../models';
 import ConversationCtrl from '../controllers/conversation.controller';
 const conversationCtrl = new ConversationCtrl();
-const taskCtrl = new CmpTaskCtrl();
+const taskCtrl = new TaskCtrl();
 const calcuTaskCtrl = new CalcuTaskCtrl();
 
 const defaultRoutes = [
@@ -53,7 +53,7 @@ router.route('/')
                 .then(rsts => {
                     cmpTaskId = rsts[0]
                     if(req.body.task.state === CmpState.COULD_START) {
-                        return taskCtrl.start(cmpTaskId);
+                        return new TaskCtrl().start(cmpTaskId);
                     }
                 })
                 .then(startMsg => {
@@ -73,7 +73,7 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        taskCtrl.getTaskDetail(req.params.id)
+        taskCtrl.findOne(req.params.id)
             .then(doc => {
                 return res.json({
                     data: doc
@@ -84,7 +84,7 @@ router.route('/:id')
 
 router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {
-        taskCtrl.start(req.params.id)
+        new TaskCtrl().start(req.params.id)
             .then(msg => {
                 return res.json({
                     data: {

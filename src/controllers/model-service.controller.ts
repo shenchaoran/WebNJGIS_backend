@@ -88,7 +88,7 @@ export default class ModelServiceCtrl extends EventEmitter {
                     this.progressDaemon(msr._id).then(msg => {
                         if ((msg as any).code === 200) {
                             let dataCtrl = new DataCtrl()
-                            dataCtrl.on('afterDataBatchCached', () => this.emit('afterDataBatchCached'))
+                            dataCtrl.on('afterDataBatchCached', () => this.emit('afterDataBatchCached', { code: 200 }))
                             dataCtrl.cacheDataBatch(msr._id)
                         }
                         else
