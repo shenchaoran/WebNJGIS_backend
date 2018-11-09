@@ -216,15 +216,16 @@ export default class UserCtrl {
     }
 
     getUserInfo(req: Request, res: Response, next: NextFunction) {
-        let userId = req.query.id;
-        userDB.findOne({ _id: userId }).then(user => {
-            user.password = null;
-            return res.json({
-                data: {
-                    user: user
-                }
+        let userName = req.params.userName;
+        userDB.findOne({ username: userName })
+            .then(user => {
+                user.password = null;
+                return res.json({
+                    data: {
+                        user: user
+                    }
+                })
             })
-        })
             .catch(e => {
                 res.json({
                     error: {
@@ -238,7 +239,7 @@ export default class UserCtrl {
 
     toggleSubscribe(userId, ac, pType, pid) {
         let db, updatePattern;
-        switch(pType) {
+        switch (pType) {
             case 'solution':
                 db = solutionDB;
                 break;

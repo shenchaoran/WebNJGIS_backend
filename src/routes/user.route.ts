@@ -19,7 +19,7 @@ router.route('/password-reset').post(userCtrl.resetPassword);
 
 router.route('/set-up').post(userCtrl.setUp);
 
-router.route('/get-user-info').get(userCtrl.getUserInfo);
+router.route('/:userName').get(userCtrl.getUserInfo);
 
 router.route('/:id')
     .patch((req, res, next) => {
