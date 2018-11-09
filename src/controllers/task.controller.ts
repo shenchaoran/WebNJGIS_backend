@@ -187,17 +187,14 @@ export default class CmpTaskCtrl {
             // start in background
             Bluebird.map(this.task.calcuTaskIds as any[], calcuTaskId => {
                 return new Promise((resolve, reject) => {
-                    new ModelServiceCtrl({
-                        afterDataCached: ({ code }) => {
-                            if (code === 200)
-                                calcuTaskDB.findOne({ _id: calcuTaskId._id })
-                                    .then(resolve)
-                            else if (code === 500)
-                                resolve(undefined)
-                        }
+                    let msCtrl = new ModelServiceCtrl()
+                    msCtrl.on('afterDataBatchCached', ({ code }) => {
+                        if (code === 200)
+                            calcuTaskDB.findOne({ _id: calcuTaskId._id }).then(resolve)
+                        else if (code === 500)
+                            resolve(undefined)
                     })
-                        .invoke(calcuTaskId._id)
-                        .catch(reject)
+                    msCtrl.invoke(calcuTaskId._id).catch(reject)
                 })
             },
                 {

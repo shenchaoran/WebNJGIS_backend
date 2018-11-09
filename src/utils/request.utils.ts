@@ -3,15 +3,16 @@ import { Response, Request, NextFunction } from 'express';
 const requestPromise = require('request-promise');
 const request = require('request');
 import * as fs from 'fs';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as http from 'http'
 import { ObjectID } from 'mongodb'
 import * as path from 'path'
-import { PassThrough } from 'stream'
+import * as EventEmitter from 'events';
+import { PassThrough, Stream } from 'stream'
 
 // reference: https://github.com/request/request-promise
 
-export const getByServer = (url: string, form: any, isFullResponse?: boolean): Promise<any> => {
+export const getByServer = (url: string, form: any, isFullResponse?: boolean): Bluebird<any> => {
     const options = {
         url: url,
         method: 'GET',
@@ -24,11 +25,11 @@ export const getByServer = (url: string, form: any, isFullResponse?: boolean): P
     }
     return requestPromise(options)
         .catch(e => {
-            return Promise.reject(e)
+            return Bluebird.reject(e)
         })
 };
 
-export const postByServer = (url: string, body: any, type: PostRequestType): Promise<any> => {
+export const postByServer = (url: string, body: any, type: PostRequestType): Bluebird<any> => {
     const options: any = {
         uri: url,
         method: 'POST'
@@ -65,13 +66,13 @@ export const postByServer = (url: string, body: any, type: PostRequestType): Pro
     }
     return requestPromise(options)
         .catch(e => {
-            return Promise.reject(e)
+            return Bluebird.reject(e)
         })
 };
 
 // 通过管道请求转发 TODO fix hot
 export const getByPipe = (req: Request, url: string) => {
-    return new Promise((resolve, reject) => {
+    return new Bluebird((resolve, reject) => {
         req.pipe(
             request.get(url, (err, response, body) => {
                 if (err) {
@@ -88,7 +89,7 @@ export const getByPipe = (req: Request, url: string) => {
 };
 
 export const postByPipe = (req: Request, url: string) => {
-    return new Promise((resolve, reject) => {
+    return new Bluebird((resolve, reject) => {
         req.pipe(
             request
                 .post(url)
@@ -103,61 +104,51 @@ export const postByPipe = (req: Request, url: string) => {
 };
 
 /**
- * @returnresponse(stream)
+ * @return {stream, fname}
  * 
  * 从远程请求文件，将文件写到本地，并将响应流返回到前台
  * fn 是写完文件后执行的函数，不是回调
  */
-export const getFile = (url, folder, fn) => {
-    let fname, fpath, newName
-    let ext = '';
-    newName = new ObjectID().toString()
-    return new Promise((resolve, reject) => {
-        try {
-            http.get(url, response => {
-                let res$1, res$2
-                // res$1 = new PassThrough()
-                // res$2 = new PassThrough()
-                // response.pipe(res$1)
-                // response.pipe(res$2)
+export const getFile = async (url, folder) => {
+    try {
+        const fetchEvent = new EventEmitter();
+        let fname, fpath, newName
+        newName = new ObjectID().toString()
+        http.get(url, stream => {
+            // let res$1, res$2
+            // res$1 = new PassThrough()
+            // res$2 = new PassThrough()
+            // response.pipe(res$1)
+            // response.pipe(res$2)
 
-                fname = response.headers['content-disposition'];
-                if (fname) {
-                    if (fname.indexOf('filename=') !== -1) {
-                        fname = fname.substring(fname.indexOf('filename=') + 9);
-                    }
-                }
-                if (!fname) {
-                    fname = new ObjectID().toString();
-                }
-                if (fname.lastIndexOf('.') !== -1) {
-                    ext = fname.substr(fname.lastIndexOf('.'));
-                    newName += ext
-                }
-                fpath = path.join(folder, newName)
-                resolve({
-                    stream: response,
-                    fname: fname
-                })
+            fname = stream.headers['content-disposition'];
+            if (fname && fname.indexOf('filename=') !== -1)
+                fname = fname.substring(fname.indexOf('filename=') + 9);
+            if (!fname)
+                fname = new ObjectID().toString();
+            if (fname.lastIndexOf('.') !== -1) 
+                newName += fname.substr(fname.lastIndexOf('.'))
+            fpath = path.join(folder, newName)
 
-                response.pipe(fs.createWriteStream(fpath))
-                // TODO some file download don't enter here???
-                response.on('end', chunk => {
-                    fn({
-                        fname: fname,
-                        fpath: newName
-                    })
+            fetchEvent.emit('response', {
+                stream,
+                fname
+            })
+
+            // TODO some file download don't enter here???
+            stream.pipe(fs.createWriteStream(fpath))
+            stream.on('end', chunk => {
+                fetchEvent.emit('afterWrite', {
+                    fname,
+                    fpath: newName
                 })
             })
-        }
-        catch (e) {
-            return reject(e)
-        }
-    })
-        .catch(e => {
-            console.error(e)
-            return Promise.reject(e)
         })
+        return fetchEvent;
+    }
+    catch (e) {
+        return Bluebird.reject(e)
+    }
 }
 
 export enum PostRequestType {

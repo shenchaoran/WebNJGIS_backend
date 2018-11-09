@@ -9,33 +9,21 @@ import * as unzip from 'unzip';
 import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
+import * as EventEmitter from 'events';
 import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB, CalcuTaskState, modelServiceDB } from '../models';
 const fs: any = Bluebird.promisifyAll(fs_)
 
-export default class DataCtrl {
-    private afterDataCached: Function = () => { };
-    private afterDataBatchCached: Function = () => { };
-    constructor(lifeCycles?: {
-        afterDataCached?: Function,
-        afterDataBatchCached?: Function
-    }) {
-        Object.assign(this, lifeCycles)
+export default class DataCtrl extends EventEmitter {
+    constructor() {
+        super();
     }
 
 	/**
 	 * 条目保存到数据库，文件移动到upload/geo-data中
 	 * 如果数据为zip则解压
 	 */
-    async insert(req: Request, res: Response, next: NextFunction) {
-        const form = new formidable.IncomingForm();
-        form.encoding = 'utf-8';
-        form.uploadDir = setting.geo_data.path;
-        form.keepExtensions = true;
-        form.maxFieldsSize = 500 * 1024 * 1024;
-        form.parse(req, (err, fields, files) => {
-            if (err) {
-                return next(err);
-            }
+    async insert(fields, files) {
+        try {
             if (files['geo-data']) {
                 const file = files['geo-data'];
                 const filename = file.name;
@@ -43,108 +31,69 @@ export default class DataCtrl {
                 const oid = new ObjectID();
                 const newName = oid + ext;
 
-                const newPath = path.join(
-                    setting.geo_data.path,
-                    newName
-                );
-                fs.rename(file.path, newPath, err => {
-                    if (err) {
-                        return next(err);
-                    }
-                    if (ext === '.zip') {
-                        const unzipPath = path.join(
-                            setting.geo_data.path,
-                            oid.toHexString()
-                        );
-                        try {
-                            // console.log(newPath);
-                            // console.log(unzipPath);
-                            fs
-                                .createReadStream(newPath)
-                                .pipe(unzip.Extract({ path: unzipPath }))
-                                .on('error', err => next(err))
-                                .on('close', () => {
-                                    // TODO 为什么这里会崩？？？
-                                    const cfgPath = path.join(
-                                        unzipPath,
-                                        'index.json'
-                                    );
-                                    this.parseUDXCfg(cfgPath).then(udxcfg => {
-                                        const newItem = {
-                                            _id: oid,
-                                            meta: {
-                                                name: filename,
-                                                path: oid.toHexString() + ext,
-                                                desc: fields.desc
-                                            },
-                                            auth: {
-                                                userId: fields.userId,
-                                                src: fields.src
-                                            },
-                                            udxcfg: udxcfg
-                                        };
-                                        geoDataDB
-                                            .insert(newItem)
-                                            .then(doc => {
-                                                return res.json({
-                                                    data: doc
-                                                });
-                                            })
-                                            .catch(next);
-                                    });
+                const newPath = path.join(setting.geo_data.path, newName);
+                await fs.renameAsync(file.path, newPath);
+                if (ext === '.zip') {
+                    const unzipPath = path.join(setting.geo_data.path, oid.toHexString());
+                    return new Bluebird((resolve, reject) => {
+                        fs.createReadStream(newPath)
+                            .pipe(unzip.Extract({ path: unzipPath }))
+                            .on('error', reject)
+                            .on('close', () => {
+                                const cfgPath = path.join(unzipPath, 'index.json');
+                                this.parseUDXCfg(cfgPath).then(udxcfg => {
+                                    const newItem = {
+                                        _id: oid,
+                                        meta: {
+                                            name: filename,
+                                            path: oid.toHexString() + ext,
+                                            desc: fields.desc
+                                        },
+                                        auth: {
+                                            userId: fields.userId,
+                                            src: fields.src
+                                        },
+                                        udxcfg: udxcfg
+                                    };
+                                    geoDataDB.insert(newItem).then(resolve);
                                 });
-                        } catch (e) {
-                            console.log(e);
-                            return next(e);
-                        }
-                    } else {
-                        geoDataDB
-                            .insert({
-                                _id: oid,
-                                meta: {
-                                    name: filename,
-                                    path: oid.toHexString() + ext,
-                                    desc: fields.desc
-                                },
-                                auth: {
-                                    userId: fields.userId,
-                                    src: fields.src
-                                },
-                                udxcfg: undefined
-                            })
-                            .then(doc => {
-                                return res.json({
-                                    data: doc
-                                });
-                            })
-                            .catch(next);
-                    }
-                });
+                            });
+                    })
+                }
+                else {
+                    return geoDataDB.insert({
+                        _id: oid,
+                        meta: {
+                            name: filename,
+                            path: oid.toHexString() + ext,
+                            desc: fields.desc
+                        },
+                        auth: {
+                            userId: fields.userId,
+                            src: fields.src
+                        },
+                        udxcfg: undefined
+                    })
+                }
             }
-        });
+        }
+        catch (e) {
+            console.log(e)
+            return Bluebird.reject(e);
+        }
     };
 
     async download(id: string) {
-        return geoDataDB.findOne({
-            _id: id
-        })
-            .then(doc => {
-                let fpath = path.join(
-                    setting.geo_data.path,
-                    doc.meta.path,
-                );
-                return fs.statAsync(fpath)
-                    .then(stats => {
-                        return Bluebird.resolve({
-                            path: fpath,
-                            fname: doc.meta.name
-                        })
-                    })
-                    .catch(e => {
-                        return Bluebird.reject(e.code === 'ENOENT' ? 'file don\'t exist!' : 'unpredictable error!');
-                    });
-            })
-            .catch(Bluebird.reject);
+        try {
+            let doc = await geoDataDB.findOne({ _id: id })
+            let fpath = path.join(setting.geo_data.path, doc.meta.path);
+            let stats = await fs.statAsync(fpath)
+            return { fpath, fname: doc.meta.name }
+        }
+        catch (e) {
+            console.log(e);
+            return Bluebird.reject(e.code === 'ENOENT' ? 'file don\'t exist!' : 'unpredictable error!');
+        }
     };
 
     async visualization(req: Request, res: Response, next: NextFunction) { };
@@ -175,76 +124,71 @@ export default class DataCtrl {
      * 否则文件缓存到本地，同时更新 geodata, calcu task 数据库，并返回给前台
      */
     async cacheData({ msrId, eventId }) {
-        let eventIndex, event, eventType
-        let msr = await calcuTaskDB.findOne({ _id: msrId });
-        for (let key in msr.IO) {
-            if (key === 'inputs' || key === 'outputs') {
-                let events = msr.IO[key];
-                for (let i = 0; i < events.length; i++) {
-                    if (events[i].id === eventId) {
-                        eventType = key
-                        eventIndex = i
-                        event = events[i]
+        try {
+            let eventIndex, event, eventType
+            let msr = await calcuTaskDB.findOne({ _id: msrId });
+            for (let key in msr.IO) {
+                if (key === 'inputs' || key === 'outputs') {
+                    let events = msr.IO[key];
+                    for (let i = 0; i < events.length; i++) {
+                        if (events[i].id === eventId) {
+                            eventType = key
+                            eventIndex = i
+                            event = events[i]
+                        }
                     }
                 }
             }
-        }
-        console.log(eventType, eventIndex)
+            // console.log(eventType, eventIndex)
 
-        if (event.cached) {
-            this.afterDataCached({
-                code: 200
-            });
-            let { path, fname } = await this.download(event.value);
-            return Bluebird.resolve({
-                stream: fs.createReadStream(path),
-                fname: fname
-            })
-                .catch(e => {
-                    console.error(e)
-                    return Bluebird.reject(e)
+            if (event.cached) {
+                this.emit('afterDataCached', { code: 200 })
+                let { fpath, fname } = await this.download(event.value);
+                let stream = fs.createReadStream(fpath);
+                return { stream, fname };
+            }
+            else {
+                let ms = await modelServiceDB.findOne({ _id: msr.msId });
+                let serverURL = await NodeCtrl.telNode(ms.nodeId);
+                let fetchEvent = await RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path)
+                fetchEvent.on('afterWrite', ({ fname, fpath }) => {
+                    if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
+                        let gdid = new ObjectID();
+                        let setObj = {
+                            [`IO.${eventType}.${eventIndex}.value`]: gdid.toHexString(),
+                            [`IO.${eventType}.${eventIndex}.cached`]: true
+                        }
+                        Bluebird.all([
+                            geoDataDB.insert({
+                                _id: gdid,
+                                meta: {
+                                    desc: '',
+                                    path: fpath,
+                                    name: fname
+                                },
+                                auth: {
+                                    src: _.get(msr, 'auth.src'),
+                                    userId: _.get(msr, 'auth.userId')
+                                }
+                            }),
+                            calcuTaskDB.update({ _id: msr._id }, {
+                                $set: setObj
+                            })
+                        ])
+                            .then(rsts => {
+                                this.emit('afterDataCached', { code: 200 });
+                            })
+                    }
                 })
+                return new Bluebird((resolve, reject) => {
+                    fetchEvent.on('response', resolve)
+                })
+            }
         }
-        else {
-            let ms = await modelServiceDB.findOne({ _id: msr.msId });
-            let serverURL = await NodeCtrl.telNode(ms.nodeId);
-            return RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path, ({ fname, fpath }) => {
-                if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
-                    let gdid = new ObjectID();
-                    let setObj = {}
-                    setObj[`IO.${eventType}.${eventIndex}.value`] = gdid.toHexString()
-                    setObj[`IO.${eventType}.${eventIndex}.cached`] = true;
-                    Bluebird.all([
-                        geoDataDB.insert({
-                            _id: gdid,
-                            meta: {
-                                desc: '',
-                                path: fpath,
-                                name: fname
-                            },
-                            auth: {
-                                src: _.get(msr, 'auth.src'),
-                                userId: _.get(msr, 'auth.userId')
-                            }
-                        }),
-                        calcuTaskDB.update({ _id: msr._id }, {
-                            $set: setObj
-                        })
-                    ])
-                        .then(rsts => {
-                            this.afterDataCached({
-                                code: 200
-                            });
-                        })
-                }
-            })
-                .catch(e => {
-                    console.error(e)
-                    this.afterDataCached({
-                        code: 500
-                    });
-                    return Bluebird.reject(e)
-                })
+        catch (e) {
+            console.error(e)
+            this.emit('afterDataCached', { code: 500 });
+            return Bluebird.reject(e)
         }
     }
 
@@ -265,19 +209,9 @@ export default class DataCtrl {
         }
         return Bluebird.map(toPulls, toPull => {
             return new Promise((resolve, reject) => {
-                new DataCtrl({
-                    afterDataCached: ({ code }) => {
-                        if (code === 500) {
-                            console.log('cache data failed: ', toPull)
-                            resolve({ code })
-                        }
-                        else {
-                            resolve({ code })
-                        }
-                    }
-                })
-                    .cacheData(toPull)
-                    .catch(reject)
+                let dataCtrl = new DataCtrl()
+                dataCtrl.on('afterDataCached', resolve)
+                dataCtrl.cacheData(toPull)
             });
         }, {
                 concurrency: 1
@@ -285,13 +219,13 @@ export default class DataCtrl {
             .then(rsts => {
                 console.log('****** cache data succeed of msr: ' + msrId);
                 // 这里暂不管缓存结果，在比较时从 db 里的记录里取缓存结果
-                this.afterDataBatchCached({
+                this.emit('afterDataBatchCached', {
                     code: 200,
                     desc: 'cache data succeed!'
                 });
             })
             .catch(e => {
-                this.afterDataBatchCached({
+                this.emit('afterDataBatchCached', {
                     code: 500,
                     desc: 'cache data batch failed!'
                 });

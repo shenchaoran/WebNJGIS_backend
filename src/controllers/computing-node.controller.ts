@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import * as formidable from 'formidable';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -16,8 +16,8 @@ const md5 = (v) => {
 
 import { ComputingNode, computingNodeDB } from '../models';
 
-export const login = (authInfo: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
+export const login = (authInfo: any): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         // 密码使用md5加密
         computingNodeDB
             .find({
@@ -51,29 +51,23 @@ export const login = (authInfo: any): Promise<any> => {
 };
 
 // TODO
-export const logout = (): Promise<any> => {
+export const logout = (): Bluebird<any> => {
     return ;
 }
 
-export const telNode = nodeId => {
-    let node, serverURL
-    return computingNodeDB.findOne({_id: nodeId})
-        .then(v => {
-            node = v;
-            serverURL = `http://${node.host}:${node.port}${node.API_prefix}`
-            return getByServer(serverURL, undefined)
-        })
-        .then(msg => {
-            let nodeName = msg.match(/server name: (.*)"}/)[1]
-            if(nodeName === node.auth.nodeName) {
-                return Promise.resolve(serverURL)
-            }
-            else {
-                return Promise.reject('server ip changed or resources location changed')
-            }
-        })
-        .catch(e => {
-            console.error(e)
-            return Promise.reject('')
-        })
+export const telNode = async nodeId => {
+    try {
+        const node = await computingNodeDB.findOne({_id: nodeId})
+        const serverURL = `http://${node.host}:${node.port}${node.API_prefix}`
+        let res = await getByServer(serverURL, undefined)
+        let nodeName = res.match(/server name: (.*)"}/)[1]
+        if(nodeName !== node.auth.nodeName) 
+            return Bluebird.reject('server ip changed or resources location changed')
+        else 
+            return serverURL;
+    }
+    catch(e) {
+        console.log(e)
+        return Bluebird.reject(e);
+    }
 }
