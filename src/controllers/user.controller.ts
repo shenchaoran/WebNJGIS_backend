@@ -215,8 +215,8 @@ export const setUp = (req: Request, res: Response, next: NextFunction) => {
 }
 
 export const getUserInfo = (req: Request, res: Response, next: NextFunction) => {
-    let userId = req.query.id;
-    userDB.findOne({ _id: userId })
+    let userName = req.params.userName;
+    userDB.findOne({ username: userName })
         .then(user => {
             user.password = null;
             return res.json({

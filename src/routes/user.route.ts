@@ -19,6 +19,6 @@ router.route('/password-reset').post(UserCtrl.resetPassword);
 
 router.route('/set-up').post(UserCtrl.setUp);
 
-router.route('/get-user-info').get(UserCtrl.getUserInfo);
+router.route('/:userName').get(UserCtrl.getUserInfo);
 
 //  RouterExtends(router, db, defaultRoutes);
