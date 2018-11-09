@@ -11,7 +11,9 @@ class ModelServiceDB extends Mongoose {
             MDL: mongoose.Schema.Types.Mixed,
             stdIds: mongoose.Schema.Types.Mixed,
             nodeId: String,
-            topic: String,
+            tag: String,
+            topicId: String,
+            topicName: String,
             exeName: String,
             subscribed_uids: Array,
         };
@@ -50,7 +52,9 @@ export class ModelService {
     };
     nodeId: string;
     stdIds: string[];
-    topic: string;
+    tag: string;
+    topicId: string;
+    topicName: string;
     exeName: string;
     subscribed_uids: string[];
 }

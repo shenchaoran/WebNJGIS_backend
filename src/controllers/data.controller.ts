@@ -9,12 +9,12 @@ import * as unzip from 'unzip';
 import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
-import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB, CalcuTaskState } from '../models';
+import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB, CalcuTaskState, modelServiceDB } from '../models';
 const fs: any = Bluebird.promisifyAll(fs_)
 
 export default class DataCtrl {
-    private afterDataCached: Function = () => {};
-    private afterDataBatchCached: Function = () => {};
+    private afterDataCached: Function = () => { };
+    private afterDataBatchCached: Function = () => { };
     constructor(lifeCycles?: {
         afterDataCached?: Function,
         afterDataBatchCached?: Function
@@ -206,7 +206,8 @@ export default class DataCtrl {
                 })
         }
         else {
-            let serverURL = await NodeCtrl.telNode(msr.ms.nodeId);
+            let ms = await modelServiceDB.findOne({ _id: msr.msId });
+            let serverURL = await NodeCtrl.telNode(ms.nodeId);
             return RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path, ({ fname, fpath }) => {
                 if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
                     let gdid = new ObjectID();
@@ -265,13 +266,13 @@ export default class DataCtrl {
         return Bluebird.map(toPulls, toPull => {
             return new Promise((resolve, reject) => {
                 new DataCtrl({
-                    afterDataCached: ({code}) => {
-                        if(code === 500) {
+                    afterDataCached: ({ code }) => {
+                        if (code === 500) {
                             console.log('cache data failed: ', toPull)
-                            resolve({code})
+                            resolve({ code })
                         }
                         else {
-                            resolve({code})
+                            resolve({ code })
                         }
                     }
                 })
@@ -279,8 +280,8 @@ export default class DataCtrl {
                     .catch(reject)
             });
         }, {
-            concurrency: 1
-        })
+                concurrency: 1
+            })
             .then(rsts => {
                 console.log('****** cache data succeed of msr: ' + msrId);
                 // 这里暂不管缓存结果，在比较时从 db 里的记录里取缓存结果
@@ -301,45 +302,37 @@ export default class DataCtrl {
      * 如果使用上传数据运行，则需要先将所有数据 post 过去
      */
     async pushData2ComputingServer(msrId) {
-        let msr, serverURL
-        return new Bluebird((resolve, reject) => {
-            calcuTaskDB.findOne({ _id: msrId })
-                .then(doc => {
-                    msr = doc
-                    return NodeCtrl.telNode(msr.ms.nodeId)
-                })
-                .then(v => {
-                    serverURL = v
-                    let url = serverURL + '/data'
-                    return Bluebird.map(msr.IO.inputs as any[], input => {
-                        let fpath = path.join(setting.geo_data.path, input.value + input.ext)
-                        return RequestCtrl.postByServer(url, {
-                            useNewName: 'false',
-                            myfile: fs.createReadStream(fpath)
-                        }, RequestCtrl.PostRequestType.File)
-                            .then(res => {
-                                res = JSON.parse(res)
-                                if (res.code === 200) {
-                                    return Bluebird.resolve()
-                                }
-                                else {
-                                    throw 'transfer input file into computing server failed'
-                                }
-                            })
-                            .catch(e => {
-                                console.error(e)
-                                throw 'transfer input file into computing server failed'
-                            })
-                    }, {
-                            concurrency: 10
-                        })
-                })
-                .then(rsts => {
-                    return resolve()
-                })
-                .catch(e => {
-                    return reject(e)
-                })
-        });
+        try {
+            let msr = await calcuTaskDB.findOne({ _id: msrId });
+            let ms = await modelServiceDB.findOne({ _id: msr.msId });
+            let serverURL = await NodeCtrl.telNode(ms.nodeId);
+            let url = serverURL + '/data'
+            return Bluebird.map(msr.IO.inputs as any[], input => {
+                let fpath = path.join(setting.geo_data.path, input.value + input.ext)
+                return RequestCtrl.postByServer(url, {
+                    useNewName: 'false',
+                    myfile: fs.createReadStream(fpath)
+                }, RequestCtrl.PostRequestType.File)
+                    .then(res => {
+                        res = JSON.parse(res)
+                        if (res.code === 200) {
+                            return Bluebird.resolve()
+                        }
+                        else {
+                            throw 'transfer input file into computing server failed'
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e)
+                        throw 'transfer input file into computing server failed'
+                    })
+            }, {
+                    concurrency: 10
+                });
+        }
+        catch (e) {
+            console.log(e);
+            return Bluebird.reject(e);
+        }
     }
 }

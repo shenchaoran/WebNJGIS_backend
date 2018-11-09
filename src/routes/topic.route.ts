@@ -66,19 +66,18 @@ router.route('/:id')
             .catch(next);
     })
     .patch((req, res, next) => {
-        let topic = req.body.topic;
-        let ac = req.body.ac;
-        let uid = req.body.uid;
-        let topicId = req.params.id;
-        if(ac === 'subscribe' || ac === 'unsubscribe') {
-            topicCtrl.subscribeToggle(topicId, ac, uid)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+        let topic = req.body.topic,
+            ac = req.body.ac,
+            uid = req.body.uid,
+            solutionId = req.body.solutionId,
+            topicId = req.params.id,
+            originalTopicId = req.body.originalTopicId,
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
+        if(ac === 'removeSolution' || ac === 'addSolution') {
+            fn(topicCtrl.patchSolutionIds(topicId, ac, originalTopicId, solutionId));
         }
         else if (topic) {
-            topicCtrl.update(topic)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn(topicCtrl.update(topic));
         }
         else {
             return next();
@@ -90,21 +89,5 @@ router.route('/:id')
             .then(v => res.json({ data: v }))
             .catch(next);
     });
-
-router.route('/:id/solution')
-    .patch((req, res, next) => {
-        let topicId = req.params.id;
-        let ac = req.body.ac;
-        let solutionId = req.body.solutionId;
-        if (solutionId && (ac === 'add' || ac === 'remove')) {
-            topicCtrl.patchSolutionIds(topicId, ac, solutionId)
-                .then(v => res.json({ data: v }))
-                .catch(next);
-        }
-        else {
-            return next();
-        }
-    })
-
 
 RouterExtends(router, db, defaultRoutes);

@@ -1,11 +1,13 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import SolutionCtrl from '../controllers/solution.controller';
 import { solutionDB as db } from '../models/solution.model';
-const solutionCtrl = new SolutionCtrl();
+import SolutionCtrl from '../controllers/solution.controller';
 import ConversationCtrl from '../controllers/conversation.controller';
-let conversationCtrl = new ConversationCtrl();
+import UserCtrl from '../controllers/user.controller';
+const solutionCtrl = new SolutionCtrl();
+const conversationCtrl = new ConversationCtrl();
+const userCtrl = new UserCtrl();
 
 const defaultRoutes = [
     'findAll',
@@ -60,36 +62,36 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        let solutionId = req.params.id;
-        solutionCtrl.findOne(solutionId)
-            .then(rst => res.json({data: rst}))
-            .catch(next);
+        let solutionId = req.params.id,
+            ac = req.query.ac,
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
+        if(ac === 'createTask') {
+            fn(solutionCtrl.createTask(solutionId));
+        }
+        else {
+            fn(solutionCtrl.findOne(solutionId));
+        }
     })
     .patch((req, res, next) => {
         let solution = req.body.solution,
             ac = req.body.ac,
             uid = req.body.uid,
             solutionId = req.params.id,
-            ids = req.body.ids;
-        if(ac === 'subscribe' || ac === 'unsubscribe') {
-            solutionCtrl.subscribeToggle(solutionId, ac, uid)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            ids = req.body.ids,
+            topicId = req.body.topicId,
+            originalTopicId = req.body.originalTopicId,
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
+        if(ac === 'addTopic' || ac === 'removeTopic') {
+            fn(solutionCtrl.patchTopicId(solutionId, ac, originalTopicId, topicId))
         }
         else if(ac === 'updatePts') {
-            solutionCtrl.updatePts(solutionId, ids)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn(solutionCtrl.updatePts(solutionId, ids))
         }
         else if(ac === 'updateCmpObjs') {
-            solutionCtrl.updateCmpObjs(solution)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn(solutionCtrl.updateCmpObjs(solution))
         }
         else if (solution) {
-            solutionCtrl.update(solution)
-                .then(v => res.json({ data: v }))
-                .catch(next);
+            fn(solutionCtrl.update(solution))
         }
         else {
             return next();

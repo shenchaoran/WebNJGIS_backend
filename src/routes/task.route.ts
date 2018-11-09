@@ -2,11 +2,12 @@ import { Response, Request, NextFunction } from 'express';
 import { RouterExtends } from './base.route';
 const express = require('express');
 import CmpTaskCtrl from '../controllers/task.controller';
-import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
+import CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import { taskDB as db, CmpState } from '../models';
 import ConversationCtrl from '../controllers/conversation.controller';
 const conversationCtrl = new ConversationCtrl();
 const taskCtrl = new CmpTaskCtrl();
+const calcuTaskCtrl = new CalcuTaskCtrl();
 
 const defaultRoutes = [
     'remove',
@@ -46,7 +47,7 @@ router.route('/')
             let cmpTaskId
             Promise.all([
                 taskCtrl.insert(req.body.task),
-                CalcuTaskCtrl.insertBatch(req.body.calcuTasks),
+                calcuTaskCtrl.insertBatch(req.body.calcuTasks),
                 conversationCtrl.addConversation(conversation)
             ])
                 .then(rsts => {

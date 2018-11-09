@@ -9,7 +9,7 @@ import * as mongoose from 'mongoose';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import * as PropParser from './UDX.property.controller';
 import * as UDXComparators from './UDX.compare.controller';
-import * as CalcuTaskCtrl from './calcu-task.controller';
+import CalcuTaskCtrl from './calcu-task.controller';
 import ModelServiceCtrl from './model-service.controller';
 import { CmpMethodFactory } from './cmp-methods';
 import {

@@ -6,7 +6,7 @@ import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
 import { ComputingNode, computingNodeDB as db, calcuTaskDB } from '../models';
-import * as CalcuTaskCtrl from '../controllers/calcu-task.controller';
+import CalcuTaskCtrl from '../controllers/calcu-task.controller';
 import * as ComputingNodeCtrl from '../controllers/computing-node.controller';
 import { nodeAuthMid } from '../middlewares/node-auth.middleware';
 

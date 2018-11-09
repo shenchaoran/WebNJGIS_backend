@@ -18,11 +18,17 @@ class CalcuTaskDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             cmpTaskId: String,
             IO: mongoose.Schema.Types.Mixed,
-            ms: mongoose.Schema.Types.Mixed,
-            std: mongoose.Schema.Types.Mixed,
+            // ms: mongoose.Schema.Types.Mixed,
+            msId: String,
+            msName: String,
+            topicId: String,
+            topicName: String,
+            // std: mongoose.Schema.Types.Mixed,
+            stdId: String,
             log: mongoose.Schema.Types.Mixed,
             state: String,
             progress: Number,
+            conversationId: String,
             subscribed_uids: Array,
         };
 
@@ -46,7 +52,11 @@ export class CalcuTask extends OgmsObj {
         userName: string,
         src: ResourceSrc
     };
-    ms: string;
+    // ms: string;
+    msId: string;
+    msName: string;
+    topicId: string;
+    topicName: string;
     cmpTaskId: string;
     IO: {
         dataSrc: 'STD' | 'UPLOAD',
@@ -60,12 +70,14 @@ export class CalcuTask extends OgmsObj {
         cached: boolean,
         dataId: string
     };
-    std: any;
+    // std: any;
+    stdId: string;
     // 表示状态
     state: CalcuTaskState;
     // 只表示进度条
     progress: number;
     subscribed_uids: string[];
+    conversationId: string;
 }
 
 export const CalcuTaskState = Enum(
