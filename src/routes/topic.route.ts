@@ -72,17 +72,16 @@ router.route('/:id')
             solutionId = req.body.solutionId,
             topicId = req.params.id,
             originalTopicId = req.body.originalTopicId,
-            fn;
-        if(ac === 'subscribe' || ac === 'unsubscribe') {
-            fn = () => topicCtrl.subscribeToggle(topicId, ac, uid);
-        }
-        else if(ac === 'removeSolution' || ac === 'addSolution') {
-            fn = () => topicCtrl.patchSolutionIds(topicId, ac, originalTopicId, solutionId);
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
+        if(ac === 'removeSolution' || ac === 'addSolution') {
+            fn(topicCtrl.patchSolutionIds(topicId, ac, originalTopicId, solutionId));
         }
         else if (topic) {
-            fn = () => topicCtrl.update(topic);
+            fn(topicCtrl.update(topic));
         }
-        fn().then(v => res.json({ data: v })).catch(next);
+        else {
+            return next();
+        }
     })
     .delete((req, res, next) => {
         let topicId = req.params.id;

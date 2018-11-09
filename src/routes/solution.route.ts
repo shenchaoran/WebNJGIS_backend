@@ -1,11 +1,13 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import SolutionCtrl from '../controllers/solution.controller';
 import { solutionDB as db } from '../models/solution.model';
-const solutionCtrl = new SolutionCtrl();
+import SolutionCtrl from '../controllers/solution.controller';
 import ConversationCtrl from '../controllers/conversation.controller';
-let conversationCtrl = new ConversationCtrl();
+import UserCtrl from '../controllers/user.controller';
+const solutionCtrl = new SolutionCtrl();
+const conversationCtrl = new ConversationCtrl();
+const userCtrl = new UserCtrl();
 
 const defaultRoutes = [
     'findAll',
@@ -60,16 +62,15 @@ router.route('/')
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
-        let solutionId = req.params.id;
-        let ac = req.query.ac;
-        let fn;
+        let solutionId = req.params.id,
+            ac = req.query.ac,
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
         if(ac === 'createTask') {
-            fn = () => solutionCtrl.createTask(solutionId);
+            fn(solutionCtrl.createTask(solutionId));
         }
         else {
-            fn = () => solutionCtrl.findOne(solutionId);
+            fn(solutionCtrl.findOne(solutionId));
         }
-        fn().then(rst => res.json({data: rst})).catch(next);
     })
     .patch((req, res, next) => {
         let solution = req.body.solution,
@@ -79,23 +80,22 @@ router.route('/:id')
             ids = req.body.ids,
             topicId = req.body.topicId,
             originalTopicId = req.body.originalTopicId,
-            fn;
-        if(ac === 'subscribe' || ac === 'unsubscribe') {
-            fn = () => solutionCtrl.subscribeToggle(solutionId, ac, uid)
-        }
-        else if(ac === 'addTopic' || ac === 'removeTopic') {
-            fn = () => solutionCtrl.patchTopicId(solutionId, ac, originalTopicId, topicId)
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
+        if(ac === 'addTopic' || ac === 'removeTopic') {
+            fn(solutionCtrl.patchTopicId(solutionId, ac, originalTopicId, topicId))
         }
         else if(ac === 'updatePts') {
-            fn = () => solutionCtrl.updatePts(solutionId, ids)
+            fn(solutionCtrl.updatePts(solutionId, ids))
         }
         else if(ac === 'updateCmpObjs') {
-            fn = () => solutionCtrl.updateCmpObjs(solution)
+            fn(solutionCtrl.updateCmpObjs(solution))
         }
         else if (solution) {
-            fn = () => solutionCtrl.update(solution);
+            fn(solutionCtrl.update(solution))
         }
-        fn().then(v => res.json({ data: v })).catch(next);
+        else {
+            return next();
+        }
     })
     .delete((req, res, next) => {
 

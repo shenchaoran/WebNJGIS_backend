@@ -17,17 +17,16 @@ router.route('/')
     .get((req, res, next) => {
         // TODO findOne by filter
         let pid = req.query.pid,
-            fn;
+            fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
 
         if(pid) {
-            fn = () => conversationCtrl.findOne({pid: pid})
+            fn(conversationCtrl.findOne({pid: pid}))
         }
         else {
             let pageIndex = parseInt(req.query.pageIndex) || 1;
             let pageSize = parseInt(req.query.pageSize) || 20;
-            fn = () => conversationCtrl.findByPage({pageIndex, pageSize})
+            fn(conversationCtrl.findByPage({pageIndex, pageSize}))
         }
-        fn().then(v => res.json({ data: v })).catch(next);
     });
 
 router.route('/:id')

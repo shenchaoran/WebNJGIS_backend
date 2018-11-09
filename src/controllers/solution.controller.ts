@@ -161,30 +161,6 @@ export default class SolutionCtrl {
 
     }
 
-    subscribeToggle(solutionId, ac, uid) {
-        let updatePattern;
-        if (ac === 'subscribe') {
-            updatePattern = {
-                $addToSet: {
-                    subscribed_uids: uid
-                }
-            };
-        }
-        else if (ac === 'unsubscribe') {
-            updatePattern = {
-                $pull: {
-                    subscribed_uids: uid
-                }
-            }
-        }
-        return this.db.update({ _id: solutionId }, updatePattern)
-            .then(v => true)
-            .catch(e => {
-                console.log(e);
-                return false;
-            });
-    }
-
     /**
      * @returns { docs: MS[] }
      */

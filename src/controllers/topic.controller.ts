@@ -143,31 +143,4 @@ export default class TopicCtrl {
         let newAC = ac === 'addSolution'? 'addTopic': 'removeTopic';
         return new SolutionCtrl().patchTopicId(solutionId, newAC, originalTopicId, topicId);
     }
-
-    /**
-     * @return true/false
-     */
-    subscribeToggle(topicId, ac, uid) {
-        let updatePattern;
-        if (ac === 'subscribe') {
-            updatePattern = {
-                $addToSet: {
-                    subscribed_uids: uid
-                }
-            };
-        }
-        else if (ac === 'unsubscribe') {
-            updatePattern = {
-                $pull: {
-                    subscribed_uids: uid
-                }
-            }
-        }
-        return topicDB.update({ _id: topicId }, updatePattern)
-            .then(v => true)
-            .catch(e => {
-                console.log(e);
-                return false;
-            });
-    }
 }
