@@ -15,21 +15,10 @@ export default class CalcuTaskCtrl {
 
     async findOne(msrId) {
         try {
-            let [msr, {
-                conversation,
-                users,
-                commentCount
-            }] = await Promise.all([
+            let [msr, ] = await Promise.all([
                 this.db.findOne({ _id: msrId }),
-                conversationCtrl.findOne({ pid: msrId }).then(doc => {
-                    if(doc)
-                        return doc;
-                    else {
-                        return {} as any;
-                    }
-                }),
             ]);
-            return { msr, conversation, users, commentCount, };
+            return { msr };
         }
         catch (e) {
             console.log(e);

@@ -15,11 +15,19 @@ module.exports = router;
 
 router.route('/')
     .get((req, res, next) => {
-        let pageIndex = parseInt(req.query.pageIndex) || 1;
-        let pageSize = parseInt(req.query.pageSize) || 20;
-        return conversationCtrl.findByPage({pageIndex, pageSize})
-            .then(v => res.json({ data: v }))
-            .catch(next);
+        // TODO findOne by filter
+        let pid = req.query.pid,
+            fn;
+
+        if(pid) {
+            fn = () => conversationCtrl.findOne({pid: pid})
+        }
+        else {
+            let pageIndex = parseInt(req.query.pageIndex) || 1;
+            let pageSize = parseInt(req.query.pageSize) || 20;
+            fn = () => conversationCtrl.findByPage({pageIndex, pageSize})
+        }
+        fn().then(v => res.json({ data: v })).catch(next);
     });
 
 router.route('/:id')

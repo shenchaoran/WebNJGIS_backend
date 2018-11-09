@@ -47,7 +47,6 @@ export default class TopicCtrl {
     findOne(id) {
         return Promise.all([
             topicDB.findOne({ _id: id }),
-            conversationCtrl.findOne({ pid: id }),
             // TODO 这里暂时全部给前端
             solutionDB.findByPage({}, {
                 pageSize: 50,
@@ -56,11 +55,6 @@ export default class TopicCtrl {
         ])
             .then(([
                 topic,
-                {
-                    conversation,
-                    users,
-                    commentCount
-                },
                 {
                     count: solutionCount,
                     docs: solutions
@@ -71,9 +65,6 @@ export default class TopicCtrl {
                 });
                 return {
                     topic,
-                    conversation,
-                    users,
-                    commentCount,
                     solutions,
                     solutionCount,
                 };

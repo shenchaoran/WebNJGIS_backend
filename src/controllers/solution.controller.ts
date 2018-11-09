@@ -35,11 +35,10 @@ export default class SolutionCtrl {
                 solution.topicId ? topicDB.findOne({ _id: solution.topicId }) : null,
                 solution.taskIds ? taskDB.findByIds(solution.taskIds) : [],
                 modelServiceDB.find({}),
-                solution.cid ? conversationCtrl.findOne({ _id: solution.cid }) : {} as any,
                 cmpMethodDB.find({}),
                 topicDB.find({}),
             ])
-                .then(([topic, tasks, mss, { conversation, users, commentCount }, cmpMethods, topicList]) => {
+                .then(([topic, tasks, mss, cmpMethods, topicList]) => {
                     let ptMSs = mss.filter(ms => solution.msIds.includes(ms._id.toString()))
                     return {
                         solution,
@@ -69,9 +68,6 @@ export default class SolutionCtrl {
                                 meta: method.meta,
                             };
                         }),
-                        conversation,
-                        users,
-                        commentCount,
                         topicList: topicList.map(topic => {
                             return {
                                 _id: topic._id,
@@ -104,9 +100,6 @@ export default class SolutionCtrl {
                     modelServiceDB.findByIds(solution.msIds) :
                     [],
                 stdDataDB.find({}),
-                // solution.cid ? 
-                //     conversationCtrl.findOne({ _id: solution.cid }) : 
-                //     {} as any,
             ])
                 .then(([ptMSs, stds]) => {
                     return {
