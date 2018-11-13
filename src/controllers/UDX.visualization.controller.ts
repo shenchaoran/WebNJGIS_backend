@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as path from 'path';
 import { ObjectID } from 'mongodb';
 import * as fs from 'fs';
@@ -19,8 +19,8 @@ import * as StringUtils from '../utils/string.utils';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 
-export const parse = (dataId: string, method?: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
+export const parse = (dataId: string, method?: string): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         geoDataDB
             .findOne({ _id: dataId })
             .then(doc => {
@@ -69,9 +69,9 @@ export const parse = (dataId: string, method?: string): Promise<any> => {
 /**
  * 只返回 table 中的一列，放在 row 字段中
  */
-export const extractRow = (doc: any, field: string): Promise<any> => {
+export const extractRow = (doc: any, field: string): Bluebird<any> => {
     const udxcfg = doc.udxcfg;
-    return new Promise((resolve, reject) => {
+    return new Bluebird((resolve, reject) => {
         const fPath = path.join(
             setting.geo_data.path,
             doc.meta.path,
@@ -133,9 +133,9 @@ export const extractRow = (doc: any, field: string): Promise<any> => {
     });
 }
 
-export const showRAWTable = (doc: any): Promise<any> => {
+export const showRAWTable = (doc: any): Bluebird<any> => {
     const udxcfg = doc.udxcfg;
-	return new Promise((resolve, reject) => {
+	return new Bluebird((resolve, reject) => {
         const fPath = path.join(
             setting.geo_data.path,
             doc.meta.path,
@@ -199,8 +199,8 @@ export const showRAWTable = (doc: any): Promise<any> => {
 	});
 };
 
-export const showRAWAscii = (doc: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
+export const showRAWAscii = (doc: any): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         if (doc.udxcfg.entrance === undefined) {
             return reject(new Error('invalid geo-data config!'));
         }
@@ -225,12 +225,12 @@ export const showRAWAscii = (doc: any): Promise<any> => {
     });
 };
 
-export const showRAWAsciiBatch = (doc: any): Promise<any> => {
-    return new Promise((resolve, reject) => {
+export const showRAWAsciiBatch = (doc: any): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         const fpath = path.join(setting.geo_data.path, doc.meta.path);
-        Promise.all(
+        Bluebird.all(
             _.map(doc.udxcfg.entries, entry => {
-                return new Promise((resolve, reject) => {
+                return new Bluebird((resolve, reject) => {
                     const asciiPath = path.join(
                         setting.geo_data.path,
                         doc.meta.path,
@@ -256,15 +256,15 @@ export const showRAWAsciiBatch = (doc: any): Promise<any> => {
     });
 };
 
-export const showRAWShp = (doc: any): Promise<any> => {
+export const showRAWShp = (doc: any): Bluebird<any> => {
     return;
 };
 
-export const showRAWShp_INTERPOLATION = (doc: any): Promise<any> => {
+export const showRAWShp_INTERPOLATION = (doc: any): Bluebird<any> => {
     return;
 };
 
-export const showGIF = (doc: any): Promise<any> => {
+export const showGIF = (doc: any): Bluebird<any> => {
     return;
 };
 
@@ -278,13 +278,13 @@ const drawAscii = (
     spatial: any,
     folderName: string,
     entryName: string
-): Promise<any> => {
+): Bluebird<any> => {
     const end = entryName.lastIndexOf('.');
     if (end) {
         entryName = entryName.substring(0, end);
     }
 
-    return new Promise((resolve, reject) => {
+    return new Bluebird((resolve, reject) => {
         try {
             // const rowsStr = _.chain(gridStr)
             //     .split('\n')

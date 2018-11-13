@@ -7,19 +7,21 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 
 export default class TableChartCMP extends CmpMethod {
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
+    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public methodId) {
         super(dataRefers, schemas)
     }
 
     /**
      * @returns {echart-opt, statisticTable}
      */
-    async start(): Promise<any> {
+    async start() {
         let dataRefers = this.dataRefers.filter(v => !!v.value);
-        Bluebird.map(dataRefers, this.extractCSVColumn.bind(this))
-            .then(cols => {
+        Bluebird.map(dataRefers, async dataRefer => {
+            let geoData = await geoDataDB.findOne({ _id: dataRefer.value });
+            let fpath = path.join(setting.geo_data.path, geoData.meta.path);
+            this.extractCSVColumn(dataRefer, fpath).then(async cols => {
                 if (cols.length) {
-                    this.result = {
+                    let opt = {
                         progress: 100,
                         state: CmpState.FINISHED_SUCCEED,
                         xAxis: {
@@ -36,13 +38,13 @@ export default class TableChartCMP extends CmpMethod {
                             {
                                 show: true,
                                 start: 0,
-                                end: 10
+                                end: 100
                             },
                             {
                                 type: 'inside',
                                 realtime: true,
                                 start: 0,
-                                end: 10
+                                end: 100
                             }
                         ],
                         series: cols.map((col, i) => {
@@ -53,36 +55,43 @@ export default class TableChartCMP extends CmpMethod {
                             }
                         })
                     };
-                    this.emit('afterCmp');
+                    let extI = fpath.lastIndexOf('.');
+                    let targetFPath = `${fpath.substring(0 ,extI)}-${this.methodId}${fpath.substring(extI)}`;
+                    await fs.writeFileAsync(targetFPath, JSON.stringify(opt), 'utf8')
+                    this.emit('afterCmp', targetFPath);
                     console.log(`******table chart cmp finished!`)
                 }
             })
+        })
     }
 
-    protected async extractCSVColumn(dataRefer): Promise<any> {
-        let column = []
-        let geoData = await geoDataDB.findOne({
-            _id: dataRefer.value
-        });
-        let fpath = path.join(setting.geo_data.path, geoData.meta.path);
-        console.log('******csv path: ', fpath)
-        let csv$ = fs.createReadStream(fpath, 'utf8');
-        let schema = this.schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
-        let colNum = schema.structure.columns.findIndex(col => col.id === dataRefer.field)
-        return new Promise((resolve, reject) => {
-            csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
-                header: false,
-                dynamicTyping: true,
-                skipEmptyLines: true,
-            }))
-                .on('data', item => {
-                    let scale = parseInt((schema.structure.columns[colNum] as any).unitScale);
-                    column.push(item[colNum] * scale);
-                })
-                .on('end', () => {
-                    resolve(column)
-                })
-                .on('error', reject)
-        });
+    protected async extractCSVColumn(dataRefer, fpath) {
+        try {
+            let column = []
+            console.log('******csv path: ', fpath)
+            let csv$ = fs.createReadStream(fpath, 'utf8');
+            let schema = this.schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
+            let colNum = schema.structure.columns.findIndex(col => col.id === dataRefer.field)
+            await new Bluebird((resolve, reject) => {
+                csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
+                    header: false,
+                    dynamicTyping: true,
+                    skipEmptyLines: true,
+                }))
+                    .on('data', item => {
+                        let scale = parseInt((schema.structure.columns[colNum] as any).unitScale);
+                        column.push(item[colNum] * scale);
+                    })
+                    .on('end', () => {
+                        resolve(column)
+                    })
+                    .on('error', reject)
+            });
+            return column;
+        }
+        catch(e) {
+            console.log(e);
+            return Bluebird.reject(e);
+        }
     }
 }

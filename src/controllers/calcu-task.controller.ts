@@ -15,7 +15,7 @@ export default class CalcuTaskCtrl {
 
     async findOne(msrId) {
         try {
-            let [msr, ] = await Promise.all([
+            let [msr, ] = await Bluebird.all([
                 this.db.findOne({ _id: msrId }),
             ]);
             return { msr };

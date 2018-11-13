@@ -1,4 +1,5 @@
 import { cmpMethodDB } from './../models';
+import * as Bluebird from 'bluebird';
 
 export default class CmpMethodCtrl {
     constructor() {
@@ -6,7 +7,7 @@ export default class CmpMethodCtrl {
     }
 
     findAllMatched(schemaType) {
-        return new Promise((resolve, reject) => {
+        return new Bluebird((resolve, reject) => {
             
         });
     }

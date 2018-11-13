@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const jwt = require('jwt-simple');
 const moment = require('moment');
 import * as _ from 'lodash';

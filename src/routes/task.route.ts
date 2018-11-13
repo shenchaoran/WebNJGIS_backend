@@ -1,4 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
+import * as Bluebird from 'bluebird';
 import { RouterExtends } from './base.route';
 const express = require('express');
 import TaskCtrl from '../controllers/task.controller';
@@ -45,7 +46,7 @@ router.route('/')
             conversation = req.body.conversation;
         if(calcuTasks && task && conversation) {
             let cmpTaskId
-            Promise.all([
+            Bluebird.all([
                 taskCtrl.insert(req.body.task),
                 calcuTaskCtrl.insertBatch(req.body.calcuTasks),
                 conversationCtrl.addConversation(conversation)

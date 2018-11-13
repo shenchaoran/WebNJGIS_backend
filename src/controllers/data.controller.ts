@@ -208,7 +208,7 @@ export default class DataCtrl extends EventEmitter {
             }
         }
         return Bluebird.map(toPulls, toPull => {
-            return new Promise((resolve, reject) => {
+            return new Bluebird((resolve, reject) => {
                 let dataCtrl = new DataCtrl()
                 dataCtrl.on('afterDataCached', resolve)
                 dataCtrl.cacheData(toPull)

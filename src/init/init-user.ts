@@ -1,10 +1,10 @@
 import { userDB } from '../models/user.model';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 
-export const initUser = (): Promise<any> => {
-    return new Promise((resolve, reject) => {
+export const initUser = (): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         userDB.find({ username: 'Admin' })
             .then(user => {
                 if (user.length >= 1) {

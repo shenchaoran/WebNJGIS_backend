@@ -28,7 +28,7 @@ class CalcuTaskDB extends Mongoose {
             log: mongoose.Schema.Types.Mixed,
             state: String,
             progress: Number,
-            conversationId: String,
+            cid: String,
             subscribed_uids: Array,
         };
 
@@ -52,7 +52,6 @@ export class CalcuTask extends OgmsObj {
         userName: string,
         src: ResourceSrc
     };
-    // ms: string;
     msId: string;
     msName: string;
     topicId: string;
@@ -77,7 +76,7 @@ export class CalcuTask extends OgmsObj {
     // 只表示进度条
     progress: number;
     subscribed_uids: string[];
-    conversationId: string;
+    cid: string;
 }
 
 export const CalcuTaskState = Enum(

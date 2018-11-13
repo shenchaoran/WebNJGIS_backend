@@ -164,7 +164,7 @@ export default class ConversationCtrl {
                 conversationDB.insert(conversation),
                 pDB.update({ _id: conversation.pid }, {
                     $set: {
-                        conversationId: conversation._id
+                        cid: conversation._id
                     }
                 }),
             ]);

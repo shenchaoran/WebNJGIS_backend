@@ -1,5 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import * as express from 'express';
+import * as Bluebird from 'bluebird';
 import { RouterExtends } from './base.route';
 import { topicDB as db, conversationDB } from '../models';
 import TopicCtrl from '../controllers/topic.controller';
@@ -40,7 +41,7 @@ router.route('/')
         let topic = req.body.topic,
             conversation = req.body.conversation;
         if (topic && conversation) {
-            Promise.all([
+            Bluebird.all([
                 topicCtrl.insert(topic),
                 conversationCtrl.addConversation(conversation)
             ])

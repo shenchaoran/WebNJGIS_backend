@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import * as formidable from 'formidable';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import { ObjectID } from 'mongodb';
@@ -16,7 +16,7 @@ export default class SearchCtrl {
     constructor() {}
 
     // TODO
-    static search(options): Promise<any> {
+    static search(options): Bluebird<any> {
         const categories = [
             {
                 name: 'Topics',
@@ -145,7 +145,7 @@ export default class SearchCtrl {
                 description: 'You can use our powerful search tools to find what you\'re looking for among the millions of repositories, users, and lines of code on GitHub.'
             }
         ]
-        return Promise.resolve({
+        return Bluebird.resolve({
             categories: categories,
             list: list
         });

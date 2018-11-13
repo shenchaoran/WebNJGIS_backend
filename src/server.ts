@@ -7,6 +7,14 @@ import { router } from './routes/index.route';
 import { preReqMid, postResMid } from './middlewares';
 import { init } from './init';
 
+process.on('uncaughtException', (error: any) => {
+    console.error('uncaughtException', error)
+})
+
+process.on('unhandledRejection', (error: any) => {
+    console.error('unhandledRejection', error)
+})
+
 init()
     .then(() => {
         //////////////////////////////////////router

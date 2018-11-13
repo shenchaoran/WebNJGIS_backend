@@ -5,6 +5,7 @@ import { solutionDB as db } from '../models/solution.model';
 import SolutionCtrl from '../controllers/solution.controller';
 import ConversationCtrl from '../controllers/conversation.controller';
 import UserCtrl from '../controllers/user.controller';
+import * as Bluebird from 'bluebird';
 const solutionCtrl = new SolutionCtrl();
 const conversationCtrl = new ConversationCtrl();
 const userCtrl = new UserCtrl();
@@ -42,7 +43,7 @@ router.route('/')
         let solution = req.body.solution,
             conversation = req.body.conversation;
         if(solution && conversation) {
-            Promise.all([
+            Bluebird.all([
                 solutionCtrl.insert(solution),
                 conversationCtrl.addConversation(conversation),
             ]).then(rsts => {

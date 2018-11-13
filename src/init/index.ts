@@ -1,12 +1,12 @@
 import { initEnv } from './init-env';
 import { initUser } from './init-user';
 import { initFolders } from './init-folder';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 
 export const init = () => {
     
-    return new Promise((resolve, reject) => {
-        Promise.all([
+    return new Bluebird((resolve, reject) => {
+        Bluebird.all([
             // connect2MSC(), 
             // initEnv(),
             initUser(),

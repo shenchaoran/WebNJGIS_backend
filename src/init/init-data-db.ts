@@ -1,11 +1,11 @@
 import { geoDataDB, GeoDataClass } from '../models/UDX-data.model';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 import * as mongoose from 'mongoose';
 
-const initData = (data: GeoDataClass): Promise<any> => {
-    return new Promise((resolve, reject) => {
+const initData = (data: GeoDataClass): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         geoDataDB.find(data._id)
             .then(docs => {
                 if (docs.length >= 1) {
@@ -42,4 +42,4 @@ const initData = (data: GeoDataClass): Promise<any> => {
 //     }
 // ];
 
-// Promise.all()
+// Bluebird.all()

@@ -4,6 +4,7 @@ import { startWith, map, flatMap, switchMap, filter, mergeMap } from 'rxjs/opera
 import { setting } from '../config/setting';
 import { CalcuTaskState } from '../models';
 import * as _ from 'lodash'
+import * as Bluebird from 'bluebird';
 
 export default class MSRProgressDaemon {
 
@@ -13,7 +14,7 @@ export default class MSRProgressDaemon {
         let msr$ = interval(setting.daemon.msr_progress).pipe(
             switchMap(i => from(calcuTaskDB.findOne({ _id: this.msrId })))
         );
-        return new Promise((resolve, reject) => {
+        return new Bluebird((resolve, reject) => {
             let subscription = msr$.subscribe(msr => {
                 if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
                     subscription.unsubscribe();

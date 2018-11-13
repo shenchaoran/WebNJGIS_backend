@@ -2,19 +2,19 @@ import { stdDataDB } from '../models';
 import * as proj4x from 'proj4';
 const proj4 = (proj4x as any).proj4;
 import { siteDB } from '../models';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
 
-export const preview = (id, cfg): Promise<any> => {
+export const preview = (id, cfg): Bluebird<any> => {
     return stdDataDB.findOne({ _id: id })
     //     .then(doc => {
     //         if (doc.meta.name === 'IBIS meteorological data') {
     //             let point;
     //             if (cfg.method === 'map') {
     //                 if (cfg.geojson.coordinates.length !== 2) {
-    //                     return Promise.reject('invalid position!');
+    //                     return Bluebird.reject('invalid position!');
     //                 }
     //                 const x = cfg.geojson.coordinates[0];
     //                 const y = cfg.geojson.coordinates[1];
@@ -26,20 +26,20 @@ export const preview = (id, cfg): Promise<any> => {
     //             else if (cfg.method === 'row&col') {
     //                 point = getPointPosition(cfg.method, cfg.col, cfg.row);
     //             }
-    //             return Promise.resolve({
+    //             return Bluebird.resolve({
     //                 type: 'point',
     //                 cfg: point
     //             });
     //         }
     //         else {
-    //             return Promise.reject('invalid STD data type!');
+    //             return Bluebird.reject('invalid STD data type!');
     //         }
     //     })
     //     // .then(requestData)
     //     .then(file => {
 
         // })
-        .catch(Promise.reject);
+        .catch(Bluebird.reject);
 }
 
 export const download = (id, cfg) => {
@@ -49,7 +49,7 @@ export const download = (id, cfg) => {
         //         let region;
         //         if (cfg.method === 'map') {
         //             if (cfg.geojson.coordinates.length !== 2) {
-        //                 return Promise.reject('invalid position!');
+        //                 return Bluebird.reject('invalid position!');
         //             }
         //             const coors = _.get(cfg, 'geojson.coordinates[0]');
         //             const rows = [];
@@ -84,24 +84,24 @@ export const download = (id, cfg) => {
         //                 endCol: cfg.endCol
         //             }
         //         }
-        //         return Promise.resolve({
+        //         return Bluebird.resolve({
         //             type: 'region',
         //             cfg: region
         //         });
         //     }
         //     else {
-        //         return Promise.reject('invalid STD data type!');
+        //         return Bluebird.reject('invalid STD data type!');
         //     }
         // })
         // .then(requestData)
         // .then(response => {
         //     let fname = response.headers['Content-Disposition'];
         //     fname = fname.substring(fname.indexOf('filename=') + 9);
-        //     return Promise.resolve({
+        //     return Bluebird.resolve({
         //         length: response.headers['content-length'],
         //         data: response.body,
         //         filename: fname
         //     });
         // })
-        .catch(Promise.reject);
+        .catch(Bluebird.reject);
 }

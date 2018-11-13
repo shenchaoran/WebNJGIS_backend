@@ -5,6 +5,6 @@ import { DataRefer } from '../../models';
 export const CmpMethodFactory = function(methodId, dataRefers: DataRefer[], schemas: UDXSchema[]) {
     switch (methodId) {
         case '5b713f39a4857f1ba4be23ff':
-            return new TableChartCMP(dataRefers, schemas);
+            return new TableChartCMP(dataRefers, schemas, methodId);
     }
 }

@@ -1,9 +1,9 @@
 // const debug = require('debug')('WebNJGIS: Debug');
 import * as iconv from 'iconv-lite'
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
-const fs = Promise.promisifyAll(require('fs'));
+const fs = Bluebird.promisifyAll(require('fs'));
 import * as unzip from 'unzip';
 import { Buffer } from 'buffer';
 import * as _ from 'lodash';
@@ -20,7 +20,7 @@ import * as Papa from 'papaparse';
 let exec = child_process.exec;
 
 // solutionDB.find({}).then(docs => {
-//     Promise.map(docs as any[], doc => {
+//     Bluebird.map(docs as any[], doc => {
 //         return solutionDB.update({_id: doc._id}, {
 //             $set: {
 //                 msIds: doc.participants.map(v => v._id)
@@ -106,15 +106,15 @@ let exec = child_process.exec;
 //         res;
 //     })
 
-// Promise.all([
-//     Promise.resolve(1)
+// Bluebird.all([
+//     Bluebird.resolve(1)
 //         .then(v => {
 //             throw new Error('custom error')
 //         })
 //         .catch(e => {
-//             return Promise.resolve();
+//             return Bluebird.resolve();
 //         }),
-//         Promise.resolve(2)
+//         Bluebird.resolve(2)
 // ])
 //     .then(rsts => {
 //         console.log('map finished');
@@ -124,7 +124,7 @@ let exec = child_process.exec;
 //         console.log('catch by Map')
 //     })
 
-// new Promise((resolve, reject) => {
+// new Bluebird((resolve, reject) => {
 //     resolve();
 // })
 //     .then(() => {
@@ -134,7 +134,7 @@ let exec = child_process.exec;
 //         }
 //         catch(e) {
 //             console.log('catch error');
-//             return Promise.resolve();
+//             return Bluebird.resolve();
 //         } 
 //     })
 //     .then(() => {
@@ -159,14 +159,14 @@ let exec = child_process.exec;
 //     fileIndex.push(i + '.ini');
 //     fileIndex.push(i + '_spinup.ini');
 // }
-// Promise.map(fileIndex, fname => {
+// Bluebird.map(fileIndex, fname => {
 //     console.log(fname);
 
 // }, {
 //     concurrency: 10
 // })
 
-// new Promise((resolve, reject) => {
+// new Bluebird((resolve, reject) => {
 //     resolve(1);
 
 // })
@@ -176,7 +176,7 @@ let exec = child_process.exec;
 //         // setTimeout(() => {
 //         //     console.log('async');
 //         // }, 0);
-//         return new Promise((resolve, reject) => {
+//         return new Bluebird((resolve, reject) => {
 //             console.log('async')
 //             return resolve();
 //         });
@@ -255,7 +255,7 @@ let exec = child_process.exec;
 //             cfg: new Date().getTime()
 //         });
 //     }
-//     // Promise.map(data, solutionDB.insert, {concurrency: 5000})
+//     // Bluebird.map(data, solutionDB.insert, {concurrency: 5000})
 //     //     .then(rsts => {
 //     //         console.log(rsts);
 //     //     })
@@ -263,14 +263,14 @@ let exec = child_process.exec;
 //     console.log('finished!');
 // };
 
-// var Promise = require('bluebird');
+// var Bluebird = require('bluebird');
 // const ASYNCS = [];
 // for(let i=0;i<100;i++) {
 //     ASYNCS.push(i);
 // }
 
-// Promise.map(ASYNCS, function (async) {
-//     return Promise.resolve(async);
+// Bluebird.map(ASYNCS, function (async) {
+//     return Bluebird.resolve(async);
 // },{concurrency: 20})
 //     .then(rsts => {
 //         console.log(rsts);
@@ -327,21 +327,21 @@ let exec = child_process.exec;
 // });
 // //
 
-// // Promise.all
-// Promise.all([
-//     new Promise((resolve, reject) => {
+// // Bluebird.all
+// Bluebird.all([
+//     new Bluebird((resolve, reject) => {
 //         setTimeout(() => {
 //             resolve(1)
 //         }, 1000);
 //     }),
-//     Promise.resolve(2),
-//     Promise.resolve(3)
+//     Bluebird.resolve(2),
+//     Bluebird.resolve(3)
 // ])
 //     .then(console.log)
 //     .catch(console.log);
 
 
-// const aPromise = new Promise(function (resolve) {
+// const aPromise = new Bluebird(function (resolve) {
 //     resolve(100);
 // });
 // aPromise.then((value) => {

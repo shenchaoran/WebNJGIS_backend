@@ -1,12 +1,12 @@
 import * as path from 'path'
 import * as child_process from 'child_process'
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as shell from 'shelljs'
 let exec = child_process.exec
 
 export const initCopyFiles = () => {
     // let fpath = path.join(__dirname, './copyStaticAssets.js')
-    return new Promise((resolve, reject) => {
+    return new Bluebird((resolve, reject) => {
 
         // shell.cp('-R', 'src/public/js/lib', 'dist/public/js/');
         shell.cp('-R', path.join(__dirname, '../public/css'), path.join(__dirname, '../../dist/public/'));

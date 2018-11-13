@@ -1,6 +1,6 @@
 import { Response, Request, NextFunction } from 'express';
 import * as formidable from 'formidable';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -15,8 +15,8 @@ const db = topicDB;
 export default class TopicCtrl {
     constructor() { }
 
-    private expand(doc): Promise<any> {
-        return Promise.all(_.map(doc.solutionIds, slnId => {
+    private expand(doc): Bluebird<any> {
+        return Bluebird.all(_.map(doc.solutionIds, slnId => {
             return solutionDB.findOne({ _id: slnId });
         }))
             .then(rsts => {
@@ -33,7 +33,7 @@ export default class TopicCtrl {
                 });
                 return doc;
             })
-            .catch(Promise.reject);
+            .catch(Bluebird.reject);
     }
 
     /**
@@ -45,7 +45,7 @@ export default class TopicCtrl {
      * }
      */
     findOne(id) {
-        return Promise.all([
+        return Bluebird.all([
             topicDB.findOne({ _id: id }),
             // TODO 这里暂时全部给前端
             solutionDB.findByPage({}, {
@@ -69,7 +69,7 @@ export default class TopicCtrl {
                     solutionCount,
                 };
             })
-            .catch(Promise.reject);
+            .catch(Bluebird.reject);
     }
 
     /**
@@ -79,15 +79,15 @@ export default class TopicCtrl {
         pageSize: number,
         pageIndex: number,
         userId: string,
-    }): Promise<any> {
+    }): Bluebird<any> {
         if (pageOpt.userId === undefined) {
             return db.findByPage({}, {
                 pageSize: pageOpt.pageSize,
                 pageIndex: pageOpt.pageIndex
             })
-                .catch(Promise.reject);
+                .catch(Bluebird.reject);
         } else {
-            return db.findByUserId(pageOpt.userId).catch(Promise.reject);
+            return db.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
 
     }
