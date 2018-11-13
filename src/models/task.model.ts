@@ -6,8 +6,7 @@
 import { Mongoose, OgmsObj } from './mongoose.base';
 import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { Enum } from 'typescript-string-enums/dist';
-import { DataRefer, CmpObj } from '.';
+import { DataRefer, CmpObj } from './solution.model';
 import { UDXSchema } from './UDX-schema.class';
 
 class TaskDB extends Mongoose {
@@ -17,7 +16,7 @@ class TaskDB extends Mongoose {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
             solutionId: String,
-            topicId: String,
+            // topicId: String,
             calcuTaskIds: mongoose.Schema.Types.Mixed,
             progress: Number,
             state: String,
@@ -50,7 +49,6 @@ export class Task extends OgmsObj {
     state: CmpState;
     progress: number;
     solutionId?: string;
-    topicId?: string;
     calcuTaskIds: {
         _id: string,
         progress: number
@@ -61,11 +59,33 @@ export class Task extends OgmsObj {
     subscribed_uids: string[];
 }
 
-export const CmpState = Enum(
-    'INIT',                     // 仅做保存状态
-    'COULD_START',              // 可以启动状态
-    'RUNNING',
-    'FINISHED_SUCCEED',
-    'FINISHED_FAILED'
-)
-export type CmpState = Enum<typeof CmpState>
+export enum CmpState {
+    INIT = 'INIT',
+    COULD_START = 'COULD_START',
+    RUNNING = 'RUNNING',
+    FINISHED_SUCCEED = 'FINISHED_SUCCEED',
+    FINISHED_FAILED = 'FINISHED_FAILED'
+};
+
+export class CmpResult {
+    image?: [{
+      extent: any,
+      path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
+      title: string,
+      progress: number
+    }];
+    chart?: {
+        show: any,
+        prop: any
+        // progress: number,
+        // path: string,               // data/:id/:entrance 同样的，这里也放一个文件路径，前台解析为二位数组，做成 chart
+        // row: any[]
+    };
+    GIF?: {
+        progress: number
+    };
+    statistic?: {
+        progress: number,
+        path: string
+    };
+}

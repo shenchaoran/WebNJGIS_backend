@@ -37,6 +37,20 @@ export default class TopicCtrl {
     }
 
     /**
+     * @returns 
+     *      ARTICLE:    { topic }
+     *      SIDER:      
+     *          READ:   { ptSolutions, solutionCount, participants }
+     *          WRITE:  { solutions, solutionCount }
+     *
+     * @param {*} id
+     * @memberof TopicCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
+
+    /**
      * @return {
      *      topic: Topic,
      *      conversation: Conversation,

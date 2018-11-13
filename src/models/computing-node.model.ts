@@ -12,7 +12,7 @@ class ComputingNodeDB extends Mongoose {
         const schema = {
             host: String,
             port: String,
-            prefix: String,
+            API_prefix: String,
             auth: mongoose.Schema.Types.Mixed
         };
 

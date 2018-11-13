@@ -54,6 +54,23 @@ export default class CmpTaskCtrl {
 
     }
 
+    /**
+     * @returns 
+     *      ARTICLE:
+     *          READ:   { task, solution, ptMSs }
+     *          WRITE:  { mss, methods }
+     *      SIDER:
+     *          READ:   { ptTopic, ptTasks, participants }
+     *          WRITE:  { topics }
+     *
+     * @param {*} id
+     * @param {('article' | 'sider')} type
+     * @memberof SolutionCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
+
     async findOne(id: string) {
         try {
             // TODO 数据库设计 及 异步流程控制

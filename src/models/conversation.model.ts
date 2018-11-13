@@ -1,6 +1,4 @@
 import { Mongoose } from './mongoose.base';
-import * as mongoose from 'mongoose';
-
 import { ResourceSrc } from './resource.enum';
 
 class ConversationDB extends Mongoose {
@@ -23,34 +21,14 @@ export const conversationDB = new ConversationDB();
 export class Conversation {
     _id?: any;
     pid: string;
+    ptype: 'topic' | 'task' | 'solution' | 'calcuTask' | 'ms';
     // 点赞
     like_uids: string[];
     // 收藏
     love_uids: string[];
     tags: (string | 'TOP' | 'HOT')[];
-    comments: (string | Comment)[];
+    comments: Comment[];
 }
-
-class CommentDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Comment';
-        const schema = {
-            content: Array,
-            from_uid: String,
-            anonymous: Boolean,
-            to_uid: String,
-            notified_uids: Array,
-            cid: String,
-            type: String,
-            hide_reason: String,
-            reactions: Array,
-        };
-
-        super(collectionName, schema);
-    }
-}
-
-export const commentDB = new CommentDB();
 
 export class Comment {
     _id?: any;
@@ -61,13 +39,14 @@ export class Comment {
         md: string,
         state?: CommentState
     }[];
+    // 版本号
+    svid: number;
     from_uid: string;
     anonymous: boolean;
     // 可以为空，表示不是回复评论
     to_uid?: string;
     // @ 的用户
     notified_uids?: string[];
-    cid: string;
     type: CommentType;
     hideReason?: string;
     // emoji react
@@ -82,7 +61,6 @@ export enum CommentType {
     REPLY = 'REPLY',
     HIDE = 'HIDE'
 };
-
 
 export enum CommentState {
     WRITE = 'WRITE',

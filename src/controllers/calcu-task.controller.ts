@@ -13,6 +13,21 @@ export default class CalcuTaskCtrl {
     db = calcuTaskDB;
     constructor() { }
 
+    /**
+     * @returns 
+     *      ARTICLE:
+     *          READ:   { calcuTask, ms }
+     *      SIDER:
+     *          READ:   { ptTopic, ptTasks, participants }
+     *
+     * @param {*} id
+     * @param {('article' | 'sider')} type
+     * @memberof SolutionCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
+
     async findOne(msrId) {
         try {
             let [msr, ] = await Bluebird.all([

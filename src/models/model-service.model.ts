@@ -10,7 +10,7 @@ class ModelServiceDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             MDL: mongoose.Schema.Types.Mixed,
             stdIds: mongoose.Schema.Types.Mixed,
-            nodeId: String,
+            nodeIds: String,
             tag: String,
             topicId: String,
             topicName: String,
@@ -24,6 +24,14 @@ class ModelServiceDB extends Mongoose {
 
 export const modelServiceDB = new ModelServiceDB();
 
+/**
+ * 除了以下情况，数据库中的条目信息一般不会变：
+ *      计算节点更改：更新 nodeIds
+ *      标准数据集更改：更新 stdIds
+ *
+ * @export
+ * @class ModelService
+ */
 export class ModelService {
     _id?: any;
     auth: {
@@ -36,7 +44,6 @@ export class ModelService {
             name: string,
             keywords: string[],
             abstract: string,
-            topic: string,
             desc?: string,
             wikiMD?: string,
             wikiHTML?: string,
@@ -50,7 +57,7 @@ export class ModelService {
         },
         runtime: any;
     };
-    nodeId: string;
+    nodeIds: string;
     stdIds: string[];
     tag: string;
     topicId: string;
@@ -59,7 +66,6 @@ export class ModelService {
     subscribed_uids: string[];
 }
 
-// 暂时不考虑 可选、多选一、级联
 export class Event {
     id: string;
     name: string;

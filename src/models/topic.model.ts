@@ -2,14 +2,12 @@
  * 比较问题：描述实际遇到的地理问题
  * 
  */
-
+ 
+import { ResourceSrc } from './resource.enum';
 import * as mongoose from 'mongoose';
-import {
-    Mongoose,
-    Conversation,
-    CmpObj,
-    ResourceSrc
-} from '.';
+import { Mongoose } from './mongoose.base';
+import { Conversation } from './conversation.model';
+import { CmpObj } from './solution.model';
 
 class TopicDB extends Mongoose {
     constructor() {
@@ -20,7 +18,6 @@ class TopicDB extends Mongoose {
             auth: mongoose.Schema.Types.Mixed,
             spatial: mongoose.Schema.Types.Mixed,
             temporal: mongoose.Schema.Types.Mixed,
-            solutionIds: Array,
             cid: String,
             subscribed_uids: Array,
         };
@@ -54,7 +51,6 @@ export class Topic {
         end: number;
         scale: 'YEAR' | 'DAY';
     };
-    solutionIds: string[];
-    cid: string[];
+    cid: string;
     subscribed_uids: string[];
 }

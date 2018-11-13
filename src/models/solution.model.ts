@@ -4,7 +4,6 @@
 
 import { Mongoose } from './mongoose.base';
 import * as mongoose from 'mongoose';
-
 import { ResourceSrc } from './resource.enum';
 import * as _ from 'lodash';
 
@@ -14,8 +13,8 @@ class SolutionDB extends Mongoose {
         const schema = {
             meta: mongoose.Schema.Types.Mixed,
             auth: mongoose.Schema.Types.Mixed,
-            topicId: String,
-            taskIds: Array,
+            topicIds: String,
+            // taskIds: Array,
             msIds: Array,
             cmpObjs: Array,
             cid: String,
@@ -42,12 +41,12 @@ export class Solution {
         userName: string,
         src: ResourceSrc
     };
-    topicId?: string;
-    taskIds?: string[];
+    topicIds?: string;
     msIds?: string[];
-    cmpObjs: Array<CmpObj>;
+    cmpObjs: CmpObj[];
     cid: string;
     subscribed_uids: string[];
+    [key: string]: any;
 }
 
 
@@ -81,20 +80,9 @@ export class CmpObj {
         id: string,
         name: string,
         // 保存结果文件路径
-        result: {   // table-chart: echart-opt
-            progress: number,
-            state: string,
-        } | {       // table-statistic: 
-            progress: number,
-            state: string,
-        } | {       // ascii-img: 
-            progress: number,
-            state: string,
-            msId: string,
-            eventId: string,
-            img: any
-        }[]
+        result: string
     }[];
+    progress?: number;
 }
 
 export class DataRefer {
@@ -110,26 +98,16 @@ export class DataRefer {
     field?: string;
 }
 
-// deprecated
-export class CmpResult {
-    image?: [{
-      extent: any,
-      path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
-      title: string,
-      progress: number
-    }];
-    chart?: {
-        show: any,
-        prop: any
-        // progress: number,
-        // path: string,               // data/:id/:entrance 同样的，这里也放一个文件路径，前台解析为二位数组，做成 chart
-        // row: any[]
-    };
-    GIF?: {
-        progress: number
-    };
-    statistic?: {
-        progress: number,
-        path: string
-    };
-}
+// {   // table-chart: echart-opt
+//     progress: number,
+//     state: string,
+// } | {       // table-statistic: 
+//     progress: number,
+//     state: string,
+// } | {       // ascii-img: 
+//     progress: number,
+//     state: string,
+//     msId: string,
+//     eventId: string,
+//     img: any
+// }[]

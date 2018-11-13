@@ -30,7 +30,6 @@ export class CmpMethod {
         inputs: any[],
         outputs: any[]
     };
-    md: string;
 }
 
 export enum CmpMethodEnum {

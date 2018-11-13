@@ -23,6 +23,21 @@ export default class ModelServiceCtrl extends EventEmitter {
         super()
     }
 
+    /**
+     * @returns 
+     *      ARTICLE:
+     *          READ:   { ms }
+     *      SIDER:
+     *          READ:   { ptTopic, ptSolutions, participants }
+     *
+     * @param {*} id
+     * @param {('article' | 'sider')} type
+     * @memberof SolutionCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
+
     findOne(id) {
         return Bluebird.all([
             this.db.findOne({ _id: id }),

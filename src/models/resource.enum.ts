@@ -3,9 +3,9 @@
  */
 
 export enum ResourceSrc {
-    INTERNAL = 0,
-    EXTERNAL,
-    PUBLIC,
-    PRIVATE,
-    STANDARD
-}
+    INTERNAL = 'INTERNAL',
+    EXTERNAL = 'EXTERNAL',
+    PUBLIC = 'PUBLIC',
+    PRIVATE = 'PRIVATE',
+    STANDARD = 'STANDARD'
+};

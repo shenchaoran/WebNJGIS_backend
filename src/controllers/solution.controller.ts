@@ -22,6 +22,23 @@ export default class SolutionCtrl {
     private expand(doc) { }
 
     /**
+     * @returns 
+     *      ARTICLE:
+     *          READ:   { solution, ptMSs, ptMethods }
+     *          WRITE:  { mss, methods }
+     *      SIDER:
+     *          READ:   { ptTopic, ptTasks, participants }
+     *          WRITE:  { topics }
+     *
+     * @param {*} id
+     * @param {('article' | 'sider')} type
+     * @memberof SolutionCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
+
+    /**
      *
      *
      * @param {*} sid
