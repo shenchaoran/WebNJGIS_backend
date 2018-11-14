@@ -16,8 +16,6 @@ const conversationCtrl = new ConversationCtrl();
 export default class SolutionCtrl {
     constructor() { }
 
-    private expand(doc) { }
-
     /**
      * @returns 
      *      ARTICLE:
@@ -214,49 +212,26 @@ export default class SolutionCtrl {
      * @returns true/false
      * @memberof SolutionCtrl
      */
-    async patchTopicId(solutionId, ac, originalTopicId, topicId) {
+    async patchTopicId(solutionId, ac, topicId) {
         if (ac === 'addTopic') {
-            return Bluebird.all([
-                TopicModel.updateOne({_id: topicId}, {
-                    $addToSet: {
-                        solutionIds: solutionId
-                    }
-                }),
-                originalTopicId? TopicModel.updateOne({_id: originalTopicId}, {
-                    $pull: {
-                        solutionIds: solutionId
-                    }
-                }): null,
-                SolutionModel.updateOne({_id: solutionId}, {
-                    $set: {
-                        topicId: topicId
-                    }
-                }),
-            ])
-                .then(rsts => {
-                    return true;
-                })
+            SolutionModel.updateOne({ _id: solutionId }, {
+                $addToSet: {
+                    topicIds: topicId
+                }
+            })
+                .then(rsts => true)
                 .catch(e => {
                     console.log(e);
                     return false;
                 })
         }
         else if (ac === 'removeTopic') {
-            return Bluebird.all([
-                TopicModel.updateOne({_id: topicId}, {
-                    $pull: {
-                        solutionIds: solutionId
-                    }
-                }),
-                SolutionModel.updateOne({_id: solutionId}, {
-                    $set: {
-                        topicId: null
-                    }
-                }),
-            ])
-                .then(rsts => {
-                    return true;
-                })
+            SolutionModel.updateOne({ _id: solutionId }, {
+                $pull: {
+                    topicIds: topicId
+                }
+            })
+                .then(rsts => true)
                 .catch(e => {
                     console.log(e);
                     return false;

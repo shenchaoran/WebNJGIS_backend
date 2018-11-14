@@ -32,20 +32,9 @@ export interface IOgmsModel {
     upsert(where, update, options?);
 }
 export const OgmsSchemaStatics = {
-    findByIds: async function (where, pageOpt: {
-        pageSize: number,
-        pageIndex: number
-    }) {
+    findByIds: async function (ids) {
         try {
-            let [count, docs] = await Bluebird.all([
-                this.countDocuments(),
-                this
-                    .find(where)
-                    .sort({ _id: -1 })
-                    .limit(pageOpt.pageSize)
-                    .skip(pageOpt.pageSize * (pageOpt.pageIndex - 1))
-            ])
-            return { count, docs };
+            return Bluebird.map(ids, id => this.findById(id));
         }
         catch (e) {
             console.log(e)

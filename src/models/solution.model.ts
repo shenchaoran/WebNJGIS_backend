@@ -34,7 +34,7 @@ export interface ISolutionDocument extends Document {
         userName: string,
         src: ResourceSrc
     };
-    topicIds?: string;
+    topicIds?: string[];
     msIds?: string[];
     cmpObjs: CmpObj[];
     cid: string;

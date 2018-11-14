@@ -72,10 +72,9 @@ router.route('/:id')
             uid = req.body.uid,
             solutionId = req.body.solutionId,
             topicId = req.params.id,
-            originalTopicId = req.body.originalTopicId,
             fn = promise => promise.then(msg => res.json({data: msg})).catch(next);
         if(ac === 'removeSolution' || ac === 'addSolution') {
-            fn(topicCtrl.patchSolutionIds(topicId, ac, originalTopicId, solutionId));
+            fn(topicCtrl.patchSolutionIds(topicId, ac, solutionId));
         }
         else if (topic) {
             fn(topicCtrl.updateOne(topic));

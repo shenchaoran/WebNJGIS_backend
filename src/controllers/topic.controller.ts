@@ -4,8 +4,7 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
-
-import { TopicModel, ConversationModel, SolutionModel } from '../models';
+import { TopicModel, ConversationModel, SolutionModel, IConversationDocument, UserModel } from '../models';
 import ConversationCtrl from './conversation.controller';
 import SolutionCtrl from './solution.controller';
 let conversationCtrl = new ConversationCtrl();
@@ -17,21 +16,36 @@ export default class TopicCtrl {
      * @returns 
      *      ARTICLE:    { topic }
      *      SIDER:      
-     *          READ:   { ptSolutions, solutionCount, participants }
-     *          WRITE:  { solutions, solutionCount }
+     *          READ:   { ptSolutions, participants }
+     *          WRITE:  { solutions }
      *
      * @param {*} id
      * @memberof TopicCtrl
      */
     async detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
         if(type === 'ARTICLE') {
-            return TopicModel.findById(id) as any;
+            return TopicModel.findById(id);
         }
         else if(type === 'SIDER' && mode === 'READ') {
-
+            let [ptSolutions, participants] = await Bluebird.all([
+                SolutionModel.find({
+                    topicIds: {
+                        $in: [id]
+                    }
+                }) as any,
+                ConversationModel.findOne({pid: id}, {comments: 1})
+                    .then((conversation: IConversationDocument) => {
+                        let userIds = new Set();
+                        conversation.comments.map(v => userIds.add(v.from_uid))
+                        return Array.from(userIds);
+                    })
+                    .then(UserModel.findByIds)
+            ])
+            return { ptSolutions, participants}
         }
         else if(type === 'SIDER' && mode === 'WRITE') {
-
+            let solutions = await SolutionModel.find()
+            return { solutions }
         }
     }
 
@@ -138,8 +152,8 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    patchSolutionIds(topicId, ac, originalTopicId, solutionId) {
+    patchSolutionIds(topicId, ac, solutionId) {
         let newAC = ac === 'addSolution'? 'addTopic': 'removeTopic';
-        return new SolutionCtrl().patchTopicId(solutionId, newAC, originalTopicId, topicId);
+        return new SolutionCtrl().patchTopicId(solutionId, newAC, topicId);
     }
 }
