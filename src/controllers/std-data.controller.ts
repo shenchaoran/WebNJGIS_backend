@@ -1,14 +1,14 @@
-import { stdDataDB } from '../models';
+import { StdDataModel } from '../models';
 import * as proj4x from 'proj4';
 const proj4 = (proj4x as any).proj4;
-import { siteDB } from '../models';
+import { SiteModel } from '../models';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
 
-export const preview = (id, cfg): Bluebird<any> => {
-    return stdDataDB.findOne({ _id: id })
+export const preview = async (id, cfg) => {
+    return StdDataModel.findOne({ _id: id })
     //     .then(doc => {
     //         if (doc.meta.name === 'IBIS meteorological data') {
     //             let point;
@@ -43,7 +43,7 @@ export const preview = (id, cfg): Bluebird<any> => {
 }
 
 export const download = (id, cfg) => {
-    return stdDataDB.findOne({ _id: id })
+    return StdDataModel.findOne({ _id: id })
         // .then(doc => {
         //     if (doc.meta.name === 'IBIS meteorological data') {
         //         let region;

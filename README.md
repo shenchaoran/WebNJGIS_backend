@@ -42,5 +42,5 @@ Navigate to `http://localhost:9999`
 ## TODO
 - [ ] 数据库重新设计
     - [ ] 去除 Geo_data DB
-    - [ ] userDB 中的 avator 存到文件系统中
+    - [ ] UserModel 中的 avator 存到文件系统中
     - [ ] nodeDB 添加一些软硬件环境信息

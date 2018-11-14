@@ -13,17 +13,15 @@ import {
 const express = require('express');
 import * as _ from 'lodash';
 
-import { Mongoose } from '../models/mongoose.base';
-
-export const RouterExtends = (router, db, defaultRoutes) => {
-    if (db) {
+export const RouterExtends = (router, OgmsModel, defaultRoutes) => {
+    if (OgmsModel) {
         if (_.indexOf(defaultRoutes, 'findAll') !== -1) {
             router
                 .route('/')
                 .get((req: Request, res: Response, next: NextFunction) => {
                     let pageSize = parseInt(req.query.pageSize) || 15,
                         pageIndex = parseInt(req.query.pageIndex) || 1;
-                    db.findByPage({}, {
+                    OgmsModel.findByPages({}, {
                             pageSize: pageSize,
                             pageIndex: pageIndex
                         })
@@ -38,7 +36,7 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                 .route('/:id')
                 .get((req: Request, res: Response, next: NextFunction) => {
                     if (req.params.id) {
-                        db
+                        OgmsModel
                             .findOne({ _id: req.params.id })
                             .then(doc => {
                                 return res.json({
@@ -56,7 +54,7 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                 .route('/')
                 .post((req: Request, res: Response, next: NextFunction) => {
                     if (req.body.doc) {
-                        db
+                        OgmsModel
                             .insert(req.body.doc)
                             .then(doc => {
                                 return res.json({
@@ -74,8 +72,8 @@ export const RouterExtends = (router, db, defaultRoutes) => {
                 .route('/:id')
                 .put((req: Request, res: Response, next: NextFunction) => {
                     if (req.body.doc) {
-                        db
-                            .update({ _id: req.body.id }, req.body.doc)
+                        OgmsModel
+                            .updateOne({ _id: req.body.id }, req.body.doc)
                             .then((doc) => {
                                 // TODO 此doc非彼doc
                                 return res.json({
@@ -92,7 +90,7 @@ export const RouterExtends = (router, db, defaultRoutes) => {
             router
                 .route('/:id')
                 .delete((req: Request, res: Response, next: NextFunction) => {
-                    db
+                    OgmsModel
                         .remove({ _id: req.params.id })
                         .then((doc) => {
                             return res.json({

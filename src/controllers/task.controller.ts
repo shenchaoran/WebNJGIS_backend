@@ -7,30 +7,26 @@ import { ObjectID } from 'mongodb';
 import * as mongoose from 'mongoose';
 
 import { UDXCfg } from '../models/UDX-cfg.class';
-import * as PropParser from './UDX.property.controller';
-import * as UDXComparators from './UDX.compare.controller';
 import CalcuTaskCtrl from './calcu-task.controller';
 import ModelServiceCtrl from './model-service.controller';
 import { CmpMethodFactory } from './cmp-methods';
 import {
-    taskDB,
-    solutionDB,
-    topicDB,
-    modelServiceDB,
-    calcuTaskDB,
-    CalcuTask,
+    TaskModel,
+    SolutionModel,
+    TopicModel,
+    ModelServiceModel,
+    CalcuTaskModel,
+    ICalcuTaskDocument,
     CalcuTaskState,
     SchemaName,
     CmpState,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 
-const db = taskDB;
-
 export default class CmpTaskCtrl {
     constructor() { }
     async insert(doc: any) {
-        return taskDB
+        return TaskModel
             .insert(doc)
             .then(_doc => {
                 return Bluebird.resolve(_doc._id);
@@ -38,9 +34,9 @@ export default class CmpTaskCtrl {
             .catch(Bluebird.reject);
     };
 
-    async findByPage(pageOpt) {
+    async findByPages(pageOpt) {
         if (pageOpt.userId === undefined) {
-            return db.findByPage({}, pageOpt)
+            return TaskModel.findByPages({}, pageOpt)
                 .then(rst => {
                     _.map(rst.docs, doc => {
                         this.reduceDoc(doc, '2');
@@ -49,7 +45,7 @@ export default class CmpTaskCtrl {
                 })
                 .catch(Bluebird.reject);
         } else {
-            return db.findByUserId(pageOpt.userId).catch(Bluebird.reject);
+            return TaskModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
 
     }
@@ -74,9 +70,9 @@ export default class CmpTaskCtrl {
     async findOne(id: string) {
         try {
             // TODO 数据库设计 及 异步流程控制
-            let task = await db.findOne({ _id: id })
-            let solution = await solutionDB.findOne({ _id: task.solutionId });
-            let ptMSs = await modelServiceDB.findByIds(solution.msIds);
+            let task = await TaskModel.findOne({ _id: id })
+            let solution = await SolutionModel.findOne({ _id: task.solutionId });
+            let ptMSs = await ModelServiceModel.findByIds(solution.msIds);
             return { task, solution, ptMSs, }
         }
         catch (e) {
@@ -91,7 +87,7 @@ export default class CmpTaskCtrl {
      */
     private async reduceDoc(doc, level?: '1' | '2') {
         if (level === undefined || level === '1') {
-            _.map(doc.cmpCfg.cmpObjs as any[], cmpObj => {
+            _.map(doc.cmpObjs as any[], cmpObj => {
                 _.map(cmpObj.dataRefers as any[], dataRefer => {
                     dataRefer.cmpResult = null
                 })
@@ -100,7 +96,7 @@ export default class CmpTaskCtrl {
         else if (level === '2') {
             doc.cmpResults = undefined;
 
-            _.set(doc, 'cmpCfg.cmpObjs', undefined);
+            _.set(doc, 'cmpObjs', undefined);
         }
         return doc;
     }
@@ -112,9 +108,9 @@ export default class CmpTaskCtrl {
      */
     async getCmpResult(taskId, cmpObjId, msId) {
         let cmpRst;
-        return taskDB.findOne({ _id: taskId })
+        return TaskModel.findOne({ _id: taskId })
             .then(task => {
-                _.map(task.cmpCfg.cmpObjs as any[], cmpObj => {
+                _.map(task.cmpObjs as any[], cmpObj => {
                     if (cmpObj.id === cmpObjId) {
                         _.map(cmpObj.dataRefers as any[], dataRefer => {
                             if (dataRefer.msId === msId) {
@@ -151,10 +147,10 @@ export default class CmpTaskCtrl {
      */
     async getStdResult(cmpTaskId) {
         const stdResult = [];
-        return taskDB.findOne({ _id: cmpTaskId })
+        return TaskModel.findOne({ _id: cmpTaskId })
             .then(task => {
                 // TODO
-                _.map(task.cmpCfg.cmpObjs as any[], cmpObj => {
+                _.map(task.cmpObjs as any[], cmpObj => {
                     _.map(cmpObj.methods as any[], method => {
 
                     });
@@ -179,13 +175,13 @@ export default class CmpTaskCtrl {
 
     private async startInBackground(cmpTaskId) {
         try {
-            await taskDB.update({ _id: cmpTaskId }, {
+            await TaskModel.updateOne({ _id: cmpTaskId }, {
                 $set: {
                     state: CmpState.RUNNING
                 }
             })
-            let task = await taskDB.findOne({ _id: cmpTaskId });
-            let solution = await solutionDB.findOne({ _id: task.solutionId });
+            let task = await TaskModel.findOne({ _id: cmpTaskId });
+            let solution = await SolutionModel.findOne({ _id: task.solutionId });
             // start in background
             let calcuTasks = await Bluebird.map( task.calcuTaskIds as any[],
                 calcuTaskId => {
@@ -193,7 +189,7 @@ export default class CmpTaskCtrl {
                         let msCtrl = new ModelServiceCtrl()
                         msCtrl.on('afterDataBatchCached', ({ code }) => {
                             if (code === 200)
-                                calcuTaskDB.findOne({ _id: calcuTaskId._id }).then(resolve)
+                                CalcuTaskModel.findOne({ _id: calcuTaskId._id }).then(resolve)
                             else if (code === 500)
                                 resolve(undefined)
                         })
@@ -217,7 +213,7 @@ export default class CmpTaskCtrl {
                         }
                 })
             })
-            await taskDB.update({ _id: task._id }, { $set: task })
+            await TaskModel.updateOne({ _id: task._id }, { $set: task })
             let promises = [];
             task.cmpObjs.map((cmpObj, i) => {
                 cmpObj.methods.map((method, j) => {
@@ -226,7 +222,7 @@ export default class CmpTaskCtrl {
                         let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, task.schemas)
                         cmpMethod.on('afterCmp', async resultFPath => {
                             try {
-                                await taskDB.update({ _id: task._id }, {
+                                await TaskModel.updateOne({ _id: task._id }, {
                                     $set: { [`cmpObjs.${i}.methods.${j}.result`]: resultFPath }
                                 })
                                 resolve({ code: 200 })
@@ -242,7 +238,7 @@ export default class CmpTaskCtrl {
             })
             Bluebird.all(promises).then(rsts => {
                 let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
-                taskDB.update({ _id: task }, {
+                TaskModel.updateOne({ _id: task }, {
                     $set: {
                         state: state
                     }

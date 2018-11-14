@@ -1,23 +1,17 @@
-import { Mongoose } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 
-class CmpMethodDB extends Mongoose {
-    constructor() {
-        const collectionName = 'CmpMethod';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            md: String,
-            IO: mongoose.Schema.Types.Mixed
-        };
+const collectionName = 'CmpMethod';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    md: String,
+    IO: Schema.Types.Mixed
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ICmpMethodModel extends Model<ICmpMethodDocument>, IOgmsModel {}
+export const CmpMethodModel: ICmpMethodModel = model<ICmpMethodDocument, ICmpMethodModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const cmpMethodDB = new CmpMethodDB();
-
-export class CmpMethod {
-    _id?: any;
+export interface ICmpMethodDocument extends Document {
     meta: {
         name: string,
         desc?: string,
@@ -42,4 +36,4 @@ export enum CmpMethodEnum {
     ASCII_GRID_STATISTIC,
     ASCII_GRID_BATCH_VISUALIZATION,
     GIF
-  }
+}

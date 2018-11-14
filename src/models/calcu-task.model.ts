@@ -2,42 +2,36 @@
  * 计算任务
  * 这个表算是一个中间产物，其实存在cmp-task的calcuTasks中也行，但是多表查询很麻烦
  */
-
-import { Mongoose, OgmsObj } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import * as _ from 'lodash';
 import { Event } from './model-service.model';
 
-class CalcuTaskDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Calcu_Task';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed,
-            cmpTaskId: String,
-            cmpTaskName: String,
-            IO: mongoose.Schema.Types.Mixed,
-            msId: String,
-            msName: String,
-            topicId: String,
-            topicName: String,
-            stdId: String,
-            log: mongoose.Schema.Types.Mixed,
-            state: String,
-            progress: Number,
-            cid: String,
-            subscribed_uids: Array,
-        };
+const collectionName = 'Calcu_Task';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    auth: Schema.Types.Mixed,
+    cmpTaskId: String,
+    cmpTaskName: String,
+    IO: Schema.Types.Mixed,
+    msId: String,
+    msName: String,
+    topicId: String,
+    topicName: String,
+    stdId: String,
+    log: Schema.Types.Mixed,
+    state: String,
+    progress: Number,
+    cid: String,
+    subscribed_uids: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ICalcuTaskModel extends Model<ICalcuTaskDocument>, IOgmsModel {}
 
-        super(collectionName, schema);
-    }
-}
+export const CalcuTaskModel: ICalcuTaskModel = model<ICalcuTaskDocument, ICalcuTaskModel>(collectionName, schema);
 
-export const calcuTaskDB = new CalcuTaskDB();
-
-export class CalcuTask extends OgmsObj {
-    _id?: any;
+export interface ICalcuTaskDocument extends Document {
     meta: {
         name: string,
         desc?: string,
@@ -56,7 +50,7 @@ export class CalcuTask extends OgmsObj {
     topicName: string;
     cmpTaskId: string;
     cmpTaskName: string;
-    nodeId: string;    
+    nodeId: string;
     IO: {
         dataSrc: 'STD' | 'UPLOAD',
         schemas: any[],

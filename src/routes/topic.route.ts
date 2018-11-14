@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from 'express';
 import * as express from 'express';
 import * as Bluebird from 'bluebird';
 import { RouterExtends } from './base.route';
-import { topicDB as db, conversationDB } from '../models';
+import { TopicModel, ConversationModel } from '../models';
 import TopicCtrl from '../controllers/topic.controller';
 import ConversationCtrl from '../controllers/conversation.controller';
 let topicCtrl = new TopicCtrl();
@@ -25,7 +25,7 @@ router.route('/')
         let pageIndex = parseInt(req.query.pageIndex) || 1;
         let pageSize = parseInt(req.query.pageSize) || 20;
 
-        topicCtrl.findByPage({
+        topicCtrl.findByPages({
             pageSize: pageSize,
             pageIndex: pageIndex,
             userId: req.query.userId,
@@ -78,7 +78,7 @@ router.route('/:id')
             fn(topicCtrl.patchSolutionIds(topicId, ac, originalTopicId, solutionId));
         }
         else if (topic) {
-            fn(topicCtrl.update(topic));
+            fn(topicCtrl.updateOne(topic));
         }
         else {
             return next();
@@ -91,4 +91,4 @@ router.route('/:id')
             .catch(next);
     });
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, TopicModel, defaultRoutes);

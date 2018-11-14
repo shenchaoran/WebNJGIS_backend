@@ -5,36 +5,13 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import { topicDB, conversationDB, solutionDB } from '../models';
+import { TopicModel, ConversationModel, SolutionModel } from '../models';
 import ConversationCtrl from './conversation.controller';
 import SolutionCtrl from './solution.controller';
 let conversationCtrl = new ConversationCtrl();
 
-const db = topicDB;
-
 export default class TopicCtrl {
     constructor() { }
-
-    private expand(doc): Bluebird<any> {
-        return Bluebird.all(_.map(doc.solutionIds, slnId => {
-            return solutionDB.findOne({ _id: slnId });
-        }))
-            .then(rsts => {
-                if (doc.solutions === undefined) {
-                    doc.solutions = [];
-                }
-                _.map(rsts as any[], rst => {
-                    doc.solutions.push({
-                        _id: rst._id,
-                        meta: rst.meta,
-                        auth: rst.auth,
-                        mss: rst.cmpCfg.ms
-                    });
-                });
-                return doc;
-            })
-            .catch(Bluebird.reject);
-    }
 
     /**
      * @returns 
@@ -46,8 +23,16 @@ export default class TopicCtrl {
      * @param {*} id
      * @memberof TopicCtrl
      */
-    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+    async detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+        if(type === 'ARTICLE') {
+            return TopicModel.findById(id) as any;
+        }
+        else if(type === 'SIDER' && mode === 'READ') {
 
+        }
+        else if(type === 'SIDER' && mode === 'WRITE') {
+
+        }
     }
 
     /**
@@ -60,9 +45,9 @@ export default class TopicCtrl {
      */
     findOne(id) {
         return Bluebird.all([
-            topicDB.findOne({ _id: id }),
+            TopicModel.findOne({ _id: id }),
             // TODO 这里暂时全部给前端
-            solutionDB.findByPage({}, {
+            SolutionModel.findByPages({}, {
                 pageSize: 50,
                 pageIndex: 1,
             })
@@ -89,19 +74,19 @@ export default class TopicCtrl {
     /**
      * @return {docs, count}
      */
-    findByPage(pageOpt: {
+    async findByPages(pageOpt: {
         pageSize: number,
         pageIndex: number,
         userId: string,
-    }): Bluebird<any> {
+    }) {
         if (pageOpt.userId === undefined) {
-            return db.findByPage({}, {
+            return TopicModel.findByPages({}, {
                 pageSize: pageOpt.pageSize,
                 pageIndex: pageOpt.pageIndex
             })
                 .catch(Bluebird.reject);
         } else {
-            return db.findByUserId(pageOpt.userId).catch(Bluebird.reject);
+            return TopicModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
 
     }
@@ -111,7 +96,7 @@ export default class TopicCtrl {
      * @return true/false
      */
     insert(topic) {
-        return topicDB.insert(topic)
+        return TopicModel.insert(topic)
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -123,7 +108,7 @@ export default class TopicCtrl {
      * @return true/false
      */
     delete(topicId) {
-        return topicDB.remove({_id: topicId})
+        return TopicModel.remove({_id: topicId})
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -134,8 +119,8 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    update(topic) {
-        return topicDB.update(
+    updateOne(topic) {
+        return TopicModel.updateOne(
             {
                 _id: topic._id
             },

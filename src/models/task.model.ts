@@ -3,37 +3,31 @@
  * cmp task 和参与比较的model task相关联
  */
 
-import { Mongoose, OgmsObj } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import { DataRefer, CmpObj } from './solution.model';
 import { UDXSchema } from './UDX-schema.class';
 
-class TaskDB extends Mongoose {
-    constructor() {
-        const collectionName = 'CmpTask';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed,
-            solutionId: String,
-            // topicId: String,
-            calcuTaskIds: mongoose.Schema.Types.Mixed,
-            progress: Number,
-            state: String,
-            cmpObjs: mongoose.Schema.Types.Mixed,
-            schemas: mongoose.Schema.Types.Mixed,
-            cid: String,
-            subscribed_uids: Array,
-        };
+const collectionName = 'CmpTask';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    auth: Schema.Types.Mixed,
+    solutionId: String,
+    // topicId: String,
+    calcuTaskIds: Schema.Types.Mixed,
+    progress: Number,
+    state: String,
+    cmpObjs: Schema.Types.Mixed,
+    schemas: Schema.Types.Mixed,
+    cid: String,
+    subscribed_uids: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ITaskModel extends Model<ITaskDocument>, IOgmsModel {}
+export const TaskModel: ITaskModel = model<ITaskDocument, ITaskModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const taskDB = new TaskDB();
-
-export class Task extends OgmsObj {
-    _id?: any;
+export interface ITaskDocument extends Document {
     meta: {
         name: string,
         desc?: string,
@@ -69,10 +63,10 @@ export enum CmpState {
 
 export class CmpResult {
     image?: [{
-      extent: any,
-      path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
-      title: string,
-      progress: number
+        extent: any,
+        path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
+        title: string,
+        progress: number
     }];
     chart?: {
         show: any,

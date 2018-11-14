@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import { solutionDB as db } from '../models/solution.model';
+import { SolutionModel } from '../models/solution.model';
 import SolutionCtrl from '../controllers/solution.controller';
 import ConversationCtrl from '../controllers/conversation.controller';
 import UserCtrl from '../controllers/user.controller';
@@ -25,13 +25,13 @@ import { userAuthMid } from '../middlewares/user-auth.middleware';
 userAuthMid(router);
 // endregion
 
-// router.route('/:id').get(solutionDB.find);
+// router.route('/:id').get(SolutionModel.find);
 
 router.route('/')
     .get((req, res, next) => {
         let pageIndex = parseInt(req.query.pageIndex) || 1;
         let pageSize = parseInt(req.query.pageSize) || 20;
-        solutionCtrl.findByPage({
+        solutionCtrl.findByPages({
             pageSize: pageSize,
             pageIndex: pageIndex,
             userId: req.query.userId,
@@ -92,7 +92,7 @@ router.route('/:id')
             fn(solutionCtrl.updateCmpObjs(solution))
         }
         else if (solution) {
-            fn(solutionCtrl.update(solution))
+            fn(solutionCtrl.updateOne(solution))
         }
         else {
             return next();
@@ -103,4 +103,4 @@ router.route('/:id')
     });
 
     
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router,SolutionModel, defaultRoutes);

@@ -1,27 +1,21 @@
-import { Mongoose } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 
-class UserDB extends Mongoose {
-    constructor() {
-        const collectionName = 'User';
-        const schema = {
-            username: String,
-            password: String,
-            email: String,
-            avator: String,
-            url: String,
-            group: String,
-            location: String
-        };
+const collectionName = 'User';
+const schema = new Schema({
+    username: String,
+    password: String,
+    email: String,
+    avator: String,
+    url: String,
+    group: String,
+    location: String
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface IUserModel extends Model<IUserDocument>, IOgmsModel {}
+export const UserModel: IUserModel = model<IUserDocument, IUserModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const userDB = new UserDB();
-
-export class User {
-    _id?: any
+export interface IUserDocument extends Document {
     username: string;
     password: string;
     email?: string;

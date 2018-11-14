@@ -1,25 +1,20 @@
-import { Mongoose } from './mongoose.base';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 
-class ConversationDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Conversation';
-        const schema = {
-            pid: String,
-            like_uids: Array,
-            love_uids: Array,
-            tags: Array,
-            comments: Array,
-        };
+const collectionName = 'Conversation';
+const schema = new Schema({
+    pid: String,
+    like_uids: Array,
+    love_uids: Array,
+    tags: Array,
+    comments: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface IConversationModel extends Model<IConversationDocument>, IOgmsModel {}
+export const ConversationModel: IConversationModel = model<IConversationDocument, IConversationModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const conversationDB = new ConversationDB();
-
-export class Conversation {
-    _id?: any;
+export interface IConversationDocument extends Document {
     pid: string;
     ptype: 'topic' | 'task' | 'solution' | 'calcuTask' | 'ms';
     // 点赞

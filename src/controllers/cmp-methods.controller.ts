@@ -1,4 +1,4 @@
-import { cmpMethodDB } from './../models';
+import { CmpMethodModel } from './../models';
 import * as Bluebird from 'bluebird';
 
 export default class CmpMethodCtrl {

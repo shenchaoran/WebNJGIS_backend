@@ -11,23 +11,22 @@ import * as StringUtils from '../utils/string.utils';
 const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
-import { UDXCfg, geoDataDB, CmpState } from '../models';
+import { UDXCfg, GeoDataModel, CmpState } from '../models';
 import { SchemaName } from '../models/UDX-schema.class';
-import * as VisualParser from './UDX.visualization.controller';
 
 export const parse = (dataId: string): Bluebird<any> => {
     return new Bluebird((resolve, reject) => {
-        geoDataDB.findOne({ _id: dataId })
+        GeoDataModel.findOne({ _id: dataId })
             .then(doc => {
                 const udxcfg = doc.udxcfg;
                 let promiseFunc = undefined;
                 if (udxcfg.schema$.id === SchemaName[SchemaName.TABLE_RAW]) {
                     promiseFunc = parseRAWTableProp(doc);
                 }
-                else if (udxcfg.schema$.type === SchemaName[SchemaName.ASCII_GRID_RAW]) {
+                else if (udxcfg.schema$.id === SchemaName[SchemaName.ASCII_GRID_RAW]) {
                     promiseFunc = parseRAWAsciiProp(doc);
                 }
-                else if (udxcfg.schema$.type === SchemaName[SchemaName.SHAPEFILE_RAW]) {
+                else if (udxcfg.schema$.id === SchemaName[SchemaName.SHAPEFILE_RAW]) {
                     promiseFunc = parseRAWShpProp(doc);
                 }
                 else {
@@ -37,7 +36,7 @@ export const parse = (dataId: string): Bluebird<any> => {
                 promiseFunc
                     .then(parsed => {
                         return resolve({
-                            type: udxcfg.schema$.type,
+                            type: udxcfg.schema$.id,
                             parsed: parsed
                         });
                     })

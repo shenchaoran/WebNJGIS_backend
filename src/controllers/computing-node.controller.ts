@@ -14,12 +14,12 @@ const md5 = (v) => {
     return crypto.createHash('md5').update(v, 'utf8').digest('hex');
 };
 
-import { ComputingNode, computingNodeDB } from '../models';
+import { ComputingNodeModel } from '../models';
 
 export const login = (authInfo: any): Bluebird<any> => {
     return new Bluebird((resolve, reject) => {
         // 密码使用md5加密
-        computingNodeDB
+        ComputingNodeModel
             .find({
                     "auth.nodeName": authInfo.nodeName,
                     "auth.password": md5(authInfo.password)
@@ -33,7 +33,7 @@ export const login = (authInfo: any): Bluebird<any> => {
                     // 每次登陆操作才会产生新的 token
                     const token = jwt.encode(
                         {
-                            iss: node.nodeName,
+                            iss: node.auth.nodeName,
                             exp: expires
                         },
                         setting.jwt_secret
@@ -57,7 +57,7 @@ export const logout = (): Bluebird<any> => {
 
 export const telNode = async nodeId => {
     try {
-        const node = await computingNodeDB.findOne({_id: nodeId})
+        const node = await ComputingNodeModel.findOne({_id: nodeId})
         const serverURL = `http://${node.host}:${node.port}${node.API_prefix}`
         let res = await getByServer(serverURL, undefined)
         let nodeName = res.match(/server name: (.*)"}/)[1]

@@ -1,4 +1,4 @@
-import { DataRefer, geoDataDB, UDXSchema, CmpState } from '../../models';
+import { DataRefer, GeoDataModel, UDXSchema, CmpState } from '../../models';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
 import * as Papa from 'papaparse';
@@ -17,7 +17,7 @@ export default class TableChartCMP extends CmpMethod {
     async start() {
         let dataRefers = this.dataRefers.filter(v => !!v.value);
         Bluebird.map(dataRefers, async dataRefer => {
-            let geoData = await geoDataDB.findOne({ _id: dataRefer.value });
+            let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
             let fpath = path.join(setting.geo_data.path, geoData.meta.path);
             this.extractCSVColumn(dataRefer, fpath).then(async cols => {
                 if (cols.length) {

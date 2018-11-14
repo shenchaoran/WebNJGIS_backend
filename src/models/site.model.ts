@@ -1,23 +1,17 @@
-import { Mongoose, OgmsObj } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 
-class SiteDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Site';
-        const schema = {
-            x: Number,
-            y: Number,
-            index: Number
-        };
+const collectionName = 'Site';
+const schema = new Schema({
+    x: Number,
+    y: Number,
+    index: Number
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ISiteModel extends Model<ISiteDocument>, IOgmsModel {}
+export const SiteModel: ISiteModel = model<ISiteDocument, ISiteModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const siteDB = new SiteDB();
-
-class Site {
-    _id: any;
+interface ISiteDocument extends Document {
     x: number;
     y: number;
     index: number;

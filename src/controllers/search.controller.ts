@@ -9,7 +9,6 @@ const request = require('request');
 import * as unzip from 'unzip';
 
 import { setting } from '../config/setting';
-import { geoDataDB, GeoDataClass } from '../models/UDX-data.model';
 import * as RequestCtrl from '../utils/request.utils';
 
 export default class SearchCtrl {

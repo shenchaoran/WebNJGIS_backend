@@ -12,7 +12,7 @@ const favicon = require('serve-favicon');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
-import { userDB } from '../models/user.model';
+import { UserModel } from '../models/user.model';
 
 export const preReqMid = (app) => {
     // 私钥

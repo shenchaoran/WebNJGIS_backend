@@ -1,12 +1,11 @@
 import { RouterExtends } from './base.route';
 const express = require('express');
 import {
-    stdDataDB,
-    siteDB,
+    StdDataModel,
+    SiteModel,
 } from '../models';
 import * as STDDataCtrl from '../controllers/std-data.controller';
 
-const db = stdDataDB;
 const defaultRoutes = [
     'findAll',
     'find'
@@ -19,14 +18,14 @@ router.route('/')
     .get((req, res, next) => {
         let ids = req.query.ids;
         if (ids) {
-            stdDataDB.findByIds(ids)
+            StdDataModel.findByIds(ids)
                 .then(docs => res.json({ data: docs }))
                 .catch(next);
         }
         else {
             let pageSize = parseInt(req.query.pageSize) || 15,
                 pageIndex = parseInt(req.query.pageIndex) || 1;
-            stdDataDB.findByPage({}, {
+            StdDataModel.findByPages({}, {
                 pageSize: pageSize,
                 pageIndex: pageIndex
             })
@@ -89,4 +88,4 @@ router.route('/:id/preview')
         //     .catch(next);
     });
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, StdDataModel, defaultRoutes);

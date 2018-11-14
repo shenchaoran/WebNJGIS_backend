@@ -8,15 +8,12 @@ import * as fs from 'fs';
 
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
-import * as PropParser from './UDX.property.controller';
-import * as UDXComparators from './UDX.compare.controller';
-import { topicDB, solutionDB, taskDB, modelServiceDB, ResourceSrc, cmpMethodDB, conversationDB, Solution, stdDataDB } from '../models';
+import { TopicModel, SolutionModel, TaskModel, ModelServiceModel, ResourceSrc, CmpMethodModel, ConversationModel, StdDataModel } from '../models';
 import ConversationCtrl from './conversation.controller';
 import TopicCtrl from './topic.controller';
 const conversationCtrl = new ConversationCtrl();
 
 export default class SolutionCtrl {
-    db = solutionDB;
     constructor() { }
 
     private expand(doc) { }
@@ -47,16 +44,16 @@ export default class SolutionCtrl {
      */
     async findOne(sid) {
         try {
-            let solution = await solutionDB.findOne({ _id: sid });
+            let solution = await SolutionModel.findOne({ _id: sid });
             return Bluebird.all([
-                solution.topicId ? topicDB.findOne({ _id: solution.topicId }) : null,
-                solution.taskIds ? taskDB.findByIds(solution.taskIds) : [],
-                modelServiceDB.find({}),
-                cmpMethodDB.find({}),
-                topicDB.find({}),
+                solution.topicId ? TopicModel.findOne({ _id: solution.topicId }) : null,
+                solution.taskIds ? TaskModel.findByIds(solution.taskIds) : [],
+                ModelServiceModel.find({}),
+                CmpMethodModel.find({}),
+                TopicModel.find({}),
             ])
                 .then(([topic, tasks, mss, cmpMethods, topicList]) => {
-                    let ptMSs = mss.filter(ms => solution.msIds.includes(ms._id.toString()))
+                    let ptMSs = mss.filter(ms => _.includes(solution.msIds, ms._id.toString()))
                     return {
                         solution,
                         topic: topic ? {
@@ -111,12 +108,12 @@ export default class SolutionCtrl {
      */
     async createTask(sid) {
         try {
-            let solution = await solutionDB.findOne({ _id: sid });
+            let solution = await SolutionModel.findOne({ _id: sid });
             return Bluebird.all([
                 solution.msIds && solution.msIds.length ?
-                    modelServiceDB.findByIds(solution.msIds) :
+                    ModelServiceModel.findByIds(solution.msIds) :
                     [],
-                stdDataDB.find({}),
+                StdDataModel.find({}),
             ])
                 .then(([ptMSs, stds]) => {
                     return {
@@ -132,25 +129,24 @@ export default class SolutionCtrl {
         }
     }
 
-    findByPage(pageOpt: {
+    async findByPages(pageOpt: {
         pageSize: number,
         pageIndex: number,
         userId: string,
     }) {
         if (pageOpt.userId === undefined) {
-            return this.db.findByPage({}, {
+            return SolutionModel.findByPages({}, {
                 pageSize: pageOpt.pageSize,
                 pageIndex: pageOpt.pageIndex
             })
-                .catch(Bluebird.reject);
         } else {
-            return this.db.findByUserId(pageOpt.userId).catch(Bluebird.reject);
+            return SolutionModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
 
     }
 
     insert(doc) {
-        return this.db.insert(doc)
+        return SolutionModel.insert(doc)
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -158,8 +154,8 @@ export default class SolutionCtrl {
             })
     }
 
-    update(doc) {
-        return this.db.update(
+    updateOne(doc) {
+        return SolutionModel.updateOne(
             {
                 _id: doc._id
             },
@@ -183,12 +179,12 @@ export default class SolutionCtrl {
      */
     async updatePts(solutionId, ids) {
         try {
-            await this.db.update({ _id: solutionId }, {
+            await SolutionModel.updateOne({ _id: solutionId }, {
                 $set: {
                     msIds: ids
                 }
             });
-            let mss = await modelServiceDB.findByIds(ids);
+            let mss = await ModelServiceModel.findByIds(ids);
             return { docs: mss };
         }
         catch (e) {
@@ -200,7 +196,7 @@ export default class SolutionCtrl {
      * @returns true/false
      */
     async updateCmpObjs(solution) {
-        return this.db.update({ _id: solution._id }, {
+        return SolutionModel.updateOne({ _id: solution._id }, {
             $set: solution
         })
             .then(rst => true)
@@ -221,17 +217,17 @@ export default class SolutionCtrl {
     async patchTopicId(solutionId, ac, originalTopicId, topicId) {
         if (ac === 'addTopic') {
             return Bluebird.all([
-                topicDB.update({_id: topicId}, {
+                TopicModel.updateOne({_id: topicId}, {
                     $addToSet: {
                         solutionIds: solutionId
                     }
                 }),
-                originalTopicId? topicDB.update({_id: originalTopicId}, {
+                originalTopicId? TopicModel.updateOne({_id: originalTopicId}, {
                     $pull: {
                         solutionIds: solutionId
                     }
                 }): null,
-                solutionDB.update({_id: solutionId}, {
+                SolutionModel.updateOne({_id: solutionId}, {
                     $set: {
                         topicId: topicId
                     }
@@ -247,12 +243,12 @@ export default class SolutionCtrl {
         }
         else if (ac === 'removeTopic') {
             return Bluebird.all([
-                topicDB.update({_id: topicId}, {
+                TopicModel.updateOne({_id: topicId}, {
                     $pull: {
                         solutionIds: solutionId
                     }
                 }),
-                solutionDB.update({_id: solutionId}, {
+                SolutionModel.updateOne({_id: solutionId}, {
                     $set: {
                         topicId: null
                     }
@@ -279,7 +275,7 @@ const expandDoc = (doc): Bluebird<any> => {
         })
     })
     return Bluebird.map(Array.from(methods), method => {
-        return cmpMethodDB.findOne({ _id: method.id })
+        return CmpMethodModel.findOne({ _id: method.id }) as any
     })
         .then(rsts => {
             doc.methods = rsts;

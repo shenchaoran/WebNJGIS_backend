@@ -1,29 +1,22 @@
-import { Mongoose, OgmsObj } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 
-class STDDataDB extends Mongoose {
-    constructor() {
-        const collectionName = 'STD_Data';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            // getter: String,
-            models: mongoose.Schema.Types.Mixed,
-            inputPath: String,
-            outputPath: String,
-            // stdClass: String,
-            content: mongoose.Schema.Types.Mixed
-        };
+const collectionName = 'STD_Data';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    // getter: String,
+    models: Schema.Types.Mixed,
+    inputPath: String,
+    outputPath: String,
+    // stdClass: String,
+    content: Schema.Types.Mixed
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ISTDDataModel extends Model<ISTDDataDocument>, IOgmsModel {}
+export const StdDataModel: ISTDDataModel = model<ISTDDataDocument, ISTDDataModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-
-}
-
-export const stdDataDB = new STDDataDB();
-
-class STDData {
-    _id: any;
+interface ISTDDataDocument extends Document {
     meta: {
         desc?: string,
         wikiMD?: string,

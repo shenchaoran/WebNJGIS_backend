@@ -1,6 +1,6 @@
-import { taskDB } from '../models';
+import { TaskModel } from '../models';
 
-taskDB.insert({
+TaskModel.insert({
     meta: {
         name: 'tes'
     }

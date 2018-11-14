@@ -2,34 +2,26 @@
  * 比较问题：描述实际遇到的地理问题
  * 
  */
- 
+
 import { ResourceSrc } from './resource.enum';
-import * as mongoose from 'mongoose';
-import { Mongoose } from './mongoose.base';
-import { Conversation } from './conversation.model';
-import { CmpObj } from './solution.model';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 
-class TopicDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Topic';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            cmpCfg: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed,
-            spatial: mongoose.Schema.Types.Mixed,
-            temporal: mongoose.Schema.Types.Mixed,
-            cid: String,
-            subscribed_uids: Array,
-        };
+const collectionName = 'Topic';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    cmpCfg: Schema.Types.Mixed,
+    auth: Schema.Types.Mixed,
+    spatial: Schema.Types.Mixed,
+    temporal: Schema.Types.Mixed,
+    cid: String,
+    subscribed_uids: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ITopicModel extends Model<ITopicDocument>, IOgmsModel {}
+export const TopicModel: ITopicModel = model<ITopicDocument, ITopicModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const topicDB = new TopicDB();
-
-export class Topic {
-    _id?: any;
+export interface ITopicDocument extends Document {
     meta: {
         name: string,
         desc?: string,

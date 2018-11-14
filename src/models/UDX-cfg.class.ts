@@ -4,7 +4,6 @@
 
 import * as _ from 'lodash';
 import { UDXSchema } from './UDX-schema.class';
-
 import { ResourceSrc } from './resource.enum';
 
 export class UDXCfg {

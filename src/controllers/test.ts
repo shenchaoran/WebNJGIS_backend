@@ -4,12 +4,12 @@ import * as Bluebird from 'bluebird';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const fs = Bluebird.promisifyAll(require('fs'));
+import { Document, Schema, Model, model } from 'mongoose';
 import * as unzip from 'unzip';
 import { Buffer } from 'buffer';
 import * as _ from 'lodash';
-import { solutionDB } from '../models/solution.model';
-import * as UDXCtrl from './UDX.visualization.controller';
-import { geoDataDB } from '../models/UDX-data.model';
+import { SolutionModel } from '../models/solution.model';
+import { GeoDataModel } from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
 import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
@@ -17,11 +17,23 @@ import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
-let exec = child_process.exec;
+import { ModelServiceModel } from '../models/model-service.model';
 
-// solutionDB.find({}).then(docs => {
+// setTimeout(() => {
+//     ModelServiceModel.find({})
+//         .then(docs => {
+//             docs
+//         })
+//         .catch(e => {
+//             console.log(e)
+//         })
+// }, 1000);
+
+// let exec = child_process.exec;
+
+// SolutionModel.find({}).then(docs => {
 //     Bluebird.map(docs as any[], doc => {
-//         return solutionDB.update({_id: doc._id}, {
+//         return SolutionModel.updateOne({_id: doc._id}, {
 //             $set: {
 //                 msIds: doc.participants.map(v => v._id)
 //             }
@@ -33,7 +45,7 @@ let exec = child_process.exec;
 // })
 
 
-// geoDataDB.find({a: 1})
+// GeoDataModel.find({a: 1})
 //     .then(console.log.bind(null, '1'))
 //     .catch(console.error);
 
@@ -206,10 +218,10 @@ let exec = child_process.exec;
 //     })
 //     .catch(console.log);
 
-// geoDataDB.find({_id: '5a5eef3b5455b4ab888b1257'});
+// GeoDataModel.find({_id: '5a5eef3b5455b4ab888b1257'});
 
 
-// geoDataDB.findOne({_id: '5a5eef3b5455b4ab888b1257'})
+// GeoDataModel.findOne({_id: '5a5eef3b5455b4ab888b1257'})
 //     .then(UDXCtrl.showRAWAsciiBatch)
 //     .catch(console.log);
 
@@ -255,7 +267,7 @@ let exec = child_process.exec;
 //             cfg: new Date().getTime()
 //         });
 //     }
-//     // Bluebird.map(data, solutionDB.insert, {concurrency: 5000})
+//     // Bluebird.map(data, SolutionModel.insert, {concurrency: 5000})
 //     //     .then(rsts => {
 //     //         console.log(rsts);
 //     //     })
@@ -362,7 +374,6 @@ let exec = child_process.exec;
 // console.log(md5('23'), md5('23ewgfgsdfaafdfdasf'));
 
 
-// import * as CmpCtrl from './UDX.compare.controller';
 // 测试table chart statistic
 // CmpCtrl.compare('5ab100790579a0bcccc60c28', ['TABLE_CHART', 'TABLE_STATISTIC'], 'aycsoi*1000')
 //     .then(rst=> {

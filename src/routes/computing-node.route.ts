@@ -5,8 +5,7 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import { ComputingNode, computingNodeDB as db, calcuTaskDB } from '../models';
-import CalcuTaskCtrl from '../controllers/calcu-task.controller';
+import { ComputingNodeModel, CalcuTaskModel } from '../models';
 import * as ComputingNodeCtrl from '../controllers/computing-node.controller';
 import { nodeAuthMid } from '../middlewares/node-auth.middleware';
 
@@ -45,4 +44,4 @@ router.route('/logout')
 
     });
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, ComputingNodeModel, defaultRoutes);

@@ -1,9 +1,8 @@
 import { Response, Request, NextFunction } from 'express';
 const express = require('express');
 import { RouterExtends } from './base.route';
-import { cmpMethodDB } from '../models';
+import { CmpMethodModel } from '../models';
 import CmpMethodCtrl from '../controllers/cmp-methods.controller';
-const db = cmpMethodDB;
 const cmpMethodCtrl = new CmpMethodCtrl();
 
 const defaultRoutes = [
@@ -35,4 +34,4 @@ router.route('/matched')
         }
     })
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, CmpMethodModel, defaultRoutes);

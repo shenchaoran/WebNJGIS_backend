@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { siteDB } from '../models';
+import { SiteModel } from '../models';
 import * as _ from 'lodash';
 import * as Bluebird from 'bluebird';
 const GeoJSON = Bluebird.promisifyAll(require('geojson'));

@@ -8,8 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import {
-    UDXTableXML,
-    geoDataDB,
+    GeoDataModel,
     CmpMethodEnum,
     SchemaName,
     UDXCfg,
@@ -23,7 +22,7 @@ import * as VisualCtrl from './UDX.visualization.controller';
  */
 export const compare = (dataId: string, methods: string[], field?: string): Bluebird<any> => {
     return new Bluebird((resolve, reject) => {
-        geoDataDB
+        GeoDataModel
             .findOne({ _id: dataId })
             .then(doc => {
                 const promises = _.map(methods, method => {

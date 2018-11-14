@@ -14,18 +14,18 @@ import * as proj4x from 'proj4';
 import { setting } from '../config/setting';
 const proj4 = (proj4x as any).proj4;
 
-import { UDXTableXML, geoDataDB, CmpMethodEnum, CmpState } from '../models';
+import { GeoDataModel, CmpMethodEnum, CmpState } from '../models';
 import * as StringUtils from '../utils/string.utils';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
 
 export const parse = (dataId: string, method?: string): Bluebird<any> => {
     return new Bluebird((resolve, reject) => {
-        geoDataDB
+        GeoDataModel
             .findOne({ _id: dataId })
             .then(doc => {
                 let promiseFunc = undefined;
-                switch (doc.udxcfg.schema$.type) {
+                switch (doc.udxcfg.schema$.id) {
                     case SchemaName[SchemaName.TABLE_RAW]:
                         if (method === undefined || method === CmpMethodEnum[CmpMethodEnum.TABLE_CHART]) {
                             promiseFunc = showRAWTable(doc);

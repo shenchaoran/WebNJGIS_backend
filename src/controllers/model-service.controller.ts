@@ -5,10 +5,10 @@ import { setting } from '../config/setting';
 import DataCtrl from './data.controller';
 import * as path from 'path'
 import {
-    calcuTaskDB,
+    CalcuTaskModel,
     CalcuTaskState,
-    modelServiceDB,
-    stdDataDB,
+    ModelServiceModel,
+    StdDataModel,
 } from '../models';
 import * as child_process from 'child_process';
 import * as NodeCtrl from './computing-node.controller'
@@ -18,7 +18,6 @@ import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 import * as EventEmitter from 'events'
 
 export default class ModelServiceCtrl extends EventEmitter {
-    db = modelServiceDB;
     constructor() {
         super()
     }
@@ -40,8 +39,8 @@ export default class ModelServiceCtrl extends EventEmitter {
 
     findOne(id) {
         return Bluebird.all([
-            this.db.findOne({ _id: id }),
-            stdDataDB.find({ 'models': id }),
+            ModelServiceModel.findOne({ _id: id }) as any,
+            StdDataModel.find({ 'models': id }) as any,
         ]).then(([ms, stds]) => {
             return {
                 ms,
@@ -75,11 +74,11 @@ export default class ModelServiceCtrl extends EventEmitter {
     async invoke(msr) {
         try {
             if (typeof msr === 'string')
-                msr = await calcuTaskDB.findOne({ _id: msr });
+                msr = await CalcuTaskModel.findOne({ _id: msr });
             else {
                 if (!msr._id)
                     msr._id = new ObjectID()
-                await calcuTaskDB.upsert({ _id: msr._id }, msr);
+                await CalcuTaskModel.upsert({ _id: msr._id }, msr);
             }
 
             if (CalcuTaskState.INIT === msr.state)
@@ -90,8 +89,8 @@ export default class ModelServiceCtrl extends EventEmitter {
                 };
             else if (CalcuTaskState.COULD_START === msr.state) {
                 // 查找 node 的 host 和 port
-                let ms = await modelServiceDB.findOne({ _id: msr.msId });
-                let serverURL = await NodeCtrl.telNode(ms.nodeId)
+                let ms = await ModelServiceModel.findOne({ _id: msr.msId });
+                let serverURL = await NodeCtrl.telNode(msr.nodeId)
                 if (msr.IO.dataSrc === 'UPLOAD')
                     await new DataCtrl().pushData2ComputingServer(msr._id);
                 let invokeURL = `${serverURL}/services/invoke`
@@ -184,10 +183,10 @@ export default class ModelServiceCtrl extends EventEmitter {
         }
     }
 
-    public findByPage(pageOpt: {
+    public findByPages(pageOpt: {
         pageSize: number,
         pageIndex: number,
     }) {
-        return this.db.findByPage({}, pageOpt);
+        return ModelServiceModel.findByPages({}, pageOpt);
     }
 }
