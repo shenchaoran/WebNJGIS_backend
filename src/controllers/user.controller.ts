@@ -96,38 +96,38 @@ export default class UserCtrl {
             };
             userDB.findOne({ username: username })
                 .then(rst => {
-                    return res.json({
-                        error: {
-                            code: 401,
-                            desc: 'Username had be registered!'
-                        }
-                    });
-                })
-                .catch(e => {
-                    if (e.message === 'No data found!') {
-                        let imgData = new Identicon(md5(user.username), {
-                            size: 45
-                        }).toString();
-                        user.avator = "data:image/png;base64," + imgData;
-                        return userDB.insert(user)
-                            .then(rst => {
-                                let expires = moment().add(7, 'days').valueOf();
-                                user.password = null;
-                                return res.json({
-                                    data: {
-                                        expires: expires,
-                                        token: jwt.encode(
-                                            {
-                                                iss: user.username,
-                                                exp: expires
-                                            },
-                                            setting.jwt_secret
-                                        ),
-                                        user: user
-                                    }
-                                });
-                            })
+                    if (rst !== null) {
+                        return res.json({
+                            error: {
+                                code: 401,
+                                desc: 'Username had be registered!'
+                            }
+                        });
                     }
+                })
+                .then(rst => {
+                    let imgData = new Identicon(md5(user.username), {
+                        size: 45
+                    }).toString();
+                    user.avator = "data:image/png;base64," + imgData;
+                    return userDB.insert(user)
+                        .then(rst => {
+                            let expires = moment().add(7, 'days').valueOf();
+                            user.password = null;
+                            return res.json({
+                                data: {
+                                    expires: expires,
+                                    token: jwt.encode(
+                                        {
+                                            iss: user.username,
+                                            exp: expires
+                                        },
+                                        setting.jwt_secret
+                                    ),
+                                    user: user
+                                }
+                            });
+                        })
                 })
                 .catch(next);
         }
