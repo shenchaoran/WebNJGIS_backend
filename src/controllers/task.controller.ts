@@ -2,7 +2,8 @@ import * as formidable from 'formidable';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as fs from 'fs';
+const fs = Bluebird.promisifyAll(require('fs'));
+import { setting } from '../config/setting';
 import { ObjectID } from 'mongodb';
 import * as mongoose from 'mongoose';
 
@@ -29,7 +30,7 @@ export default class CmpTaskCtrl {
         return TaskModel
             .insert(doc)
             .then(_doc => {
-                return Bluebird.resolve(_doc._id);
+                return Bluebird.resolve(_doc._id.toString());
             })
             .catch(Bluebird.reject);
     };
@@ -73,6 +74,14 @@ export default class CmpTaskCtrl {
             let task = await TaskModel.findOne({ _id: id })
             let solution = await SolutionModel.findOne({ _id: task.solutionId });
             let ptMSs = await ModelServiceModel.findByIds(solution.msIds);
+            for(let cmpObj of task.cmpObjs) {
+                for( let method of cmpObj.methods) {
+                    if(method.result) {
+                        let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
+                        method.result = JSON.parse(opt);
+                    }
+                }
+            }
             return { task, solution, ptMSs, }
         }
         catch (e) {
@@ -181,18 +190,23 @@ export default class CmpTaskCtrl {
                 }
             })
             let task = await TaskModel.findOne({ _id: cmpTaskId });
-            let solution = await SolutionModel.findOne({ _id: task.solutionId });
-            // start in background
+            // let solution = await SolutionModel.findOne({ _id: task.solutionId });
             let calcuTasks = await Bluebird.map( task.calcuTaskIds as any[],
                 calcuTaskId => {
                     return new Bluebird((resolve, reject) => {
                         let msCtrl = new ModelServiceCtrl()
                         msCtrl.on('afterDataBatchCached', ({ code }) => {
                             if (code === 200)
-                                CalcuTaskModel.findOne({ _id: calcuTaskId._id }).then(resolve)
+                                return CalcuTaskModel.findOne({ _id: calcuTaskId._id }).then(resolve)
                             else if (code === 500)
                                 resolve(undefined)
                         })
+                        msCtrl.on('onModelFinished', ({code}) => {
+                            if(code === 500) {
+                                resolve(undefined)
+                            }
+                        })
+
                         msCtrl.invoke(calcuTaskId._id).catch(reject)
                     })
                 },
@@ -237,12 +251,13 @@ export default class CmpTaskCtrl {
                 })
             })
             Bluebird.all(promises).then(rsts => {
-                let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
+                // let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
                 TaskModel.updateOne({ _id: task }, {
                     $set: {
-                        state: state
+                        state: CmpState.FINISHED_SUCCEED
                     }
                 })
+                .then(console.log)
             })
         }
         catch(e) {

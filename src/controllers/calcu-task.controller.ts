@@ -42,10 +42,12 @@ export default class CalcuTaskCtrl {
 
     async insertMany(docs) {
         // TODO 结果处理
-        _.map(docs as any[], doc => {
-            // 删除无关字段
-            doc._id = new ObjectID(doc._id);
-        });
-        return CalcuTaskModel.insertMany(docs);
+        // _.map(docs as any[], doc => {
+        //     // 删除无关字段
+        //     doc._id = new ObjectID();
+        // });
+        Bluebird.map(docs, doc => {
+            return CalcuTaskModel.insert(doc)
+        })
     }
 }

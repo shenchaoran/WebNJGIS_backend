@@ -44,3 +44,5 @@ Navigate to `http://localhost:9999`
     - [ ] 去除 Geo_data DB
     - [ ] UserModel 中的 avator 存到文件系统中
     - [ ] nodeDB 添加一些软硬件环境信息
+- [ ] bug: 数据缓存，异步流程控制，返回给前台的是空的
+- [ ] bug: Biome-BGC ini 配置文件，输出控制全部设为 1

@@ -49,25 +49,18 @@ import { ModelServiceModel } from '../models/model-service.model';
 //     .then(console.log.bind(null, '1'))
 //     .catch(console.error);
 
-// let csvPath = path.join(__dirname, '../test/test.csv')
-// let csv$ = fs.createReadStream(csvPath, 'utf8')
-// Papa.parse(csv$, {
-//     complete: parsed => {
-//         parsed
-//     }
-// })
-// let data = []
-// csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
-//     header: false,
-//     dynamicTyping: true,
-//     skipEmptyLines: true,
-// }))
-//     .on('data', item => {
-//         item;
-//     })
-//     .on('end', () => {
+let csv$ = fs.createReadStream('F:/geomodelling/model_comparison_backend/dist/upload/geo-data/5bed657db97eab6e405465b4.txt', 'utf8')
+csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
+    header: false,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+}))
+    .on('data', item => {
+        item;
+    })
+    .on('end', () => {
 
-//     })
+    })
 
 // let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
 // let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))

@@ -121,7 +121,10 @@ export const OgmsSchemaStatics = {
                 queryId = new ObjectID();
                 item._id = queryId;
             }
-            return this.findOneAndUpdate({ _id: queryId }, item, { upsert: true })
+            return this.updateOne({ _id: queryId }, item, { upsert: true })
+                .then(rst => {
+                    return item
+                })
         }
         catch (e) {
             console.log(e)

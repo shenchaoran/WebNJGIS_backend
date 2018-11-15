@@ -8,7 +8,7 @@ const schema = new Schema({
     auth: Schema.Types.Mixed,
     MDL: Schema.Types.Mixed,
     stdIds: Schema.Types.Mixed,
-    nodeIds: String,
+    nodeIds: [String],
     tag: String,
     topicId: String,
     topicName: String,
@@ -47,7 +47,7 @@ export interface IModelServiceDocument extends Document {
         },
         runtime: any;
     };
-    nodeIds: string;
+    nodeIds: string[];
     stdIds: string[];
     tag: string;
     topicId: string;

@@ -33,7 +33,7 @@ export default class MSRProgressDaemon {
                 else if (msr.state !== CalcuTaskState.RUNNING) {
                     subscription.unsubscribe();
                     return resolve({
-                        code: 500,
+                        code: 501,
                         error: `****** invalid model run state! ${this.msrId}`
                     });
                 }

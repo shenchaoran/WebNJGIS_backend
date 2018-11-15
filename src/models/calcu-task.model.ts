@@ -15,6 +15,7 @@ const schema = new Schema({
     cmpTaskId: String,
     cmpTaskName: String,
     IO: Schema.Types.Mixed,
+    nodeId: String,
     msId: String,
     msName: String,
     topicId: String,

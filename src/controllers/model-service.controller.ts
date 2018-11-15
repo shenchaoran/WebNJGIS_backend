@@ -100,13 +100,21 @@ export default class ModelServiceCtrl extends EventEmitter {
                 if (res.code === 200) {
                     // 监控运行进度，结束后主动将数据拉过来
                     this.progressDaemon(msr._id).then(msg => {
+                        this.emit('onModelFinished', msg)
                         if ((msg as any).code === 200) {
                             let dataCtrl = new DataCtrl()
-                            dataCtrl.on('afterDataBatchCached', () => this.emit('afterDataBatchCached', { code: 200 }))
+                            // 模型运行成功，且数据缓存成功
+                            dataCtrl.on('afterDataBatchCached', msg => {
+                                this.emit('afterDataBatchCached', msg)
+                            })
                             dataCtrl.cacheDataBatch(msr._id)
                         }
-                        else
-                            this.emit('afterDataBatchCached', { code: 500 })
+                        // else if((msg as any).code === 500) {
+                        //     // 模型运行失败
+                        // }
+                        // else{
+                        //     // this.emit('afterDataBatchCached', { code: 500 })
+                        // }
                     })
                         .catch(e => {
                             console.log(e);
@@ -120,7 +128,7 @@ export default class ModelServiceCtrl extends EventEmitter {
                     };
                 }
                 else {
-                    this.emit('afterDataBatchCached', { code: 500 })
+                    this.emit('onModelFinished', {code: 200})
                     return {
                         msrId: msr._id,
                         code: 501,
@@ -130,7 +138,7 @@ export default class ModelServiceCtrl extends EventEmitter {
 
             }
             else if (CalcuTaskState.FINISHED_SUCCEED === msr.state) {
-                this.emit('afterDataBatchCached', { code: 200 })
+                this.emit('beforeModelInvoke', { code: 200 })
                 return {
                     msrId: msr._id,
                     code: 200,
