@@ -8,8 +8,4 @@ export default class CmpMethod extends EventEmitter {
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
         super()
     }
-
-    async start(): Promise<any> {
-        
-    }
 }

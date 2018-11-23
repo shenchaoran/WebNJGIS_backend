@@ -1,9 +1,10 @@
 import { Response, Request, NextFunction } from 'express';
+import * as Bluebird from 'bluebird';
 import { RouterExtends } from './base.route';
 const express = require('express');
 import TaskCtrl from '../controllers/task.controller';
 import CalcuTaskCtrl from '../controllers/calcu-task.controller';
-import { taskDB as db, CmpState } from '../models';
+import { TaskModel, CmpState } from '../models';
 import ConversationCtrl from '../controllers/conversation.controller';
 const conversationCtrl = new ConversationCtrl();
 const taskCtrl = new TaskCtrl();
@@ -27,7 +28,7 @@ router.route('/')
         let pageIndex = parseInt(req.query.pageIndex) || 1;
         let pageSize = parseInt(req.query.pageSize) || 20;
 
-        taskCtrl.findByPage({
+        taskCtrl.findByPages({
             pageSize: pageSize,
             pageIndex: pageIndex,
             userId: req.query.userId,
@@ -45,9 +46,9 @@ router.route('/')
             conversation = req.body.conversation;
         if(calcuTasks && task && conversation) {
             let cmpTaskId
-            Promise.all([
+            Bluebird.all([
                 taskCtrl.insert(req.body.task),
-                calcuTaskCtrl.insertBatch(req.body.calcuTasks),
+                calcuTaskCtrl.insertMany(req.body.calcuTasks),
                 conversationCtrl.addConversation(conversation)
             ])
                 .then(rsts => {
@@ -123,4 +124,4 @@ router.route('/:id/stdResult')
             .catch(next);
     });
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, TaskModel, defaultRoutes);

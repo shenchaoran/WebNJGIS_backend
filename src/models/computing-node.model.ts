@@ -2,28 +2,22 @@
  * 计算节点
  */
 
-import { Mongoose } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 
-class ComputingNodeDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Computing_Node';
-        const schema = {
-            host: String,
-            port: String,
-            prefix: String,
-            auth: mongoose.Schema.Types.Mixed
-        };
+const collectionName = 'Computing_Node';
+const schema = new Schema({
+    host: String,
+    port: String,
+    API_prefix: String,
+    auth: Schema.Types.Mixed
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface IComputingNodeModel extends Model<IComputingNodeDocument>, IOgmsModel {}
+export const ComputingNodeModel: IComputingNodeModel = model<IComputingNodeDocument, IComputingNodeModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const computingNodeDB = new ComputingNodeDB();
-
-export class ComputingNode {
-    _id?: any;
+export interface IComputingNodeDocument extends Document {
     host: string;
     port: string;
     API_prefix: string;

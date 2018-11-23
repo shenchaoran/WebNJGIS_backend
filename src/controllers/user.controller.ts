@@ -1,12 +1,12 @@
 import { Response, Request, NextFunction } from 'express';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const jwt = require('jwt-simple');
 const moment = require('moment');
 import * as _ from 'lodash';
 
 import * as RequestCtrl from '../utils/request.utils';
 import { setting } from '../config/setting';
-import { userDB, User, topicDB, solutionDB, taskDB, calcuTaskDB, modelServiceDB, stdDataDB, conversationDB } from '../models';
+import { UserModel, TopicModel, SolutionModel, TaskModel, CalcuTaskModel, ModelServiceModel, StdDataModel, ConversationModel } from '../models';
 import * as crypto from 'crypto';
 const Identicon = require('identicon.js');
 const md5 = (v) => {
@@ -33,7 +33,7 @@ export default class UserCtrl {
                 }
             });
         }
-        userDB.findOne({ username: username })
+        UserModel.findOne({ username: username })
             .then(user => {
                 if (user.password === md5(password)) {
                     const expires = moment()
@@ -94,7 +94,7 @@ export default class UserCtrl {
                 email: email,
                 avator: null
             };
-            userDB.findOne({ username: username })
+            UserModel.findOne({ username: username })
                 .then(rst => {
                     if (rst !== null) {
                         return res.json({
@@ -110,7 +110,7 @@ export default class UserCtrl {
                         size: 45
                     }).toString();
                     user.avator = "data:image/png;base64," + imgData;
-                    return userDB.insert(user)
+                    return UserModel.insert(user)
                         .then(rst => {
                             let expires = moment().add(7, 'days').valueOf();
                             user.password = null;
@@ -165,7 +165,7 @@ export default class UserCtrl {
             avator: avator
         };
         console.log("id:" + id);
-        userDB.findOne({ _id: id }).then(user_rst => {
+        UserModel.findOne({ _id: id }).then(user_rst => {
             if (user_rst.url !== null && url === '') {
                 user.url = user_rst.url;
             }
@@ -185,7 +185,7 @@ export default class UserCtrl {
                     user.avator = user_rst.avator;
                 }
             }
-            userDB.update({ _id: id }, user).then(rst => {
+            UserModel.updateOne({ _id: id }, user).then(rst => {
                 return res.json({
                     data: {
                         updateInfo: rst,
@@ -217,7 +217,7 @@ export default class UserCtrl {
 
     getUserInfo(req: Request, res: Response, next: NextFunction) {
         let userName = req.params.userName;
-        userDB.findOne({ username: userName })
+        UserModel.findOne({ username: userName })
             .then(user => {
                 user.password = null;
                 return res.json({
@@ -238,22 +238,22 @@ export default class UserCtrl {
 
 
     toggleSubscribe(userId, ac, pType, pid) {
-        let db, updatePattern;
+        let OgmsModel, updatePattern;
         switch (pType) {
             case 'solution':
-                db = solutionDB;
+                OgmsModel = SolutionModel;
                 break;
             case 'topic':
-                db = topicDB;
+                OgmsModel = TopicModel;
                 break;
             case 'calcuTask':
-                db = calcuTaskDB;
+                OgmsModel = CalcuTaskModel;
                 break;
             case 'task':
-                db = taskDB;
+                OgmsModel = TaskModel;
                 break;
             case 'ms':
-                db = modelServiceDB;
+                OgmsModel = ModelServiceModel;
                 break;
         }
         if (ac === 'subscribe') {
@@ -270,7 +270,7 @@ export default class UserCtrl {
                 }
             }
         }
-        return db.update({ _id: pid }, updatePattern)
+        return OgmsModel.updateOne({ _id: pid }, updatePattern)
             .then(v => true)
             .catch(e => {
                 console.log(e);

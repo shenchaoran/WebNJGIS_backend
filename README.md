@@ -38,3 +38,11 @@ Navigate to `http://localhost:9999`
 - init: 后台程序初始化操作，创建文件夹结构，初始化数据库，连接远程服务器等...
 - config: 包括后台通用配置和远程请求API的配置
 - routes: `base.route`对路由进行了封装，在创建路由器时可以可选地直接创建增删查改路由，当然也可以自己不用默认的
+
+## TODO
+- [ ] 数据库重新设计
+    - [ ] 去除 Geo_data DB
+    - [ ] UserModel 中的 avator 存到文件系统中
+    - [ ] nodeDB 添加一些软硬件环境信息
+- [ ] bug: 数据缓存，异步流程控制，返回给前台的是空的
+- [ ] bug: Biome-BGC ini 配置文件，输出控制全部设为 1

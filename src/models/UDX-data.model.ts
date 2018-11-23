@@ -1,26 +1,20 @@
-import { Mongoose, OgmsObj } from './mongoose.base';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { UDXSchema } from './UDX-schema.class';
 import { UDXCfg } from './UDX-cfg.class';
-import * as mongoose from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 
-class GeoDataDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Geo_Data';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed,
-            udxcfg: mongoose.Schema.Types.Mixed
-        };
+const collectionName = 'Geo_Data';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    auth: Schema.Types.Mixed,
+    udxcfg: Schema.Types.Mixed
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface IGeoDataModel extends Model<IGeoDataDocument>, IOgmsModel {}
+export const GeoDataModel: IGeoDataModel = model<IGeoDataDocument, IGeoDataModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const geoDataDB = new GeoDataDB();
-
-export class GeoDataClass extends OgmsObj {
-    _id?: mongoose.Schema.Types.ObjectId;
+export interface IGeoDataDocument extends Document {
 
     meta?: {
         name: string,

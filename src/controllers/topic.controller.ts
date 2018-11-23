@@ -1,39 +1,52 @@
 import { Response, Request, NextFunction } from 'express';
 import * as formidable from 'formidable';
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
-
-import { topicDB, conversationDB, solutionDB } from '../models';
+import { TopicModel, ConversationModel, SolutionModel, IConversationDocument, UserModel } from '../models';
 import ConversationCtrl from './conversation.controller';
 import SolutionCtrl from './solution.controller';
 let conversationCtrl = new ConversationCtrl();
 
-const db = topicDB;
-
 export default class TopicCtrl {
     constructor() { }
 
-    private expand(doc): Promise<any> {
-        return Promise.all(_.map(doc.solutionIds, slnId => {
-            return solutionDB.findOne({ _id: slnId });
-        }))
-            .then(rsts => {
-                if (doc.solutions === undefined) {
-                    doc.solutions = [];
-                }
-                _.map(rsts as any[], rst => {
-                    doc.solutions.push({
-                        _id: rst._id,
-                        meta: rst.meta,
-                        auth: rst.auth,
-                        mss: rst.cmpCfg.ms
-                    });
-                });
-                return doc;
-            })
-            .catch(Promise.reject);
+    /**
+     * @returns 
+     *      ARTICLE:    { topic }
+     *      SIDER:      
+     *          READ:   { ptSolutions, participants }
+     *          WRITE:  { solutions }
+     *
+     * @param {*} id
+     * @memberof TopicCtrl
+     */
+    async detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+        if(type === 'ARTICLE') {
+            return TopicModel.findById(id);
+        }
+        else if(type === 'SIDER' && mode === 'READ') {
+            let [ptSolutions, participants] = await Bluebird.all([
+                SolutionModel.find({
+                    topicIds: {
+                        $in: [id]
+                    }
+                }) as any,
+                ConversationModel.findOne({pid: id}, {comments: 1})
+                    .then((conversation: IConversationDocument) => {
+                        let userIds = new Set();
+                        conversation.comments.map(v => userIds.add(v.from_uid))
+                        return Array.from(userIds);
+                    })
+                    .then(UserModel.findByIds)
+            ])
+            return { ptSolutions, participants}
+        }
+        else if(type === 'SIDER' && mode === 'WRITE') {
+            let solutions = await SolutionModel.find()
+            return { solutions }
+        }
     }
 
     /**
@@ -45,10 +58,10 @@ export default class TopicCtrl {
      * }
      */
     findOne(id) {
-        return Promise.all([
-            topicDB.findOne({ _id: id }),
+        return Bluebird.all([
+            TopicModel.findOne({ _id: id }),
             // TODO 这里暂时全部给前端
-            solutionDB.findByPage({}, {
+            SolutionModel.findByPages({}, {
                 pageSize: 50,
                 pageIndex: 1,
             })
@@ -69,25 +82,25 @@ export default class TopicCtrl {
                     solutionCount,
                 };
             })
-            .catch(Promise.reject);
+            .catch(Bluebird.reject);
     }
 
     /**
      * @return {docs, count}
      */
-    findByPage(pageOpt: {
+    async findByPages(pageOpt: {
         pageSize: number,
         pageIndex: number,
         userId: string,
-    }): Promise<any> {
+    }) {
         if (pageOpt.userId === undefined) {
-            return db.findByPage({}, {
+            return TopicModel.findByPages({}, {
                 pageSize: pageOpt.pageSize,
                 pageIndex: pageOpt.pageIndex
             })
-                .catch(Promise.reject);
+                .catch(Bluebird.reject);
         } else {
-            return db.findByUserId(pageOpt.userId).catch(Promise.reject);
+            return TopicModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
         }
 
     }
@@ -97,7 +110,7 @@ export default class TopicCtrl {
      * @return true/false
      */
     insert(topic) {
-        return topicDB.insert(topic)
+        return TopicModel.insert(topic)
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -109,7 +122,7 @@ export default class TopicCtrl {
      * @return true/false
      */
     delete(topicId) {
-        return topicDB.remove({_id: topicId})
+        return TopicModel.remove({_id: topicId})
             .then(v => true)
             .catch(e => {
                 console.log(e);
@@ -120,8 +133,8 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    update(topic) {
-        return topicDB.update(
+    updateOne(topic) {
+        return TopicModel.updateOne(
             {
                 _id: topic._id
             },
@@ -139,8 +152,8 @@ export default class TopicCtrl {
     /**
      * @return true/false
      */
-    patchSolutionIds(topicId, ac, originalTopicId, solutionId) {
+    patchSolutionIds(topicId, ac, solutionId) {
         let newAC = ac === 'addSolution'? 'addTopic': 'removeTopic';
-        return new SolutionCtrl().patchTopicId(solutionId, newAC, originalTopicId, topicId);
+        return new SolutionCtrl().patchTopicId(solutionId, newAC, topicId);
     }
 }

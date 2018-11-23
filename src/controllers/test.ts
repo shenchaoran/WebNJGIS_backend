@@ -1,15 +1,15 @@
 // const debug = require('debug')('WebNJGIS: Debug');
 import * as iconv from 'iconv-lite'
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
-const fs = Promise.promisifyAll(require('fs'));
+const fs = Bluebird.promisifyAll(require('fs'));
+import { Document, Schema, Model, model } from 'mongoose';
 import * as unzip from 'unzip';
 import { Buffer } from 'buffer';
 import * as _ from 'lodash';
-import { solutionDB } from '../models/solution.model';
-import * as UDXCtrl from './UDX.visualization.controller';
-import { geoDataDB } from '../models/UDX-data.model';
+import { SolutionModel } from '../models/solution.model';
+import { GeoDataModel } from '../models/UDX-data.model';
 import { ObjectID } from 'mongodb';
 import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
@@ -17,11 +17,23 @@ import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
-let exec = child_process.exec;
+import { ModelServiceModel } from '../models/model-service.model';
 
-// solutionDB.find({}).then(docs => {
-//     Promise.map(docs as any[], doc => {
-//         return solutionDB.update({_id: doc._id}, {
+// setTimeout(() => {
+//     ModelServiceModel.find({})
+//         .then(docs => {
+//             docs
+//         })
+//         .catch(e => {
+//             console.log(e)
+//         })
+// }, 1000);
+
+// let exec = child_process.exec;
+
+// SolutionModel.find({}).then(docs => {
+//     Bluebird.map(docs as any[], doc => {
+//         return SolutionModel.updateOne({_id: doc._id}, {
 //             $set: {
 //                 msIds: doc.participants.map(v => v._id)
 //             }
@@ -33,29 +45,22 @@ let exec = child_process.exec;
 // })
 
 
-// geoDataDB.find({a: 1})
+// GeoDataModel.find({a: 1})
 //     .then(console.log.bind(null, '1'))
 //     .catch(console.error);
 
-// let csvPath = path.join(__dirname, '../test/test.csv')
-// let csv$ = fs.createReadStream(csvPath, 'utf8')
-// Papa.parse(csv$, {
-//     complete: parsed => {
-//         parsed
-//     }
-// })
-// let data = []
-// csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
-//     header: false,
-//     dynamicTyping: true,
-//     skipEmptyLines: true,
-// }))
-//     .on('data', item => {
-//         item;
-//     })
-//     .on('end', () => {
+let csv$ = fs.createReadStream('F:/geomodelling/model_comparison_backend/dist/upload/geo-data/5bed657db97eab6e405465b4.txt', 'utf8')
+csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
+    header: false,
+    dynamicTyping: true,
+    skipEmptyLines: true,
+}))
+    .on('data', item => {
+        item;
+    })
+    .on('end', () => {
 
-//     })
+    })
 
 // let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
 // let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))
@@ -106,15 +111,15 @@ let exec = child_process.exec;
 //         res;
 //     })
 
-// Promise.all([
-//     Promise.resolve(1)
+// Bluebird.all([
+//     Bluebird.resolve(1)
 //         .then(v => {
 //             throw new Error('custom error')
 //         })
 //         .catch(e => {
-//             return Promise.resolve();
+//             return Bluebird.resolve();
 //         }),
-//         Promise.resolve(2)
+//         Bluebird.resolve(2)
 // ])
 //     .then(rsts => {
 //         console.log('map finished');
@@ -124,7 +129,7 @@ let exec = child_process.exec;
 //         console.log('catch by Map')
 //     })
 
-// new Promise((resolve, reject) => {
+// new Bluebird((resolve, reject) => {
 //     resolve();
 // })
 //     .then(() => {
@@ -134,7 +139,7 @@ let exec = child_process.exec;
 //         }
 //         catch(e) {
 //             console.log('catch error');
-//             return Promise.resolve();
+//             return Bluebird.resolve();
 //         } 
 //     })
 //     .then(() => {
@@ -159,14 +164,14 @@ let exec = child_process.exec;
 //     fileIndex.push(i + '.ini');
 //     fileIndex.push(i + '_spinup.ini');
 // }
-// Promise.map(fileIndex, fname => {
+// Bluebird.map(fileIndex, fname => {
 //     console.log(fname);
 
 // }, {
 //     concurrency: 10
 // })
 
-// new Promise((resolve, reject) => {
+// new Bluebird((resolve, reject) => {
 //     resolve(1);
 
 // })
@@ -176,7 +181,7 @@ let exec = child_process.exec;
 //         // setTimeout(() => {
 //         //     console.log('async');
 //         // }, 0);
-//         return new Promise((resolve, reject) => {
+//         return new Bluebird((resolve, reject) => {
 //             console.log('async')
 //             return resolve();
 //         });
@@ -206,10 +211,10 @@ let exec = child_process.exec;
 //     })
 //     .catch(console.log);
 
-// geoDataDB.find({_id: '5a5eef3b5455b4ab888b1257'});
+// GeoDataModel.find({_id: '5a5eef3b5455b4ab888b1257'});
 
 
-// geoDataDB.findOne({_id: '5a5eef3b5455b4ab888b1257'})
+// GeoDataModel.findOne({_id: '5a5eef3b5455b4ab888b1257'})
 //     .then(UDXCtrl.showRAWAsciiBatch)
 //     .catch(console.log);
 
@@ -255,7 +260,7 @@ let exec = child_process.exec;
 //             cfg: new Date().getTime()
 //         });
 //     }
-//     // Promise.map(data, solutionDB.insert, {concurrency: 5000})
+//     // Bluebird.map(data, SolutionModel.insert, {concurrency: 5000})
 //     //     .then(rsts => {
 //     //         console.log(rsts);
 //     //     })
@@ -263,14 +268,14 @@ let exec = child_process.exec;
 //     console.log('finished!');
 // };
 
-// var Promise = require('bluebird');
+// var Bluebird = require('bluebird');
 // const ASYNCS = [];
 // for(let i=0;i<100;i++) {
 //     ASYNCS.push(i);
 // }
 
-// Promise.map(ASYNCS, function (async) {
-//     return Promise.resolve(async);
+// Bluebird.map(ASYNCS, function (async) {
+//     return Bluebird.resolve(async);
 // },{concurrency: 20})
 //     .then(rsts => {
 //         console.log(rsts);
@@ -327,21 +332,21 @@ let exec = child_process.exec;
 // });
 // //
 
-// // Promise.all
-// Promise.all([
-//     new Promise((resolve, reject) => {
+// // Bluebird.all
+// Bluebird.all([
+//     new Bluebird((resolve, reject) => {
 //         setTimeout(() => {
 //             resolve(1)
 //         }, 1000);
 //     }),
-//     Promise.resolve(2),
-//     Promise.resolve(3)
+//     Bluebird.resolve(2),
+//     Bluebird.resolve(3)
 // ])
 //     .then(console.log)
 //     .catch(console.log);
 
 
-// const aPromise = new Promise(function (resolve) {
+// const aPromise = new Bluebird(function (resolve) {
 //     resolve(100);
 // });
 // aPromise.then((value) => {
@@ -362,7 +367,6 @@ let exec = child_process.exec;
 // console.log(md5('23'), md5('23ewgfgsdfaafdfdasf'));
 
 
-// import * as CmpCtrl from './UDX.compare.controller';
 // 测试table chart statistic
 // CmpCtrl.compare('5ab100790579a0bcccc60c28', ['TABLE_CHART', 'TABLE_STATISTIC'], 'aycsoi*1000')
 //     .then(rst=> {

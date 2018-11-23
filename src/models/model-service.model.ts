@@ -1,34 +1,32 @@
-import { Mongoose } from './mongoose.base';
-import * as mongoose from 'mongoose';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import { UDXSchema } from './UDX-schema.class';
 
-class ModelServiceDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Model_Service';
-        const schema = {
-            auth: mongoose.Schema.Types.Mixed,
-            MDL: mongoose.Schema.Types.Mixed,
-            stdIds: mongoose.Schema.Types.Mixed,
-            nodeId: String,
-            tag: String,
-            topicId: String,
-            topicName: String,
-            exeName: String,
-            subscribed_uids: Array,
-        };
-  
-        super(collectionName, schema);
-    }
-}
+const collectionName = 'Model_Service';
+const schema = new Schema({
+    auth: Schema.Types.Mixed,
+    MDL: Schema.Types.Mixed,
+    stdIds: Schema.Types.Mixed,
+    nodeIds: [String],
+    tag: String,
+    topicId: String,
+    topicName: String,
+    exeName: String,
+    subscribed_uids: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface IModelServiceModel extends Model<IModelServiceDocument>, IOgmsModel {}
+export const ModelServiceModel: IModelServiceModel = model<IModelServiceDocument, IModelServiceModel>(collectionName, schema);
 
-export const modelServiceDB = new ModelServiceDB();
 
-export class ModelService {
-    _id?: any;
+/**
+ * 除了以下情况，数据库中的条目信息一般不会变：
+ *      计算节点更改：更新 nodeIds
+ *      标准数据集更改：更新 stdIds
+ */
+export interface IModelServiceDocument extends Document {
     auth: {
-        nodeId: string,
-        nodeName: string,
         src: ResourceSrc
     };
     MDL: {
@@ -36,7 +34,6 @@ export class ModelService {
             name: string,
             keywords: string[],
             abstract: string,
-            topic: string,
             desc?: string,
             wikiMD?: string,
             wikiHTML?: string,
@@ -50,7 +47,7 @@ export class ModelService {
         },
         runtime: any;
     };
-    nodeId: string;
+    nodeIds: string[];
     stdIds: string[];
     tag: string;
     topicId: string;
@@ -59,7 +56,6 @@ export class ModelService {
     subscribed_uids: string[];
 }
 
-// 暂时不考虑 可选、多选一、级联
 export class Event {
     id: string;
     name: string;

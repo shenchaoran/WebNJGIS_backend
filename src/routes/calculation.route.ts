@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from "express";
 const express = require('express');
 import { RouterExtends } from './base.route';
-import { calcuTaskDB as db } from '../models/calcu-task.model';
+import { CalcuTaskModel } from '../models/calcu-task.model';
 import CalcuTaskCtrl from '../controllers/calcu-task.controller';
 const calcuTaskCtrl = new CalcuTaskCtrl();
 
@@ -32,4 +32,4 @@ router.route('/:msrId/log')
 
     })
     
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, CalcuTaskModel, defaultRoutes);

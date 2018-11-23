@@ -1,7 +1,7 @@
 const express = require('express');
 import { RouterExtends } from './base.route';
 import ConversationCtrl from '../controllers/conversation.controller';
-import { conversationDB as db } from '../models';
+import { ConversationModel } from '../models';
 let conversationCtrl = new ConversationCtrl();
 
 const defaultRoutes = [
@@ -25,7 +25,7 @@ router.route('/')
         else {
             let pageIndex = parseInt(req.query.pageIndex) || 1;
             let pageSize = parseInt(req.query.pageSize) || 20;
-            fn(conversationCtrl.findByPage({pageIndex, pageSize}))
+            fn(conversationCtrl.findByPages({pageIndex, pageSize}))
         }
     });
 
@@ -89,4 +89,4 @@ router.route('/:conversationId/comments/:commentId')
     })
 
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, ConversationModel, defaultRoutes);

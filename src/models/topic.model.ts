@@ -3,36 +3,25 @@
  * 
  */
 
-import * as mongoose from 'mongoose';
-import {
-    Mongoose,
-    Conversation,
-    CmpObj,
-    ResourceSrc
-} from '.';
+import { ResourceSrc } from './resource.enum';
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 
-class TopicDB extends Mongoose {
-    constructor() {
-        const collectionName = 'Topic';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            cmpCfg: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed,
-            spatial: mongoose.Schema.Types.Mixed,
-            temporal: mongoose.Schema.Types.Mixed,
-            solutionIds: Array,
-            cid: String,
-            subscribed_uids: Array,
-        };
+const collectionName = 'Topic';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    cmpCfg: Schema.Types.Mixed,
+    auth: Schema.Types.Mixed,
+    spatial: Schema.Types.Mixed,
+    temporal: Schema.Types.Mixed,
+    cid: String,
+    subscribed_uids: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ITopicModel extends Model<ITopicDocument>, IOgmsModel {}
+export const TopicModel: ITopicModel = model<ITopicDocument, ITopicModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const topicDB = new TopicDB();
-
-export class Topic {
-    _id?: any;
+export interface ITopicDocument extends Document {
     meta: {
         name: string,
         desc?: string,
@@ -54,7 +43,6 @@ export class Topic {
         end: number;
         scale: 'YEAR' | 'DAY';
     };
-    solutionIds: string[];
-    cid: string[];
+    cid: string;
     subscribed_uids: string[];
 }

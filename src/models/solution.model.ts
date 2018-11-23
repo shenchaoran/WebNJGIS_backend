@@ -2,35 +2,27 @@
  * 比较方案用来描述比较对象的schema和比较方法
  */
 
-import { Mongoose } from './mongoose.base';
-import * as mongoose from 'mongoose';
-
+import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
+import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { CmpResult } from './task.model';
 import * as _ from 'lodash';
 
-class SolutionDB extends Mongoose {
-    constructor() {
-        const collectionName = 'CmpSolution';
-        const schema = {
-            meta: mongoose.Schema.Types.Mixed,
-            auth: mongoose.Schema.Types.Mixed,
-            topicId: String,
-            taskIds: Array,
-            msIds: Array,
-            cmpObjs: Array,
-            cid: String,
-            subscribed_uids: Array,
-        };
+const collectionName = 'CmpSolution';
+const schema = new Schema({
+    meta: Schema.Types.Mixed,
+    auth: Schema.Types.Mixed,
+    topicIds: Array,
+    msIds: Array,
+    cmpObjs: Array,
+    taskIds: Array,
+    cid: String,
+    subscribed_uids: Array,
+}, { collection: collectionName });
+Object.assign(schema.statics, OgmsSchemaStatics)
+interface ISolutionModel extends Model<ISolutionDocument>, IOgmsModel {}
+export const SolutionModel: ISolutionModel = model<ISolutionDocument, ISolutionModel>(collectionName, schema);
 
-        super(collectionName, schema);
-    }
-}
-
-export const solutionDB = new SolutionDB();
-
-export class Solution {
-    _id?: any;
+export interface ISolutionDocument extends Document {
     meta: {
         name: string,
         desc?: string,
@@ -43,12 +35,13 @@ export class Solution {
         userName: string,
         src: ResourceSrc
     };
-    topicId?: string;
+    topicIds?: string[];
     taskIds?: string[];
     msIds?: string[];
-    cmpObjs: Array<CmpObj>;
+    cmpObjs: CmpObj[];
     cid: string;
     subscribed_uids: string[];
+    [key: string]: any;
 }
 
 
@@ -81,20 +74,10 @@ export class CmpObj {
     methods: {
         id: string,
         name: string,
-        result: {   // table-chart: echart-opt
-            progress: number,
-            state: string,
-        } | {       // table-statistic: 
-            progress: number,
-            state: string,
-        } | {       // ascii-img: 
-            progress: number,
-            state: string,
-            msId: string,
-            eventId: string,
-            img: any
-        }[]
+        // 保存结果文件路径
+        result: string
     }[];
+    progress?: number;
 }
 
 export class DataRefer {
@@ -108,5 +91,18 @@ export class DataRefer {
     msrId?: string;
     value?: string;
     field?: string;
-    cmpResult?: CmpResult;
 }
+
+// {   // table-chart: echart-opt
+//     progress: number,
+//     state: string,
+// } | {       // table-statistic: 
+//     progress: number,
+//     state: string,
+// } | {       // ascii-img: 
+//     progress: number,
+//     state: string,
+//     msId: string,
+//     eventId: string,
+//     img: any
+// }[]

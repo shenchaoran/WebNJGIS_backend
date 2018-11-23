@@ -1,9 +1,9 @@
 import * as path from 'path';
-import { siteDB } from '../models';
+import { SiteModel } from '../models';
 import * as _ from 'lodash';
-import * as Promise from 'bluebird';
-const GeoJSON = Promise.promisifyAll(require('geojson'));
-const fs = Promise.promisifyAll(require('fs'));
+import * as Bluebird from 'bluebird';
+const GeoJSON = Bluebird.promisifyAll(require('geojson'));
+const fs = Bluebird.promisifyAll(require('fs'));
 
 fs.readFileAsync(path.join(__dirname, '../..', 'IBIS_site_coor.txt'), 'utf-8')
     .then(buf => {

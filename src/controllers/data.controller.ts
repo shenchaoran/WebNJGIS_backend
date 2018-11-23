@@ -10,7 +10,7 @@ import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
 import * as EventEmitter from 'events';
-import { geoDataDB, GeoDataClass, UDXCfg, calcuTaskDB, CalcuTaskState, modelServiceDB } from '../models';
+import { GeoDataModel, CalcuTaskModel, CalcuTaskState, ModelServiceModel } from '../models';
 const fs: any = Bluebird.promisifyAll(fs_)
 
 export default class DataCtrl extends EventEmitter {
@@ -55,13 +55,13 @@ export default class DataCtrl extends EventEmitter {
                                         },
                                         udxcfg: udxcfg
                                     };
-                                    geoDataDB.insert(newItem).then(resolve);
+                                    GeoDataModel.insert(newItem).then(resolve);
                                 });
                             });
                     })
                 }
                 else {
-                    return geoDataDB.insert({
+                    return GeoDataModel.insert({
                         _id: oid,
                         meta: {
                             name: filename,
@@ -85,7 +85,7 @@ export default class DataCtrl extends EventEmitter {
 
     async download(id: string) {
         try {
-            let doc = await geoDataDB.findOne({ _id: id })
+            let doc = await GeoDataModel.findOne({ _id: id })
             let fpath = path.join(setting.geo_data.path, doc.meta.path);
             let stats = await fs.statAsync(fpath)
             return { fpath, fname: doc.meta.name }
@@ -126,7 +126,7 @@ export default class DataCtrl extends EventEmitter {
     async cacheData({ msrId, eventId }) {
         try {
             let eventIndex, event, eventType
-            let msr = await calcuTaskDB.findOne({ _id: msrId });
+            let msr = await CalcuTaskModel.findOne({ _id: msrId });
             for (let key in msr.IO) {
                 if (key === 'inputs' || key === 'outputs') {
                     let events = msr.IO[key];
@@ -148,8 +148,8 @@ export default class DataCtrl extends EventEmitter {
                 return { stream, fname };
             }
             else {
-                let ms = await modelServiceDB.findOne({ _id: msr.msId });
-                let serverURL = await NodeCtrl.telNode(ms.nodeId);
+                let ms = await ModelServiceModel.findOne({ _id: msr.msId });
+                let serverURL = await NodeCtrl.telNode(msr.nodeId);
                 let fetchEvent = await RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path)
                 fetchEvent.on('afterWrite', ({ fname, fpath }) => {
                     if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
@@ -159,7 +159,7 @@ export default class DataCtrl extends EventEmitter {
                             [`IO.${eventType}.${eventIndex}.cached`]: true
                         }
                         Bluebird.all([
-                            geoDataDB.insert({
+                            GeoDataModel.insert({
                                 _id: gdid,
                                 meta: {
                                     desc: '',
@@ -171,7 +171,7 @@ export default class DataCtrl extends EventEmitter {
                                     userId: _.get(msr, 'auth.userId')
                                 }
                             }),
-                            calcuTaskDB.update({ _id: msr._id }, {
+                            CalcuTaskModel.updateOne({ _id: msr._id }, {
                                 $set: setObj
                             })
                         ])
@@ -193,7 +193,7 @@ export default class DataCtrl extends EventEmitter {
     }
 
     async cacheDataBatch(msrId) {
-        let msr = await calcuTaskDB.findOne({ _id: msrId });
+        let msr = await CalcuTaskModel.findOne({ _id: msrId });
         let toPulls = []
         for (let key in msr.IO) {
             if (key === 'inputs' || key === 'outputs') {
@@ -208,7 +208,7 @@ export default class DataCtrl extends EventEmitter {
             }
         }
         return Bluebird.map(toPulls, toPull => {
-            return new Promise((resolve, reject) => {
+            return new Bluebird((resolve, reject) => {
                 let dataCtrl = new DataCtrl()
                 dataCtrl.on('afterDataCached', resolve)
                 dataCtrl.cacheData(toPull)
@@ -237,9 +237,9 @@ export default class DataCtrl extends EventEmitter {
      */
     async pushData2ComputingServer(msrId) {
         try {
-            let msr = await calcuTaskDB.findOne({ _id: msrId });
-            let ms = await modelServiceDB.findOne({ _id: msr.msId });
-            let serverURL = await NodeCtrl.telNode(ms.nodeId);
+            let msr = await CalcuTaskModel.findOne({ _id: msrId });
+            let ms = await ModelServiceModel.findOne({ _id: msr.msId });
+            let serverURL = await NodeCtrl.telNode(msr.nodeId);
             let url = serverURL + '/data'
             return Bluebird.map(msr.IO.inputs as any[], input => {
                 let fpath = path.join(setting.geo_data.path, input.value + input.ext)

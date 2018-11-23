@@ -1,7 +1,8 @@
 import * as http from 'http';
+import * as Bluebird from 'bluebird';
 import * as net from 'net';
 import * as child_process from 'child_process';
-// import * as Promise from 'bluebird';
+// import * as Bluebird from 'bluebird';
 import * as path from 'path';
 import { setting } from '../config/setting';
 
@@ -12,7 +13,7 @@ export class ChildProcessUtil {
     }
 
     private getPort() {
-        return new Promise((resolve, reject) => {
+        return new Bluebird((resolve, reject) => {
             const server = http.createServer();
             server.listen(0);
             server.on('listening', () => {
@@ -45,7 +46,7 @@ export class ChildProcessUtil {
 
     public async on(event) {
         try {
-            return await new Promise((resolve, reject) => {
+            return await new Bluebird((resolve, reject) => {
                 this.cp.on('message', m => {
                     if (m.code === event)
                         return resolve(m)

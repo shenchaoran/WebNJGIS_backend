@@ -5,10 +5,10 @@ import { setting } from '../config/setting';
 import DataCtrl from './data.controller';
 import * as path from 'path'
 import {
-    calcuTaskDB,
+    CalcuTaskModel,
     CalcuTaskState,
-    modelServiceDB,
-    stdDataDB,
+    ModelServiceModel,
+    StdDataModel,
 } from '../models';
 import * as child_process from 'child_process';
 import * as NodeCtrl from './computing-node.controller'
@@ -18,15 +18,29 @@ import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 import * as EventEmitter from 'events'
 
 export default class ModelServiceCtrl extends EventEmitter {
-    db = modelServiceDB;
     constructor() {
         super()
     }
 
+    /**
+     * @returns 
+     *      ARTICLE:
+     *          READ:   { ms }
+     *      SIDER:
+     *          READ:   { ptTopic, ptSolutions, participants }
+     *
+     * @param {*} id
+     * @param {('article' | 'sider')} type
+     * @memberof SolutionCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
+
     findOne(id) {
         return Bluebird.all([
-            this.db.findOne({ _id: id }),
-            stdDataDB.find({ 'models': id }),
+            ModelServiceModel.findOne({ _id: id }) as any,
+            StdDataModel.find({ 'models': id }) as any,
         ]).then(([ms, stds]) => {
             return {
                 ms,
@@ -60,11 +74,11 @@ export default class ModelServiceCtrl extends EventEmitter {
     async invoke(msr) {
         try {
             if (typeof msr === 'string')
-                msr = await calcuTaskDB.findOne({ _id: msr });
+                msr = await CalcuTaskModel.findOne({ _id: msr });
             else {
                 if (!msr._id)
                     msr._id = new ObjectID()
-                await calcuTaskDB.upsert({ _id: msr._id }, msr);
+                await CalcuTaskModel.upsert({ _id: msr._id }, msr);
             }
 
             if (CalcuTaskState.INIT === msr.state)
@@ -75,8 +89,8 @@ export default class ModelServiceCtrl extends EventEmitter {
                 };
             else if (CalcuTaskState.COULD_START === msr.state) {
                 // 查找 node 的 host 和 port
-                let ms = await modelServiceDB.findOne({ _id: msr.msId });
-                let serverURL = await NodeCtrl.telNode(ms.nodeId)
+                let ms = await ModelServiceModel.findOne({ _id: msr.msId });
+                let serverURL = await NodeCtrl.telNode(msr.nodeId)
                 if (msr.IO.dataSrc === 'UPLOAD')
                     await new DataCtrl().pushData2ComputingServer(msr._id);
                 let invokeURL = `${serverURL}/services/invoke`
@@ -86,13 +100,21 @@ export default class ModelServiceCtrl extends EventEmitter {
                 if (res.code === 200) {
                     // 监控运行进度，结束后主动将数据拉过来
                     this.progressDaemon(msr._id).then(msg => {
+                        this.emit('onModelFinished', msg)
                         if ((msg as any).code === 200) {
                             let dataCtrl = new DataCtrl()
-                            dataCtrl.on('afterDataBatchCached', () => this.emit('afterDataBatchCached', { code: 200 }))
+                            // 模型运行成功，且数据缓存成功
+                            dataCtrl.on('afterDataBatchCached', msg => {
+                                this.emit('afterDataBatchCached', msg)
+                            })
                             dataCtrl.cacheDataBatch(msr._id)
                         }
-                        else
-                            this.emit('afterDataBatchCached', { code: 500 })
+                        // else if((msg as any).code === 500) {
+                        //     // 模型运行失败
+                        // }
+                        // else{
+                        //     // this.emit('afterDataBatchCached', { code: 500 })
+                        // }
                     })
                         .catch(e => {
                             console.log(e);
@@ -106,7 +128,7 @@ export default class ModelServiceCtrl extends EventEmitter {
                     };
                 }
                 else {
-                    this.emit('afterDataBatchCached', { code: 500 })
+                    this.emit('onModelFinished', {code: 200})
                     return {
                         msrId: msr._id,
                         code: 501,
@@ -116,7 +138,7 @@ export default class ModelServiceCtrl extends EventEmitter {
 
             }
             else if (CalcuTaskState.FINISHED_SUCCEED === msr.state) {
-                this.emit('afterDataBatchCached', { code: 200 })
+                this.emit('beforeModelInvoke', { code: 200 })
                 return {
                     msrId: msr._id,
                     code: 200,
@@ -169,10 +191,10 @@ export default class ModelServiceCtrl extends EventEmitter {
         }
     }
 
-    public findByPage(pageOpt: {
+    public findByPages(pageOpt: {
         pageSize: number,
         pageIndex: number,
     }) {
-        return this.db.findByPage({}, pageOpt);
+        return ModelServiceModel.findByPages({}, pageOpt);
     }
 }

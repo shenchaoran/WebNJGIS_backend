@@ -14,4 +14,4 @@ router.route('/')
 
     });
 
-//  RouterExtends(router, db, defaultRoutes);
+//  RouterExtends(router, OgmsModel, defaultRoutes);

@@ -2,14 +2,13 @@
  * TODO 与其说是对比，不如说是将每一种数据单独处理一下，前台展示他们的差别
  */
 
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
 
 import {
-    UDXTableXML,
-    geoDataDB,
+    GeoDataModel,
     CmpMethodEnum,
     SchemaName,
     UDXCfg,
@@ -21,9 +20,9 @@ import * as VisualCtrl from './UDX.visualization.controller';
 /**
  * 对一个数据从多种方法层面上对比 
  */
-export const compare = (dataId: string, methods: string[], field?: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        geoDataDB
+export const compare = (dataId: string, methods: string[], field?: string): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
+        GeoDataModel
             .findOne({ _id: dataId })
             .then(doc => {
                 const promises = _.map(methods, method => {
@@ -69,7 +68,7 @@ export const compare = (dataId: string, methods: string[], field?: string): Prom
                             key = 'statistic';
                             break;
                     }
-                    return new Promise((resolve, reject) => {
+                    return new Bluebird((resolve, reject) => {
                         return promise
                             .then(resolve)
                             .catch(e => {
@@ -80,8 +79,8 @@ export const compare = (dataId: string, methods: string[], field?: string): Prom
                            });
                     });
                 });
-                return new Promise((resolve, reject) => {
-                    Promise.all(promises)
+                return new Bluebird((resolve, reject) => {
+                    Bluebird.all(promises)
                         .then(rsts => {
                             let cmpRst = {};
                             _.map(rsts, rst => (cmpRst = {...rst, ...cmpRst}));
@@ -102,7 +101,7 @@ export const compare = (dataId: string, methods: string[], field?: string): Prom
  */
 process.on('message', m => {
     if (m.code === 'start') {
-        return new Promise((resolve, reject) => {
+        return new Bluebird((resolve, reject) => {
             compare(m.dataId, m.methods)
                 .then(resolve)
                 .catch(reject);

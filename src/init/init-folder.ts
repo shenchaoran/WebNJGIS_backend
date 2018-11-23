@@ -1,14 +1,14 @@
-import * as Promise from 'bluebird';
+import * as Bluebird from 'bluebird';
 const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export const initFolders = (): Promise<any> => {
+export const initFolders = (): Bluebird<any> => {
     const folders = ['dist/upload', 'dist/upload/geo-data', 'dist/logs'];
-    return new Promise((resolve, reject) => {
-        Promise.all(_.map(folders, initFolder))
+    return new Bluebird((resolve, reject) => {
+        Bluebird.all(_.map(folders, initFolder))
             .then(rsts => {
                 return resolve();
             })
@@ -18,8 +18,8 @@ export const initFolders = (): Promise<any> => {
     });
 };
 
-const initFolder = (fpath: string): Promise<any> => {
-    return new Promise((resolve, reject) => {
+const initFolder = (fpath: string): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
         fs.stat(fpath, (err, stats) => {
             if (err) {
                 initDebug(err);

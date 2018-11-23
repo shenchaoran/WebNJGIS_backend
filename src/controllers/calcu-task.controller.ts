@@ -4,19 +4,33 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
-import { calcuTaskDB, CalcuTaskState, taskDB, conversationDB } from '../models';
+import { CalcuTaskModel, CalcuTaskState, TaskModel, ConversationModel } from '../models';
 import { ObjectID } from 'mongodb';
 import ConversationCtrl from './conversation.controller';
 const conversationCtrl = new ConversationCtrl();
 
 export default class CalcuTaskCtrl {
-    db = calcuTaskDB;
     constructor() { }
+
+    /**
+     * @returns 
+     *      ARTICLE:
+     *          READ:   { calcuTask, ms }
+     *      SIDER:
+     *          READ:   { ptTopic, ptTasks, participants }
+     *
+     * @param {*} id
+     * @param {('article' | 'sider')} type
+     * @memberof SolutionCtrl
+     */
+    detailPage(id, type: 'ARTICLE' | 'SIDER', mode: 'READ' | 'WRITE') {
+
+    }
 
     async findOne(msrId) {
         try {
-            let [msr, ] = await Promise.all([
-                this.db.findOne({ _id: msrId }),
+            let [msr, ] = await Bluebird.all([
+                CalcuTaskModel.findOne({ _id: msrId }) as any,
             ]);
             return { msr };
         }
@@ -26,12 +40,14 @@ export default class CalcuTaskCtrl {
         }
     }
 
-    insertBatch(docs): Bluebird<any> {
+    async insertMany(docs) {
         // TODO 结果处理
-        _.map(docs as any[], doc => {
-            // 删除无关字段
-            doc._id = new ObjectID(doc._id);
-        });
-        return this.db.insertBatch(docs);
+        // _.map(docs as any[], doc => {
+        //     // 删除无关字段
+        //     doc._id = new ObjectID();
+        // });
+        Bluebird.map(docs, doc => {
+            return CalcuTaskModel.insert(doc)
+        })
     }
 }

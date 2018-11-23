@@ -5,7 +5,7 @@ import { RouterExtends } from './base.route';
 import DataCtrl from '../controllers/data.controller';
 import * as UDXPropParser from '../controllers/UDX.property.controller';
 import * as UDXVisualParser from '../controllers/UDX.visualization.controller';
-import { geoDataDB as db } from '../models';
+import { GeoDataModel } from '../models';
 import * as formidable from 'formidable';
 const express = require('express');
 const dataCtrl = new DataCtrl();
@@ -80,25 +80,25 @@ router.route('/:id')
 
 router.route('/:id/property')
     .get((req: Request, res: Response, next: NextFunction) => {
-        UDXPropParser.parse(req.params.id)
-            .then(prop => {
-                return res.json({
-                    data: prop
-                });
-            })
-            .catch(next);
+        // UDXPropParser.parse(req.params.id)
+        //     .then(prop => {
+        //         return res.json({
+        //             data: prop
+        //         });
+        //     })
+        //     .catch(next);
     });
 
 router.route('/:id/show')
     .get((req: Request, res: Response, next: NextFunction) => {
-        UDXVisualParser.parse(req.params.id)
-            .then(visual => {
-                return res.json({
-                    data: visual
-                });
-            })
-            .catch(next);
+        // UDXVisualParser.parse(req.params.id)
+        //     .then(visual => {
+        //         return res.json({
+        //             data: visual
+        //         });
+        //     })
+        //     .catch(next);
     });
 
     
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, GeoDataModel, defaultRoutes);

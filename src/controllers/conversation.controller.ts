@@ -1,17 +1,14 @@
 import {
-    commentDB,
-    conversationDB,
+    ConversationModel,
     Comment,
-    Conversation,
-    userDB,
-    solutionDB,
-    taskDB,
-    calcuTaskDB,
-    modelServiceDB,
-    topicDB,
+    UserModel,
+    SolutionModel,
+    TaskModel,
+    CalcuTaskModel,
+    ModelServiceModel,
+    TopicModel,
 } from '../models';
 import * as Bluebird from 'bluebird';
-import { ObjectID } from 'mongodb';
 
 export default class ConversationCtrl {
     constructor() {
@@ -22,7 +19,7 @@ export default class ConversationCtrl {
      * @return { count, docs }
      */
     getCommentsByPage(cid, pageIndex, pageSize) {
-        return conversationDB.findOne({
+        return ConversationModel.findOne({
             cid: cid
         })
             .then(conversation => {
@@ -37,8 +34,7 @@ export default class ConversationCtrl {
      * @return true/false
      */
     addComment(cid, comment: Comment) {
-        comment.cid = cid;
-        return conversationDB.update(
+        return ConversationModel.updateOne(
             {
                 _id: cid
             },
@@ -59,7 +55,7 @@ export default class ConversationCtrl {
      * @return true/false
      */
     updateComment(cid, comment: Comment) {
-        return conversationDB.update(
+        return ConversationModel.updateOne(
             {
                 _id: cid,
                 comments: {
@@ -85,7 +81,7 @@ export default class ConversationCtrl {
      * @return true/false
      */
     deleteComment(cid, commentId) {
-        return conversationDB.update(
+        return ConversationModel.updateOne(
             {
                 _id: cid
             },
@@ -111,13 +107,17 @@ export default class ConversationCtrl {
      */
     async findOne(where) {
         try {
-            let conversation = await conversationDB.findOne(where);
+            let conversation = await ConversationModel.findOne(where);
             if (!conversation)
                 return {};
             let userIds = new Set();
             conversation.comments.map(v => userIds.add(v.from_uid));
-            let users = await userDB.findByIds(Array.from(userIds));
-            users.map(user => user.password = null);
+            let users = await UserModel.findByIds(Array.from(userIds));
+            users.map(user => {
+                if (user) {
+                    user.password = null
+                }
+            });
             return {
                 conversation,
                 users,
@@ -133,8 +133,8 @@ export default class ConversationCtrl {
     /**
      * @return{ docs, count }
      */
-    findByPage(pageOpt) {
-        return conversationDB.findByPage({}, pageOpt);
+    findByPages(pageOpt) {
+        return ConversationModel.findByPages({}, pageOpt);
     }
 
     /**
@@ -145,26 +145,26 @@ export default class ConversationCtrl {
             let pDB;
             switch (conversation.ptype) {
                 case 'solution':
-                    pDB = solutionDB;
+                    pDB = SolutionModel;
                     break;
                 case 'task':
-                    pDB = taskDB;
+                    pDB = TaskModel;
                     break;
                 case 'calcuTask':
-                    pDB = calcuTaskDB;
+                    pDB = CalcuTaskModel;
                     break;
                 case 'ms':
-                    pDB = modelServiceDB;
+                    pDB = ModelServiceModel;
                     break;
                 case 'topic':
-                    pDB = topicDB;
+                    pDB = TopicModel;
                     break;
             }
             await Bluebird.all([
-                conversationDB.insert(conversation),
-                pDB.update({ _id: conversation.pid }, {
+                ConversationModel.insert(conversation),
+                pDB.updateOne({ _id: conversation.pid }, {
                     $set: {
-                        conversationId: conversation._id
+                        cid: conversation._id
                     }
                 }),
             ]);

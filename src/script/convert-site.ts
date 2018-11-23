@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { siteDB } from '../models';
+import { SiteModel } from '../models';
 import * as _ from 'lodash';
 
 fs.readFile(path.join(__dirname, '../..', 'IBIS_site_coor.txt'), 'utf-8', (err, buf) => {
@@ -27,7 +27,7 @@ fs.readFile(path.join(__dirname, '../..', 'IBIS_site_coor.txt'), 'utf-8', (err, 
             .filter(item => item != undefined)
             .value();
             
-        siteDB.insertBatch(docs)
+        SiteModel.insertMany(docs)
             .then(rsts => {
                 rsts;
             });

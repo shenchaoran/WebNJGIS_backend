@@ -1,8 +1,8 @@
 import { Response, Request, NextFunction } from "express";
 const express = require('express');
 import ModelServiceCtrl from '../controllers/model-service.controller';
-import { modelServiceDB as db } from '../models/model-service.model';
-import { calcuTaskDB } from '../models/calcu-task.model';
+import { ModelServiceModel } from '../models/model-service.model';
+import { CalcuTaskModel } from '../models/calcu-task.model';
 import { RouterExtends } from './base.route';
 const msCtrl = new ModelServiceCtrl();
 
@@ -25,14 +25,14 @@ router.route('/')
     .get((req, res, next) => {
         let ids = req.query.ids;
         if (ids) {
-            db.findByIds(ids)
+            ModelServiceModel.findByIds(ids)
                 .then(msg => res.json({data: { docs: msg }}))
                 .catch(next);
         }
         else {
             let pageSize = parseInt(req.query.pageSize) || 15,
                 pageIndex = parseInt(req.query.pageIndex) || 1;
-            msCtrl.findByPage({
+            msCtrl.findByPages({
                     pageSize,
                     pageIndex
                 })
@@ -62,4 +62,4 @@ router.route('/:id/invoke')
     });
 
 
-RouterExtends(router, db, defaultRoutes);
+RouterExtends(router, ModelServiceModel, defaultRoutes);

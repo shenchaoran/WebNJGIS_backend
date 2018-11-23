@@ -14,7 +14,7 @@ const jwt = require('jwt-simple');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
-import { userDB } from '../models/user.model';
+import { UserModel } from '../models/user.model';
 
 export const userAuthMid = app => {
 	// 此处其实不用使用应用级中间件，放在需要登录验证的模块中，比如个人中心，使用路由级中间件
@@ -66,7 +66,7 @@ export const userAuthMid = app => {
 						return next(err);
 					}
 				} else {
-					userDB
+					UserModel
 						.find({ username: decoded.iss })
 						.then(users => {
 							if (users.length === 0) {

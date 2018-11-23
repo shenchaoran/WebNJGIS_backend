@@ -1,18 +1,18 @@
-import { geoDataDB, GeoDataClass } from '../models/UDX-data.model';
-import * as Promise from 'bluebird';
+import { GeoDataModel, IGeoDataDocument } from '../models/UDX-data.model';
+import * as Bluebird from 'bluebird';
 const debug = require('debug');
 const initDebug = debug('WebNJGIS: Init');
 import * as mongoose from 'mongoose';
 
-const initData = (data: GeoDataClass): Promise<any> => {
-    return new Promise((resolve, reject) => {
-        geoDataDB.find(data._id)
+const initData = (data: IGeoDataDocument): Bluebird<any> => {
+    return new Bluebird((resolve, reject) => {
+        GeoDataModel.find(data._id)
             .then(docs => {
                 if (docs.length >= 1) {
                     initDebug('Init data succeed!' + data._id);
                     return resolve();
                 } else {
-                    geoDataDB.insert(data)
+                    GeoDataModel.insert(data)
                         .then(rst => {
                             initDebug('Init data succeed!' + data._id);
                             return resolve();
@@ -42,4 +42,4 @@ const initData = (data: GeoDataClass): Promise<any> => {
 //     }
 // ];
 
-// Promise.all()
+// Bluebird.all()
