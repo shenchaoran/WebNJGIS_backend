@@ -181,12 +181,14 @@ export default class SolutionCtrl {
      */
     async updatePts(solutionId, ids) {
         try {
+            let mss = await ModelServiceModel.findByIds(ids);
             await SolutionModel.updateOne({ _id: solutionId }, {
                 $set: {
-                    msIds: ids
+                    msIds: ids,
+                    participants: mss,
                 }
             });
-            let mss = await ModelServiceModel.findByIds(ids);
+            // let mss = await ModelServiceModel.findByIds(ids);
             return { docs: mss };
         }
         catch (e) {

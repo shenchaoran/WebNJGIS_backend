@@ -17,6 +17,7 @@ const schema = new Schema({
     taskIds: Array,
     cid: String,
     subscribed_uids: Array,
+    participants: Schema.Types.Mixed,
 }, { collection: collectionName });
 Object.assign(schema.statics, OgmsSchemaStatics)
 interface ISolutionModel extends Model<ISolutionDocument>, IOgmsModel {}
@@ -41,7 +42,7 @@ export interface ISolutionDocument extends Document {
     cmpObjs: CmpObj[];
     cid: string;
     subscribed_uids: string[];
-    [key: string]: any;
+    [key: string]: any; 
 }
 
 
