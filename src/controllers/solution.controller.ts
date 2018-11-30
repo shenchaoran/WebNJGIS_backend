@@ -43,22 +43,26 @@ export default class SolutionCtrl {
     async findOne(sid) {
         try {
             let solution = await SolutionModel.findOne({ _id: sid });
+            console.log("taskIds:"+ JSON.stringify(solution.taskIds));
             return Bluebird.all([
-                solution.topicId ? TopicModel.findOne({ _id: solution.topicId }) : null,
+                // solution.topicId ? TopicModel.findOne({ _id: solution.topicId }) : null,
+                solution.topicIds ? TopicModel.findByIds(solution.topicIds) : [],
                 solution.taskIds ? TaskModel.findByIds(solution.taskIds) : [],
                 ModelServiceModel.find({}),
                 CmpMethodModel.find({}),
-                TopicModel.find({}),
+                TopicModel.find({})
             ])
-                .then(([topic, tasks, mss, cmpMethods, topicList]) => {
+                .then(([attached_topics, tasks, mss, cmpMethods, topicList]) => {
                     let ptMSs = mss.filter(ms => _.includes(solution.msIds, ms._id.toString()))
                     return {
                         solution,
-                        topic: topic ? {
-                            _id: topic._id,
-                            meta: topic.meta,
-                            auth: topic.auth,
-                        } : null,
+                        attached_topics: attached_topics.map(topic => {
+                            return {
+                                _id: topic._id,
+                                meta: topic.meta,
+                                auth: topic.auth,
+                            }
+                        }),
                         tasks: tasks.map(task => {
                             return {
                                 _id: task._id,

@@ -113,7 +113,11 @@ export default class ConversationCtrl {
             let userIds = new Set();
             conversation.comments.map(v => userIds.add(v.from_uid));
             let users = await UserModel.findByIds(Array.from(userIds));
-            users.map(user => user.password = null);
+            users.map(user => {
+                if (user) {
+                    user.password = null
+                }
+            });
             return {
                 conversation,
                 users,
