@@ -44,7 +44,7 @@ export const preReqMid = (app) => {
     app.use(cookieParser());
 
     // favicon
-    app.use(favicon(path.join(__dirname, '..', 'public/images/favicon.png')));
+    // app.use(favicon(path.join(__dirname, '..', 'public/images/favicon.png')));
 
     // 加载静态资源中间件，前后端分离就不要了
     app.use(express.static(path.join(__dirname, '..', 'public')));
