@@ -47,6 +47,15 @@ gulp.task('watch', () => {
         });
 })
 
-gulp.task('default', () => {
-    gulp.start('public', 'child-process', 'watch')
-})
+// gulp.task('default', () => {
+//     // gulp.start('public', 'child-process', 'watch')
+    
+// })
+
+gulp.series(
+    gulp.parallel(
+        gulp.task('public'), 
+        gulp.task('child-process'),
+    ),
+    gulp.task('watch'),
+)
