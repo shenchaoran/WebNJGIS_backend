@@ -8,14 +8,14 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 
 export default class TableChartCMP extends CmpMethod {
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public methodId) {
+    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
         super(dataRefers, schemas)
     }
 
     /**
      * @returns {echart-opt, statisticTable}
      */
-    async start() {
+    public async start() {
         let dataRefers = this.dataRefers.filter(v => !!v.value);
         const cols = await Bluebird.map(dataRefers, async dataRefer => {
             let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });

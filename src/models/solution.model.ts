@@ -11,9 +11,10 @@ const collectionName = 'CmpSolution';
 const schema = new Schema({
     meta: Schema.Types.Mixed,
     auth: Schema.Types.Mixed,
-    topicIds: String,
+    topicIds: Array,
     msIds: Array,
     cmpObjs: Array,
+    taskIds: Array,
     cid: String,
     subscribed_uids: Array,
 }, { collection: collectionName });
@@ -35,6 +36,7 @@ export interface ISolutionDocument extends Document {
         src: ResourceSrc
     };
     topicIds?: string[];
+    taskIds?: string[];
     msIds?: string[];
     cmpObjs: CmpObj[];
     cid: string;
@@ -75,6 +77,7 @@ export class CmpObj {
         // 保存结果文件路径
         result: string
     }[];
+    regions?: [][]
     progress?: number;
 }
 

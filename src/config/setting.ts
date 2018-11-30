@@ -1,6 +1,9 @@
 import * as os from 'os';
 import * as path from 'path';
 
+const debuge_mongodb_host = '127.0.0.1';
+const release_mongodb_host = '223.2.43.23';
+
 export const setting = {
     auth: false,
     API_prefix: '/api',
@@ -21,7 +24,7 @@ export const setting = {
     })(),
     mongodb: {
         name: 'Comparison',
-        host: '192.168.139.1',
+        host: debuge_mongodb_host,
         port: '27017'
     },
     geo_data: {

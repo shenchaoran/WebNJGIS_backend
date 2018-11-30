@@ -4,7 +4,6 @@ import { Document, Schema, Model, model } from 'mongoose';
 const collectionName = 'CmpMethod';
 const schema = new Schema({
     meta: Schema.Types.Mixed,
-    md: String,
     IO: Schema.Types.Mixed
 }, { collection: collectionName });
 Object.assign(schema.statics, OgmsSchemaStatics)
