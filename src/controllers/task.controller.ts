@@ -233,7 +233,7 @@ export default class CmpTaskCtrl {
                 cmpObj.methods.map((method, j) => {
                     promises.push(new Bluebird((resolve, reject) => {
                         // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory(method.id, cmpObj.dataRefers, task.schemas)
+                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas)
                         cmpMethod.on('afterCmp', async resultFPath => {
                             try {
                                 await TaskModel.updateOne({ _id: task._id }, {

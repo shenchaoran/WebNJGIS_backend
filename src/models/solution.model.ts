@@ -77,6 +77,7 @@ export class CmpObj {
         // 保存结果文件路径
         result: string
     }[];
+    regions?: [][]
     progress?: number;
 }
 

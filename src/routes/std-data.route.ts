@@ -4,7 +4,8 @@ import {
     StdDataModel,
     SiteModel,
 } from '../models';
-import * as STDDataCtrl from '../controllers/std-data.controller';
+import STDDataCtrl from '../controllers/std-data.controller';
+const stdDataCtrl = new STDDataCtrl();
 
 const defaultRoutes = [
     'findAll',
@@ -64,28 +65,17 @@ router.route('/:className')
         // }
     });
 
-router.route('/:id/download')
+router.route('/:id/:entryName')
     .get((req, res, next) => {
-        STDDataCtrl.download(req.params.id, req.query.cfg)
-            .then(rst => {
-            })
-            .catch(next);
-    });
-
-router.route('/:id/preview')
-    .get((req, res, next) => {
-        // STDDataCtrl.preview(req.params.id, req.query.cfg)
-        //     .then(rst => {
-        //         res.set({
-        //             'Content-Type': 'file/*',
-        //             'Content-Length': rst.length,
-        //             'Content-Disposition':
-        //                 'attachment;filename=' +
-        //                 rst.filename
-        //         });
-        //         return res.end(rst.data);
-        //     })
-        //     .catch(next);
+        let entryName = req.params.entryName;
+        let stdId = req.params.id;
+        stdDataCtrl.download(stdId, entryName).then(({fname, stream}) => {
+            res.set({
+                'Content-Type': 'file/*',
+                'Content-Disposition': 'attachment;filename=' + fname
+            });
+            return (stream as any).pipe(res);
+        });
     });
 
 RouterExtends(router, StdDataModel, defaultRoutes);

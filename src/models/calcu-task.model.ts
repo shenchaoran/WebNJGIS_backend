@@ -20,7 +20,6 @@ const schema = new Schema({
     msName: String,
     topicId: String,
     topicName: String,
-    stdId: String,
     log: Schema.Types.Mixed,
     state: String,
     progress: Number,
@@ -64,7 +63,6 @@ export interface ICalcuTaskDocument extends Document {
         cached: boolean,
         dataId: string
     };
-    stdId: string;
     state: CalcuTaskState;
     progress: number;
     subscribed_uids: string[];

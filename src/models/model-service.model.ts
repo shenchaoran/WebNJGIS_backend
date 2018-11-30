@@ -7,7 +7,7 @@ const collectionName = 'Model_Service';
 const schema = new Schema({
     auth: Schema.Types.Mixed,
     MDL: Schema.Types.Mixed,
-    stdIds: Schema.Types.Mixed,
+    // stdIds: Schema.Types.Mixed,
     nodeIds: [String],
     tag: String,
     topicId: String,
@@ -48,7 +48,7 @@ export interface IModelServiceDocument extends Document {
         runtime: any;
     };
     nodeIds: string[];
-    stdIds: string[];
+    // stdIds: string[];
     tag: string;
     topicId: string;
     topicName: string;
