@@ -9,6 +9,7 @@ const session = require('express-session');
 const jwt = require('jwt-simple');
 const path = require('path');
 const favicon = require('serve-favicon');
+const methodOverride = require('method-override');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
@@ -47,6 +48,9 @@ export const preReqMid = (app) => {
 
     // 加载静态资源中间件，前后端分离就不要了
     app.use(express.static(path.join(__dirname, '..', 'public')));
+
+    // 请求方法重写
+    app.use(methodOverride('X-HTTP-Method-Override'))
 
     // all cross origin
     app.all('*', function(req: Request, res: Response, next: NextFunction) {
