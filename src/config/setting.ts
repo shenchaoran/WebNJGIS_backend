@@ -4,11 +4,11 @@ import * as path from 'path';
 export const setting = {
     auth: false,
     API_prefix: '/api',
-    port: '9999',
+    port: 9999,
     fiddler_proxy: {
         host: 'localhost',
         port: 3122,
-        use: true
+        use: false
     },
     session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
