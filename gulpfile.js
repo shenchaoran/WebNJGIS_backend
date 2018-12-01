@@ -12,18 +12,31 @@ var gulp = require('gulp'),
 var jsSrc = 'src/child-process/**',
     jsDest = 'dist/child-process'
     publicSrc = 'src/public/**',
-    publicDest = 'dist/public';
+    publicDest = 'dist/public',
+    pySrc = 'src/py-scripts/**',
+    pyDest = 'dist/py-scripts';
 
-gulp.task('child-process', () => {
-    gulp.src(jsSrc)
-        .pipe(gulp.dest(jsDest))
+gulp.task('py-scripts', () => {
+    gulp.src(pySrc)
+        .pipe(gulp.dest(pyDest))
         .pipe(notify({
-            message: 'copy child-process file succeed!',
+            message: 'copy py-scripts file succeed!',
             templateOptions: {
                 date: new Date()
             }
         }));
-});
+})
+
+// gulp.task('child-process', () => {
+//     gulp.src(jsSrc)
+//         .pipe(gulp.dest(jsDest))
+//         .pipe(notify({
+//             message: 'copy child-process file succeed!',
+//             templateOptions: {
+//                 date: new Date()
+//             }
+//         }));
+// });
 
 gulp.task('public', () => {
     gulp.src(publicSrc)
@@ -37,7 +50,11 @@ gulp.task('public', () => {
 })
 
 gulp.task('watch', () => {
-    gulp.watch(jsSrc, ['child-process'])
+    // gulp.watch(jsSrc, ['child-process'])
+    //     .on('change', (eventType, filename) => {
+    //         console.log(`${filename} changed`);
+    //     });
+    gulp.watch(pySrc, ['py-scripts'])
         .on('change', (eventType, filename) => {
             console.log(`${filename} changed`);
         });
@@ -47,15 +64,14 @@ gulp.task('watch', () => {
         });
 })
 
-// gulp.task('default', () => {
-//     // gulp.start('public', 'child-process', 'watch')
-    
-// })
+gulp.task('default', () => {
+    gulp.start('public', 'py-scripts', 'watch')
+})
 
-gulp.series(
-    gulp.parallel(
-        gulp.task('public'), 
-        gulp.task('child-process'),
-    ),
-    gulp.task('watch'),
-)
+// gulp.series(
+//     gulp.parallel(
+//         gulp.task('public'), 
+//         gulp.task('child-process'),
+//     ),
+//     gulp.task('watch'),
+// )

@@ -5,6 +5,9 @@
         "dist/upload",
         "dist/public",
         "dist/logs",
+        "dist/py-scripts",
+        "dist/child-process",
+        "dist/test",
         ".vscode",
         "upload"
     ]

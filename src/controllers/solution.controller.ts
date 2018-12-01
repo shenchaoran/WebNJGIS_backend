@@ -96,7 +96,7 @@ export default class SolutionCtrl {
                 });
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }
@@ -126,7 +126,7 @@ export default class SolutionCtrl {
                 })
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }
@@ -151,7 +151,7 @@ export default class SolutionCtrl {
         return SolutionModel.insert(doc)
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
@@ -167,7 +167,7 @@ export default class SolutionCtrl {
         )
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
@@ -203,7 +203,7 @@ export default class SolutionCtrl {
         })
             .then(rst => true)
             .catch(e => {
-                console.log(e)
+                console.error(e)
                 return false;
             });
     }
@@ -225,7 +225,7 @@ export default class SolutionCtrl {
             })
                 .then(rsts => true)
                 .catch(e => {
-                    console.log(e);
+                    console.error(e);
                     return false;
                 })
         }
@@ -237,7 +237,7 @@ export default class SolutionCtrl {
             })
                 .then(rsts => true)
                 .catch(e => {
-                    console.log(e);
+                    console.error(e);
                     return false;
                 })
         }

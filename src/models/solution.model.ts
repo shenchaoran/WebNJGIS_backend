@@ -78,7 +78,6 @@ export class CmpObj {
         result: string
     }[];
     regions?: [][]
-    progress?: number;
 }
 
 export class DataRefer {

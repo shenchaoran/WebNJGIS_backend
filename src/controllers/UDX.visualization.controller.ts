@@ -383,7 +383,7 @@ const drawAscii = (
             //     }
             // });
         } catch (e) {
-            console.log(e);
+            console.error(e);
             reject(e);
         }
     });

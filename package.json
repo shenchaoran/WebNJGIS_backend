@@ -18,7 +18,7 @@
         "watch": "run-p watch:*",
         "gulp": "gulp",
         "watch:ts": "tsc -w",
-        "watch:serve": "nodemon --nolazy --config nodemon.json --inspect=0.0.0.0:65535 dist/server.js"
+        "watch:serve": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js"
     },
     "jest": {
         "globals": {
@@ -59,7 +59,6 @@
         "dotenv": "^2.0.0",
         "ejs": "^2.6.1",
         "errorhandler": "^1.4.3",
-        "event-stream": "^4.0.1",
         "express": "^4.16.3",
         "express-flash": "^0.0.2",
         "express-session": "^1.15.6",
@@ -67,6 +66,7 @@
         "fbgraph": "^1.4.4",
         "formidable": "^1.1.1",
         "geojson": "^0.5.0",
+        "gulp": "^3.9.1",
         "iconv-lite": "^0.4.23",
         "identicon.js": "^2.3.3",
         "jest": "^23.6.0",
@@ -115,7 +115,6 @@
         "@types/supertest": "^2.0.0",
         "concurrently": "^3.4.0",
         "del": "^3.0.0",
-        "gulp": "^4.0.0",
         "gulp-cache": "^1.0.2",
         "gulp-concat": "^2.6.1",
         "gulp-jshint": "^2.1.0",

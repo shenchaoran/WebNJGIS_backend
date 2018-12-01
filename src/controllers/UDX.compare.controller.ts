@@ -72,7 +72,7 @@ export const compare = (dataId: string, methods: string[], field?: string): Blue
                         return promise
                             .then(resolve)
                             .catch(e => {
-                               console.log(e);
+                               console.error(e);
                                const rst = {};
                                rst[key] = {progress: -1};
                                return resolve(rst);

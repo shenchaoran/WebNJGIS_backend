@@ -35,7 +35,7 @@ export default class CalcuTaskCtrl {
             return { msr };
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }

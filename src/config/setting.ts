@@ -1,7 +1,7 @@
 import * as os from 'os';
 import * as path from 'path';
 
-const debuge_mongodb_host = '127.0.0.1';
+const debuge_mongodb_host = '192.168.139.1';
 const release_mongodb_host = '223.2.43.23';
 
 export const setting = {
@@ -11,7 +11,7 @@ export const setting = {
     fiddler_proxy: {
         host: 'localhost',
         port: 3122,
-        use: true
+        use: false
     },
     session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',

@@ -37,7 +37,7 @@ export const OgmsSchemaStatics = {
             return Bluebird.map(ids, id => this.findById(id));
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e)
         }
     },
@@ -66,7 +66,7 @@ export const OgmsSchemaStatics = {
             return { count, docs };
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e)
         }
     },
@@ -94,7 +94,7 @@ export const OgmsSchemaStatics = {
             return { docs }
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e)
         }
     },
@@ -106,7 +106,7 @@ export const OgmsSchemaStatics = {
             return this.updateOne(where, update, options)
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e)
         }
     },
@@ -127,7 +127,7 @@ export const OgmsSchemaStatics = {
                 })
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e)
         }
     },

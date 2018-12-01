@@ -5,7 +5,6 @@ import { setting } from '../config/setting';
 import { CalcuTaskState } from '../models';
 import * as _ from 'lodash'
 import * as Bluebird from 'bluebird';
-import { AnyAaaaRecord } from 'dns';
 
 export default class MSRProgressDaemon {
 
@@ -30,6 +29,9 @@ export default class MSRProgressDaemon {
                         error: `****** model run failed! ${this.msrId}`
                     });
                 }
+                else if(msr.state === CalcuTaskState.COULD_START) {
+
+                }
                 else if (msr.state !== CalcuTaskState.RUNNING) {
                     subscription.unsubscribe();
                     return resolve({
@@ -51,7 +53,7 @@ process.on('message', function (m) {
                 process.send(msg);
             })
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 process.send({
                     code: 500,
                     desc: 'daemon msr progress failed!'

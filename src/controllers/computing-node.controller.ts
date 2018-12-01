@@ -67,7 +67,7 @@ export const telNode = async nodeId => {
             return serverURL;
     }
     catch(e) {
-        console.log(e)
+        console.error(e)
         return Bluebird.reject(e);
     }
 }

@@ -78,7 +78,7 @@ export default class DataCtrl extends EventEmitter {
             }
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e);
         }
     };
@@ -91,7 +91,7 @@ export default class DataCtrl extends EventEmitter {
             return { fpath, fname: doc.meta.name }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e.code === 'ENOENT' ? 'file don\'t exist!' : 'unpredictable error!');
         }
     };
@@ -265,7 +265,7 @@ export default class DataCtrl extends EventEmitter {
                 });
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }

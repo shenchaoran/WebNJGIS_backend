@@ -48,7 +48,7 @@ export default class ModelServiceCtrl extends EventEmitter {
             };
         })
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 Bluebird.reject(e);
             })
     }
@@ -117,7 +117,7 @@ export default class ModelServiceCtrl extends EventEmitter {
                         // }
                     })
                         .catch(e => {
-                            console.log(e);
+                            console.error(e);
                             this.emit('afterDataBatchCached', { code: 500 })
                         });
 
@@ -147,7 +147,7 @@ export default class ModelServiceCtrl extends EventEmitter {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             if (_.get(e, 'error.code') === 'ECONNREFUSED') {
                 return {
                     msrId: msr._id,
@@ -186,7 +186,7 @@ export default class ModelServiceCtrl extends EventEmitter {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }

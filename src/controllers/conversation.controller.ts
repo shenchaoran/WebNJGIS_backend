@@ -46,7 +46,7 @@ export default class ConversationCtrl {
         )
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
@@ -72,7 +72,7 @@ export default class ConversationCtrl {
         )
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
@@ -93,7 +93,7 @@ export default class ConversationCtrl {
         )
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
@@ -125,7 +125,7 @@ export default class ConversationCtrl {
             };
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e);
         }
     }
@@ -171,7 +171,7 @@ export default class ConversationCtrl {
             return true;
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return false;
         }
     }

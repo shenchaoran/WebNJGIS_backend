@@ -18,6 +18,10 @@ import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
 import { ModelServiceModel } from '../models/model-service.model';
+import SubHeatMap from './cmp-methods/sub-region-heat-map';
+
+// let heatMapCmp = new SubHeatMap()
+// heatMapCmp.start()
 
 // setTimeout(() => {
 //     ModelServiceModel.find({})
@@ -25,7 +29,7 @@ import { ModelServiceModel } from '../models/model-service.model';
 //             docs
 //         })
 //         .catch(e => {
-//             console.log(e)
+//             console.error(e)
 //         })
 // }, 1000);
 
@@ -40,7 +44,7 @@ import { ModelServiceModel } from '../models/model-service.model';
 //         })
 //     })
 //     .catch(e => {
-//         console.log(e);
+//         console.error(e);
 //     })
 // })
 
@@ -49,18 +53,18 @@ import { ModelServiceModel } from '../models/model-service.model';
 //     .then(console.log.bind(null, '1'))
 //     .catch(console.error);
 
-let csv$ = fs.createReadStream('F:/geomodelling/model_comparison_backend/dist/upload/geo-data/5bed657db97eab6e405465b4.txt', 'utf8')
-csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
-    header: false,
-    dynamicTyping: true,
-    skipEmptyLines: true,
-}))
-    .on('data', item => {
-        item;
-    })
-    .on('end', () => {
+// let csv$ = fs.createReadStream('F:/geomodelling/model_comparison_backend/dist/upload/geo-data/5bed657db97eab6e405465b4.txt', 'utf8')
+// csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
+//     header: false,
+//     dynamicTyping: true,
+//     skipEmptyLines: true,
+// }))
+//     .on('data', item => {
+//         item;
+//     })
+//     .on('end', () => {
 
-    })
+//     })
 
 // let read$ = fs.createReadStream(path.join(__dirname, './data.controller.js'))
 // let write$1 = fs.createWriteStream(path.join(__dirname, './pipe1.js'))
@@ -194,7 +198,7 @@ csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
 
 //     })
 //     .catch(e => {
-//         console.log(e);
+//         console.error(e);
 
 //     });
 

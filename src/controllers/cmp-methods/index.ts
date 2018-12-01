@@ -7,30 +7,24 @@ import SubHeatMap from './sub-region-heat-map';
 import SubLineChart from './sub-region-line-chart';
 import TaylorDiagram from './taylor-diagram';
 
-export const CmpMethodFactory = function (methodName, dataRefers: DataRefer[], schemas: UDXSchema[]) {
+export const CmpMethodFactory = function (methodName, dataRefers: DataRefer[], schemas: UDXSchema[], regions?) {
     let CmpMethod;
     switch (methodName) {
+        case 'table series visualization':
+            return new TableChartCMP(dataRefers, schemas)
         case 'Line chart':
-            CmpMethod = TableChartCMP; 
-            break;
+            return new TableChartCMP(dataRefers, schemas)
         case 'Taylor diagram':
-            CmpMethod = TaylorDiagram; 
-            break;
+            return new TaylorDiagram(dataRefers, schemas)
         case 'Bias contour map':
-            CmpMethod = ContourMap; 
-            break;
+            return new ContourMap(dataRefers, schemas)
         case 'Heat map':
-            CmpMethod = SubHeatMap; 
-            break;
+            return new SubHeatMap(dataRefers, schemas, regions)
         case 'Sub-region line chart':
-            CmpMethod = SubLineChart; 
-            break;
+            return new SubLineChart(dataRefers, schemas, regions)
         case 'Sub-region bias contour map':
-            CmpMethod = SubContourMap; 
-            break;
+            return new SubContourMap(dataRefers, schemas)
         case 'Box diagram':
-            CmpMethod = BoxDiagram; 
-            break;
+            return new BoxDiagram(dataRefers, schemas)
     }
-    return new CmpMethod(dataRefers, schemas);
 }

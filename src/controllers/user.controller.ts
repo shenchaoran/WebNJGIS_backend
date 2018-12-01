@@ -273,7 +273,7 @@ export default class UserCtrl {
         return OgmsModel.updateOne({ _id: pid }, updatePattern)
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             });
     }

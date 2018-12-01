@@ -85,7 +85,7 @@ export default class CmpTaskCtrl {
             return { task, solution, ptMSs, }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     };
@@ -178,7 +178,7 @@ export default class CmpTaskCtrl {
             });
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
         }
     }
 
@@ -191,13 +191,13 @@ export default class CmpTaskCtrl {
             })
             let task = await TaskModel.findOne({ _id: cmpTaskId });
             // let solution = await SolutionModel.findOne({ _id: task.solutionId });
-            let calcuTasks = await Bluebird.map( task.calcuTaskIds as any[],
+            let calcuTasks = await Bluebird.map( task.calcuTaskIds,
                 calcuTaskId => {
                     return new Bluebird((resolve, reject) => {
                         let msCtrl = new ModelServiceCtrl()
                         msCtrl.on('afterDataBatchCached', ({ code }) => {
                             if (code === 200)
-                                return CalcuTaskModel.findOne({ _id: calcuTaskId._id }).then(resolve)
+                                return CalcuTaskModel.findOne({ _id: calcuTaskId }).then(resolve)
                             else if (code === 500)
                                 resolve(undefined)
                         })
@@ -207,7 +207,7 @@ export default class CmpTaskCtrl {
                             }
                         })
 
-                        msCtrl.invoke(calcuTaskId._id).catch(reject)
+                        msCtrl.invoke(calcuTaskId).catch(reject)
                     })
                 },
                 { concurrency: 10 }
@@ -233,7 +233,7 @@ export default class CmpTaskCtrl {
                 cmpObj.methods.map((method, j) => {
                     promises.push(new Bluebird((resolve, reject) => {
                         // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas)
+                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas, cmpObj.regions)
                         cmpMethod.on('afterCmp', async resultFPath => {
                             try {
                                 await TaskModel.updateOne({ _id: task._id }, {
@@ -242,7 +242,7 @@ export default class CmpTaskCtrl {
                                 resolve({ code: 200 })
                             }
                             catch (e) {
-                                console.log(e);
+                                console.error(e);
                                 resolve({ code: 500 })
                             }
                         })
@@ -261,7 +261,7 @@ export default class CmpTaskCtrl {
             })
         }
         catch(e) {
-            console.log(e);
+            console.error(e);
         }
     }
 }

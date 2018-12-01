@@ -57,10 +57,10 @@ export default class TableChartCMP extends CmpMethod {
                 }
             })
         };
-        let targetFName = new ObjectID().toString() + '.json'
-        let targetFPath = path.join(setting.geo_data.path, targetFName);
-        await fs.writeFileAsync(targetFPath, JSON.stringify(opt), 'utf8')
-        this.emit('afterCmp', targetFName);
+        let cmpResultFName = new ObjectID().toString() + '.json'
+        let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
+        await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
+        this.emit('afterCmp', cmpResultFName);
         console.log(`******table chart cmp finished!`)
     }
 
@@ -95,7 +95,7 @@ export default class TableChartCMP extends CmpMethod {
             return column;
         }
         catch(e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }
