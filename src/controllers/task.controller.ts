@@ -76,7 +76,17 @@ export default class CmpTaskCtrl {
             let ptMSs = await ModelServiceModel.findByIds(solution.msIds);
             for(let cmpObj of task.cmpObjs) {
                 for( let method of cmpObj.methods) {
-                    if(method.result) {
+                    if(
+                        method.name === 'Sub-region bias contour map' || 
+                        method.name === 'Bias contour map' ||
+                        method.name === 'Taylor diagram'
+                    ) {
+
+                    }
+                    else if(
+                        (method.name === 'Heat map' || method.name === 'Sub-region line chart') &&
+                        method.result
+                    ) {
                         let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
                         method.result = JSON.parse(opt);
                     }
@@ -231,22 +241,11 @@ export default class CmpTaskCtrl {
             let promises = [];
             task.cmpObjs.map((cmpObj, i) => {
                 cmpObj.methods.map((method, j) => {
-                    promises.push(new Bluebird((resolve, reject) => {
+                    promises.push(new Bluebird(async (resolve, reject) => {
                         // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas, cmpObj.regions)
-                        cmpMethod.on('afterCmp', async resultFPath => {
-                            try {
-                                await TaskModel.updateOne({ _id: task._id }, {
-                                    $set: { [`cmpObjs.${i}.methods.${j}.result`]: resultFPath }
-                                })
-                                resolve({ code: 200 })
-                            }
-                            catch (e) {
-                                console.error(e);
-                                resolve({ code: 500 })
-                            }
-                        })
-                        cmpMethod.start();
+                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas, cmpObj.regions);
+                        await cmpMethod.start();
+                        cmpMethod.afterCmp(task._id, i, j);
                     }))
                 })
             })

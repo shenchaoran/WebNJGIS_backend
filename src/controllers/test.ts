@@ -20,6 +20,32 @@ import * as Papa from 'papaparse';
 import { ModelServiceModel } from '../models/model-service.model';
 import SubHeatMap from './cmp-methods/sub-region-heat-map';
 
+// let cp = child_process.spawn('conda', ['activate base'])
+// cp.stdout.on('data', data => {
+//     console.log(data.toString());
+// });
+// cp.stderr.on('data', data => {
+//     console.error(data.toString());
+// })
+// cp.on('close', async code => {
+//     console.log(code)
+// })
+
+// child_process.exec('sh conda activate base', (err, stdout, stderr) => {
+//     function toGBK(str) {
+//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
+//     }
+//     if (err) {
+//         console.log(toGBK(err.message))
+//     }
+//     if (stderr) {
+//         console.error(toGBK(stderr))
+//     }
+//     if (stdout) {
+//         console.log(toGBK(stdout))
+//     }
+// })
+
 // let heatMapCmp = new SubHeatMap()
 // heatMapCmp.start()
 
@@ -73,24 +99,6 @@ import SubHeatMap from './cmp-methods/sub-region-heat-map';
 // read$.pipe(write$2)
 // read$.on('end', chunk => {
 //     console.log('end')
-// })
-
-// exec('activate base && python ../child-process/test2.py', { 
-//     encoding: 'binary',
-//     cwd: __dirname
-// }, (err, stdout, stderr) => {
-//     function toGBK(str) {
-//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
-//     }
-//     if (err) {
-//         console.log(toGBK(err.message))
-//     }
-//     if (stderr) {
-//         console.log(toGBK(stderr))
-//     }
-//     if (stdout) {
-//         console.log(toGBK(stdout))
-//     }
 // })
 
 // console.log(process)

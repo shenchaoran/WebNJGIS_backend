@@ -50,97 +50,144 @@ export default class SubHeatMap extends CmpMethod {
         // let bboxs = "[[-73.125, -51.9442648790288,-45,16.1302620120348], [-17.578125,-36.4566360115962, 49.21875, 36.1733569352216 ], [ 75.234375, 14.0939571778362, 132.890625, 50.4015153227824 ], [ 105.46875, -40.8470603560712, 161.015625, -10.3149192858131 ], [ 131.484375, 29.0753751795583, 149.765625, 44.7155137320213 ], [ 51.328125, 51.2894059027168, 170.859375, 74.4493575006342 ], [ -1.40625, 57.0407298383609, 43.59375, 72.867930498614 ], [ -13.359375, 38.4105582509461, 40.78125, 57.0407298383609 ], [ -146.953125, 49.951219908662, -47.109375, 70.6708810701575 ], [ -144.140625, 20.1384703124511, -59.765625, 49.4966745274704]]",
         //     variables = "['all_lai', 'aylail']",
         //     ncPaths = "['src/py-scripts/data/Biome-BGC-out.nc', 'src/py-scripts/data/IBIS-out.nc']";
-        const cp = child_process.spawn('python', [
-            this.scriptPath,
-            `--bboxs=${JSON.stringify(bboxs)}`,
-            `--variables=${JSON.stringify(variables)}`,
-            `--ncPaths=${JSON.stringify(ncPaths)}`
-        ])
-        let stdout = '',
-            stderr = '';
-        cp.stdout.on('data', data => {
-            stdout += data.toString();
-        });
-        cp.stderr.on('data', data => {
-            stderr += data.toString();
-        })
-        cp.on('close', async code => {
-            console.log(code)
-            if(code === 0) {
-                try {
-                    let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
-                    let result =group[1].replace(/nan/g, '0')
-                    result = JSON.parse(result)
-                    let chartOption = this.convert2ChartOption(result)
-
-                    let cmpResultFName = new ObjectID().toString() + '.json'
-                    let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
-                    await fs.writeFileAsync(cmpResultFPath, JSON.stringify(chartOption), 'utf8')
-                    this.emit('afterCmp', cmpResultFName);
-                    console.log(this.finishMessage)
+        return new Bluebird((resolve, reject) => {
+            const cp = child_process.spawn('python', [
+                this.scriptPath,
+                `--bboxs=${JSON.stringify(bboxs)}`,
+                `--variables=${JSON.stringify(variables)}`,
+                `--ncPaths=${JSON.stringify(ncPaths)}`
+            ])
+            let stdout = '',
+                stderr = '';
+            cp.stdout.on('data', data => {
+                stdout += data.toString();
+            });
+            cp.stderr.on('data', data => {
+                stderr += data.toString();
+            })
+            cp.on('close', async code => {
+                console.log(code)
+                if(code === 0) {
+                    try {
+                        let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
+                        let result =group[1].replace(/nan/g, '0')
+                        result = JSON.parse(result)
+                        let chartOption = this.convert2ChartOption(result)
+    
+                        let cmpResultFName = new ObjectID().toString() + '.json'
+                        let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
+                        await fs.writeFileAsync(cmpResultFPath, JSON.stringify(chartOption), 'utf8')
+                        this.result = cmpResultFName;
+                        console.log(this.finishMessage)
+                        return resolve();
+                    }
+                    catch(e) {
+                        console.error(e)
+                        return reject(e)
+                    }
                 }
-                catch(e) {
-                    console.error(e)
-                    this.emit('onCmpFailed')
+                else {
+                    console.error(stderr);
+                    return reject(stderr)
                 }
-            }
-            else {
-                console.error(stderr);
-                this.emit('onCmpFailed')
-            }
+            })
         })
     }
 
     protected convert2ChartOption(data): any {
-        // model-region 2d
-        let chartData = [];
-        let visualMapMin = _.chain(data).flattenDeep().min().value(),
-            visualMapMax = _.chain(data).flattenDeep().min().value();
-        (data as any).forEach((row, i) => {
-            row.forEach((cell, j) => {
-                chartData.push([j, i, cell])
+        // stat-model-region 3d
+        // mean, std, bias, coef, rmse
+        let grids = [],
+            xAxes = [],
+            yAxes = [],
+            series = [],
+            titles = [],
+            visualMaps = [],
+            titleLabels = ['Mean', 'Bias', 'Standard Deviation', 'Correlation Coefficient', 'RMSE'],
+            // colNumber = Math.ceil(Math.sqrt(titleLabels.length)),
+            colNumber = 1,
+            rowNumber = Math.ceil(titleLabels.length/colNumber);
+        for(let [i, modelRegion2d] of data.entries()) {
+            let seriesData = []
+            modelRegion2d.map((row, j) => {
+                row.map((cell, k) => {
+                    seriesData.push([k, j, cell])
+                })
             })
-        })
-        let chartOption = {
-            progress: 100,
-            state: CmpState.FINISHED_SUCCEED,
-            xAxis: {
-                type: 'category',
-                data: this.regions.map((region, i) => `R${i}`),
-                splitArea: { show: true }
-            },
-            yAxis: {
-                type: 'category',
-                data: this.dataRefers.map(dataRefer => dataRefer.msName),
-                splitArea: { show: true},
-                axisLabel: {
-                    rotate: -90
-                },
-            },
-            animation: false,
-            grid: { y: '10%' },
-            visualMap: {
-                min: visualMapMin,
-                max: visualMapMax,
+            grids.push({
+                show: true,
+                borderWidth: 0,
+                backgroundColor: '#fff',
+                shadowColor: 'rgba(0, 0, 0, 0.2)',
+                shadowBlur: 1,
+                left: ((i % colNumber) / colNumber * 100 + (1 / colNumber * 100)*0.2) + '%',
+                top: (Math.floor(i / colNumber) / rowNumber * 100 + (1 / rowNumber * 100)*0.3) + '%',
+                width: (1 / colNumber * 100)*0.65 + '%',
+                height: (1 / rowNumber * 100)*0.5 + '%',
+            });
+            visualMaps.push({
+                min: _.chain(modelRegion2d).flattenDeep().min().value(),
+                max: _.chain(modelRegion2d).flattenDeep().max().value(),
+                itemWidth: 8,
+                itemHeight: 40,
                 calculable: true,
-                orient: "vertical",
-                left: "right",
-                bottom: "center"
-            },
-            series: [{
-                name: 'value',
-                type: 'heatmap',
-                data: chartData,
-                label: {
-                    normal: { show: true}
+                orient: 'vertical',
+                left: (((i % colNumber)+1) / colNumber * 100 - (1 / colNumber * 100)*0.15) + '%',
+                top: grids[i].top,
+                seriesIndex: i,
+            });
+            titles.push({
+                textAlign: 'center',
+                text: titleLabels[i],
+                textStyle: {
+                    fontSize: 12,
+                    fontWeight: 'normal'
                 },
+                left: parseFloat(grids[i].left) + parseFloat(grids[i].width) / 2 + '%',
+                top: parseFloat(grids[i].top) - (1 / rowNumber * 100)*0.2 + '%',
+            });
+            xAxes.push({
+                type: 'category',
+                data: new Array(this.regions.length).fill(0).map((v, regionIndex) => `R${regionIndex+1}`),
+                splitArea: {show: true},
+                gridIndex: i,
+            });
+            yAxes.push({
+                type: 'category',
+                data: _.map(this.dataRefers, 'msName'),
+                splitArea: {show: true},
+                // axisLabel: {rotate: -90},
+                gridIndex: i
+            });
+            series.push({
+                name: titleLabels[i],
+                type: 'heatmap',
+                xAxisIndex: i,
+                yAxisIndex: i,
+                data: seriesData,
                 itemStyle: {
                     emphasis: {
-                        shadowBlur: 10,
-                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        shadowBlur: 3,
+                        shadowColor: 'rgba(0,0,0,0.2)'
                     }
-                }
-            }]
+                },
+            });
+        }
+        
+        
+        let chartOption = {
+            progress: 100,
+            tooltip: {
+                position: "top"
+            },
+            state: CmpState.FINISHED_SUCCEED,
+            title: titles,
+            xAxis: xAxes,
+            yAxis: yAxes,
+            animation: false,
+            grid: grids,
+            visualMap: visualMaps,
+            series: series
         };
         return chartOption;
     }

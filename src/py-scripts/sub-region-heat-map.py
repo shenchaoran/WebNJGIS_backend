@@ -1,16 +1,11 @@
 import sys, getopt
-# import demjson
 import json
 from netCDF4 import Dataset
-from os import path,chmod, remove
+from os import path
 import stat
 import numpy as np
-import csv
-import pandas
-import re
-import linecache
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 GRID_LENGTH = 0.5
 LON_START = -179.75
@@ -30,14 +25,35 @@ def getSubRegionVariable(ncPath, regions, variableName):
         return [0] * len(regions)
     dataset = Dataset(ncPath, 'r', format='NETCDF4')
     targetVariable = dataset.variables[variableName]
+    maxLat = targetVariable.shape[1]
+    maxLong = targetVariable.shape[2]
     # time, lat, long
-    regionMeanValues = [targetVariable[:, region[2]:region[3], region[0]:region[1]].mean() for region in regions]
+    meanValues = np.empty((len(regions)))
+    biasValues = np.empty((len(regions)))
+    stdValues = np.empty((len(regions)))
+    coefValues = np.empty((len(regions)))
+    rmseValues = np.empty((len(regions)))
+    for i, region in enumerate(regions):
+        aLat = min(maxLat, region[1])
+        zLat = min(maxLat, region[3])
+        aLong = min(maxLong, region[0])
+        zLong = min(maxLong, region[2])
+        regionSize = targetVariable.shape[0] * (zLat - aLat) * (zLong - aLong)
+        regionValues = targetVariable[:, aLat:zLat, aLong:zLong].reshape(regionSize)
+        
+        meanValues[i] = regionValues.mean()
+        biasValues[i] = regionValues.std()
+        stdValues[i] = regionValues.std()
+        coefValues[i] = regionValues.std()
+        rmseValues[i] = regionValues.std()
+
     dataset.close()
-    return regionMeanValues
+    return [meanValues, biasValues, stdValues, coefValues, rmseValues]
 
 def HeatMapData(ncPaths, regions, variableNames):
-    modelRegion2D = [getSubRegionVariable(ncPath, regions, variableNames[i]) for i, ncPath in enumerate(ncPaths)]
-    return np.array(modelRegion2D)
+    modelStatRegion3D = [getSubRegionVariable(ncPath, regions, variableNames[i]) for i, ncPath in enumerate(ncPaths)]
+    # stat-model-region
+    return np.array(modelStatRegion3D).transpose(1, 0, 2)
 
 
 
@@ -52,14 +68,16 @@ if __name__ == '__main__':
             elif opt[0] == '--bboxs':
                 bboxs = json.loads(opt[1])
         bboxs = np.array(bboxs)
+        # minx, miny, maxx, maxy
         bboxs[:,0] = (bboxs[:,0] - LON_START) // GRID_LENGTH
-        bboxs[:,1] = (bboxs[:,1] - LON_START) // GRID_LENGTH
-        bboxs[:,2] = (bboxs[:,2] - LAT_START) // GRID_LENGTH
+        bboxs[:,1] = (bboxs[:,1] - LAT_START) // GRID_LENGTH
+        bboxs[:,2] = (bboxs[:,2] - LON_START) // GRID_LENGTH
         bboxs[:,3] = (bboxs[:,3] - LAT_START) // GRID_LENGTH
         bboxs = bboxs.astype(int)
-        modelRegion2D = HeatMapData(ncPaths, bboxs, variables)
+
+        statModelRegion3D = HeatMapData(ncPaths, bboxs, variables)
         print('******CMIP-PY-START')
-        print(modelRegion2D.tolist())
+        print(statModelRegion3D.tolist())
         print('******CMIP-PY-END')
     except getopt.GetoptError:
         print('ERROR')

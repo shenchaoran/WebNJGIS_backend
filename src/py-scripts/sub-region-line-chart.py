@@ -2,14 +2,9 @@ import sys, getopt
 import json
 from netCDF4 import Dataset
 from os import path,chmod, remove
-import stat
 import numpy as np
-import csv
-import pandas
-import re
-import linecache
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 
 GRID_LENGTH = 0.5
 LON_START = -179.75
@@ -29,10 +24,16 @@ def getSubRegionVariable(ncPath, regions, variableName):
         return [0] * len(regions)
     dataset = Dataset(ncPath, 'r', format='NETCDF4')
     targetVariable = dataset.variables[variableName]
+    maxLat = targetVariable.shape[1]
+    maxLong = targetVariable.shape[2]
     # time, lat, long
     regionTime2D = np.empty((regions.shape[0], targetVariable.shape[0]))
     for i, region in enumerate(regions):
-        subDataset = targetVariable[:, region[2]:region[3], region[0]:region[1]]
+        aLat = min(maxLat, region[1])
+        zLat = min(maxLat, region[3])
+        aLong = min(maxLong, region[0])
+        zLong = min(maxLong, region[2])
+        subDataset = targetVariable[:, aLat:zLat, aLong:zLong]
         subDataset = subDataset.reshape(subDataset.shape[0], subDataset.shape[1] * subDataset.shape[2])
         regionTime2D[i] = subDataset.mean(1)
     dataset.close()
@@ -56,9 +57,10 @@ if __name__ == '__main__':
             elif opt[0] == '--bboxs':
                 bboxs = json.loads(opt[1])
         bboxs = np.array(bboxs)
+        # minx, miny, maxx, maxy
         bboxs[:,0] = (bboxs[:,0] - LON_START) // GRID_LENGTH
-        bboxs[:,1] = (bboxs[:,1] - LON_START) // GRID_LENGTH
-        bboxs[:,2] = (bboxs[:,2] - LAT_START) // GRID_LENGTH
+        bboxs[:,1] = (bboxs[:,1] - LAT_START) // GRID_LENGTH
+        bboxs[:,2] = (bboxs[:,2] - LON_START) // GRID_LENGTH
         bboxs[:,3] = (bboxs[:,3] - LAT_START) // GRID_LENGTH
         bboxs = bboxs.astype(int)
         matrix = LineChartData(ncPaths, bboxs, variables)

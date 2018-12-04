@@ -44,3 +44,7 @@ resources
 /项目部署发布指北.pptx
 /~$项目部署发布指北.pptx
 tags
+/src/py-scripts/plots
+/src/py-scripts/data
+/src/public/images/plots
+src/py-scripts/data/Biome-BGC-out.nc

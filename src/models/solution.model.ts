@@ -74,8 +74,10 @@ export class CmpObj {
     methods: {
         id: string,
         name: string,
-        // 保存结果文件路径
-        result: string
+        // 保存结果文件路径，或者其他格式的比较结果
+        result: any,
+        // 静态文件路径
+        plots: string[],
     }[];
     regions?: [][]
 }

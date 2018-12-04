@@ -17,13 +17,13 @@ export const CmpMethodFactory = function (methodName, dataRefers: DataRefer[], s
         case 'Taylor diagram':
             return new TaylorDiagram(dataRefers, schemas)
         case 'Bias contour map':
-            return new ContourMap(dataRefers, schemas)
+            return new ContourMap(dataRefers, schemas, regions)
         case 'Heat map':
             return new SubHeatMap(dataRefers, schemas, regions)
         case 'Sub-region line chart':
             return new SubLineChart(dataRefers, schemas, regions)
         case 'Sub-region bias contour map':
-            return new SubContourMap(dataRefers, schemas)
+            return new SubContourMap(dataRefers, schemas, regions)
         case 'Box diagram':
             return new BoxDiagram(dataRefers, schemas)
     }

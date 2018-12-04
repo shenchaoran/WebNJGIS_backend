@@ -58,40 +58,72 @@ export default class SubLineChart extends SubHeatMap {
             }
             xAxisLabels.push(label)
         }
-        let chartOptions = _.map(data, (modelTime2D, i) => {
-            return {
-                progress: 100,
-                state: CmpState.FINISHED_SUCCEED,
-                title: { text: `Region ${i}` },
-                tooltip: { trigger: 'axis'},
-                legend: {
-                    data: _.map(this.dataRefers, dataRefer => dataRefer.msName),
+        let grids = [],
+            xAxes = [],
+            yAxes = [],
+            series = [],
+            titles = [],
+            // colNumber = Math.ceil(Math.sqrt(this.regions.length)),
+            colNumber = 4,
+            rowNumber = Math.ceil(this.regions.length/colNumber);
+        for(let [i, modelTime2D] of data.entries()) {
+            grids.push({
+                show: true,
+                borderWidth: 0,
+                backgroundColor: '#fff',
+                shadowColor: 'rgba(0, 0, 0, 0.2)',
+                shadowBlur: 1,
+                left: ((i % colNumber) / colNumber * 100 + (1 / colNumber * 100)*0.2) + '%',
+                top: (Math.floor(i / colNumber) / rowNumber * 100 + (1 / rowNumber * 100)*0.4) + '%',
+                width: (1 / colNumber * 100)*0.6 + '%',
+                height: (1 / rowNumber * 100)*0.4 + '%',
+            });
+            titles.push({
+                textAlign: 'center',
+                text: `Region ${i+1}`,
+                textStyle: {
+                    fontSize: 12,
+                    fontWeight: 'normal'
                 },
-                grid: {
-                    left: '3%',
-                    right: '4%',
-                    bottom: '3%',
-                    containLabel: true
-                },
-                toolbox: {
-                    feature: { saveAsImage: {}}
-                },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: xAxisLabels,
-                },
-                yAxis: {type: 'value'},
-                series: _.map(modelTime2D, (timeSeries, j) => {
-                    return {
-                        name: this.dataRefers[j].msName,
-                        type: 'line',
-                        data: timeSeries
-                    }
+                left: parseFloat(grids[i].left) + parseFloat(grids[i].width) / 2 + '%',
+                top: parseFloat(grids[i].top) - (1 / rowNumber * 100)*0.2 + '%',
+            });
+            xAxes.push({
+                type: 'category',
+                boundaryGap: false,
+                data: xAxisLabels,
+                gridIndex: i
+            });
+            yAxes.push({
+                type: 'value',
+                gridIndex: i
+            });
+            modelTime2D.map((timeSeries, j) => {
+                series.push({
+                    name: this.dataRefers[j].msName,
+                    type: 'line',
+                    xAxisIndex: i,
+                    yAxisIndex: i,
+                    showSymbol: false,
+                    data: timeSeries
                 })
-            }
-        })
-        return chartOptions;
+            });
+        }
+        let chartOption = {
+            progress: 100,
+            state: CmpState.FINISHED_SUCCEED,
+            title: titles,
+            tooltip: { trigger: 'axis'},
+            legend: {
+                data: _.map(this.dataRefers, dataRefer => dataRefer.msName),
+            },
+            grid: grids,
+            toolbox: { feature: { saveAsImage: {}} },
+            xAxis: xAxes,
+            yAxis: yAxes,
+            series: series
+        }
+        return chartOption;
     }
 }
 

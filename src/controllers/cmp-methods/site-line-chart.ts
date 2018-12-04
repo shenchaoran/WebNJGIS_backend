@@ -60,7 +60,7 @@ export default class TableChartCMP extends CmpMethod {
         let cmpResultFName = new ObjectID().toString() + '.json'
         let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
         await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
-        this.emit('afterCmp', cmpResultFName);
+        this.result = cmpResultFName
         console.log(`******table chart cmp finished!`)
     }
 
