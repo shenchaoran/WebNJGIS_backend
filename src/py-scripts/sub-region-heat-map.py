@@ -51,7 +51,11 @@ def getSubRegionVariable(ncPath, regions, variableName):
     return [meanValues, biasValues, stdValues, coefValues, rmseValues]
 
 def HeatMapData(ncPaths, regions, variableNames):
-    modelStatRegion3D = [getSubRegionVariable(ncPath, regions, variableNames[i]) for i, ncPath in enumerate(ncPaths)]
+    modelStatRegion3D = []
+    for i, ncPath in enumerate(ncPaths):
+        progress = (i+1)*100/len(ncPaths)
+        print('-----Progress:%.2f%%-----' % progress)
+        modelStatRegion3D.append(getSubRegionVariable(ncPath, regions, variableNames[i]))
     # stat-model-region
     return np.array(modelStatRegion3D).transpose(1, 0, 2)
 
@@ -59,7 +63,8 @@ def HeatMapData(ncPaths, regions, variableNames):
 
 if __name__ == '__main__':
     try:
-        options, args = getopt.getopt(sys.argv[1:], 'h', ['help', 'variables=', 'ncPaths=', 'bboxs='])
+        options, args = getopt.getopt(sys.argv[1:], '', ['variables=', \
+                'markerLabels=', 'timeLabels=', 'ncPaths=', 'output=', 'bboxs='])
         for opt in options:
             if opt[0] == '--variables':
                 variables = json.loads(opt[1].replace('\'', '\"'))

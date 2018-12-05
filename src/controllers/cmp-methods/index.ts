@@ -7,24 +7,32 @@ import SubHeatMap from './sub-region-heat-map';
 import SubLineChart from './sub-region-line-chart';
 import TaylorDiagram from './taylor-diagram';
 
-export const CmpMethodFactory = function (methodName, dataRefers: DataRefer[], schemas: UDXSchema[], regions?) {
+export const CmpMethodFactory = function (
+    methodName, 
+    dataRefers: DataRefer[], 
+    schemas: UDXSchema[], 
+    regions,
+    taskId, 
+    cmpObjIndex, 
+    methodIndex,
+) {
     let CmpMethod;
     switch (methodName) {
         case 'table series visualization':
-            return new TableChartCMP(dataRefers, schemas)
+            return new TableChartCMP(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Line chart':
-            return new TableChartCMP(dataRefers, schemas)
+            return new TableChartCMP(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Taylor diagram':
-            return new TaylorDiagram(dataRefers, schemas)
+            return new TaylorDiagram(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Bias contour map':
-            return new ContourMap(dataRefers, schemas, regions)
+            return new ContourMap(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Heat map':
-            return new SubHeatMap(dataRefers, schemas, regions)
+            return new SubHeatMap(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Sub-region line chart':
-            return new SubLineChart(dataRefers, schemas, regions)
+            return new SubLineChart(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Sub-region bias contour map':
-            return new SubContourMap(dataRefers, schemas, regions)
+            return new SubContourMap(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         case 'Box diagram':
-            return new BoxDiagram(dataRefers, schemas)
+            return new BoxDiagram(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
     }
 }

@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from math import ceil, floor
 from pyproj import Proj, transform
+import imageio
 
 GRID_LENGTH = 0.5
 LON_START = -179.75
@@ -22,7 +23,7 @@ TIME_END = TIME_START + TIME_SPAN
 
 if __name__ == '__main__':
     try:
-        options, args = getopt.getopt(sys.argv[1:], 'h', ['help', 'variables=', \
+        options, args = getopt.getopt(sys.argv[1:], '', ['variables=', \
                 'markerLabels=', 'timeLabels=', 'ncPaths=', 'output=', 'bboxs='])
         for opt in options:
             if opt[0] == '--variables':
@@ -71,47 +72,60 @@ if __name__ == '__main__':
         dpi = 100
         p1 = Proj(init='epsg:4326')
         p2 = Proj(init='epsg:3857')
-        for l, timeLabel in enumerate(timeLabels):
-            # 太慢了，测试通过了就注释掉这里
-            # if l < 2:
-                for i, region in enumerate(regions):
-                    aLatIndex = min(maxLat, region[1])
-                    zLatIndex = min(maxLat, region[3])
-                    aLongIndex = min(maxLong, region[0])
-                    zLongIndex = min(maxLong, region[2])
-                    aLat = bboxs[i, 1]
-                    aLon = bboxs[i, 0]
-                    zLon = bboxs[i, 2]
-                    zLat = bboxs[i, 3]
-                    aX, aY = transform(p1, p2, aLon, aLat)
-                    zX, zY = transform(p1, p2, zLon, zLat)
-                    lats = latVariable[aLatIndex:zLatIndex]
-                    longs = longVariable[aLongIndex:zLongIndex]
-                    outputPath = output + '-' + timeLabel + '-' + 'R' + str(i+1) + '.png'
+        for i, region in enumerate(regions):
+            images = []
+            aLatIndex = min(maxLat, region[1])
+            zLatIndex = min(maxLat, region[3])
+            aLongIndex = min(maxLong, region[0])
+            zLongIndex = min(maxLong, region[2])
+            aLat = bboxs[i, 1]
+            aLon = bboxs[i, 0]
+            zLon = bboxs[i, 2]
+            zLat = bboxs[i, 3]
+            aX, aY = transform(p1, p2, aLon, aLat)
+            zX, zY = transform(p1, p2, zLon, zLat)
+            lats = latVariable[aLatIndex:zLatIndex]
+            longs = longVariable[aLongIndex:zLongIndex]
+            
+            gifPath = output + '-' + 'R' + str(i+1) + '.gif'
 
+            # TODO progress doesn't work, because of parallel compute
+            progress = (i+1)*100/len(regions)
+            # progress = (l+1)*100/2
+            print('-----Progress:%.2f%%-----' % progress)
+            with imageio.get_writer(gifPath, mode='I', duration=1) as writer:
+                for l, timeLabel in enumerate(timeLabels):
+                    
                     figW = abs((zLongIndex-aLongIndex)/dpi*10)
                     figH =  abs((zY - aY) * figW / (zX - aX) / 2)
                     fig = plt.figure(figsize=(figW, figH), tight_layout=True, dpi=dpi)
-                    for j in range(rowNumber):
-                        for k in range(colNumber):
-                            plotIndex = j*colNumber + k + 1
-                            if plotIndex <= len(ncPaths):
-                                data = dataList[plotIndex-1][l, aLatIndex:zLatIndex, aLongIndex:zLongIndex]
-                                ax = fig.add_subplot(rowNumber, colNumber, plotIndex)
-                                ax.set_title(markerLabels[plotIndex-1] + '-' + timeLabel + '-R' + str(i+1))
-                                plt.sca(ax)
-                                m = Basemap(epsg='3857', \
-                                    llcrnrlon = aLon, llcrnrlat = aLat, \
-                                    urcrnrlon = zLon, urcrnrlat = zLat, \
-                                    resolution = 'l')
-                                m.drawcoastlines(linewidth=0.5)
-                                m.drawcountries(linewidth=0.25)
-                                xx, yy = np.meshgrid(longs, lats)
-                                cs = m.contourf(xx, yy, data, latlon=True, cmap=plt.cm.jet)
-                                m.colorbar(cs, location='bottom')
+                    outputPath = output + '-' + timeLabel + '-' + 'R' + str(i+1) + '.png'
+                    # 太慢了，测试通过了就注释掉这里
+                    if l < 2:
+                        for j in range(rowNumber):
+                            for k in range(colNumber):
+                                plotIndex = j*colNumber + k + 1
+                                if plotIndex <= len(ncPaths):
+                                    data = dataList[plotIndex-1][l, aLatIndex:zLatIndex, aLongIndex:zLongIndex]
+                                    ax = fig.add_subplot(rowNumber, colNumber, plotIndex)
+                                    ax.set_title(markerLabels[plotIndex-1] + '-' + timeLabel + '-R' + str(i+1))
+                                    plt.sca(ax)
+                                    m = Basemap(epsg='3857', \
+                                        llcrnrlon = aLon, llcrnrlat = aLat, \
+                                        urcrnrlon = zLon, urcrnrlat = zLat, \
+                                        resolution = 'l')
+                                    m.drawcoastlines(linewidth=0.5)
+                                    m.drawcountries(linewidth=0.25)
+                                    xx, yy = np.meshgrid(longs, lats)
+                                    cs = m.contourf(xx, yy, data, latlon=True, cmap=plt.cm.jet)
+                                    m.colorbar(cs, location='bottom')
 
                     # plt.show()
                     fig.savefig(outputPath, format='png', transparent=True)
+                    image = imageio.imread(outputPath)
+                    writer.append_data(image)
+                    # images.append(imageio.imread(outputPath))
+                # imageio.mimsave(gifPath, images)
 
         print('******CMIP-PY-START')
         print('SUCCESS')

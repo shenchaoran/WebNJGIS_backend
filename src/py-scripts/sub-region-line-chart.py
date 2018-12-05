@@ -41,14 +41,19 @@ def getSubRegionVariable(ncPath, regions, variableName):
 
 def LineChartData(ncPaths, regions, variableNames):
     # region, model, time
-    modelRegionTime3D = np.array([getSubRegionVariable(ncPath, regions, variableNames[i]) for i, ncPath in enumerate(ncPaths)])
-    return modelRegionTime3D.transpose(1, 0, 2)
+    modelRegionTime3D = []
+    for i, ncPath in enumerate(ncPaths):
+        progress = (i+1)*100/len(ncPaths)
+        print('-----Progress:%.2f%%-----' % progress)
+        modelRegionTime3D.append(getSubRegionVariable(ncPath, regions, variableNames[i]))
+    return np.array(modelRegionTime3D).transpose(1, 0, 2)
 
 
 
 if __name__ == '__main__':
     try:
-        options, args = getopt.getopt(sys.argv[1:], 'h', ['help', 'variables=', 'ncPaths=', 'bboxs='])
+        options, args = getopt.getopt(sys.argv[1:], '', ['variables=', \
+                'markerLabels=', 'timeLabels=', 'ncPaths=', 'output=', 'bboxs='])
         for opt in options:
             if opt[0] == '--variables':
                 variables = json.loads(opt[1].replace('\'', '\"'))

@@ -243,9 +243,18 @@ export default class CmpTaskCtrl {
                 cmpObj.methods.map((method, j) => {
                     promises.push(new Bluebird(async (resolve, reject) => {
                         // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas, cmpObj.regions);
+                        let cmpMethod = CmpMethodFactory(
+                            (method as any).name, 
+                            cmpObj.dataRefers, 
+                            task.schemas, 
+                            cmpObj.regions,
+                            task._id, 
+                            i, 
+                            j
+                        );
                         await cmpMethod.start();
-                        await cmpMethod.afterCmp(task._id, i, j);
+                        await cmpMethod.afterCmp();
+                        resolve()
                     }))
                 })
             })

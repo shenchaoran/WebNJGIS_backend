@@ -8,8 +8,15 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 
 export default class TableChartCMP extends CmpMethod {
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
-        super(dataRefers, schemas)
+    constructor(
+        public dataRefers: DataRefer[], 
+        public schemas: UDXSchema[], 
+        public regions,
+        public taskId, 
+        public cmpObjIndex, 
+        public methodIndex,
+    ) {
+        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         this.cmpMethodName = 'table chart'
     }
 
@@ -62,7 +69,6 @@ export default class TableChartCMP extends CmpMethod {
         let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
         await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
         this.result = cmpResultFName
-        console.log(this.finishMessage)
     }
 
     protected async extractCSVColumn(dataRefer, fpath) {

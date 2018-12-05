@@ -20,8 +20,15 @@ import * as _ from 'lodash';
  */
 export default class ContourMap extends CmpMethod {
     scriptPath
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public regions) {
-        super(dataRefers, schemas)
+    constructor(
+        public dataRefers: DataRefer[], 
+        public schemas: UDXSchema[], 
+        public regions,
+        public taskId, 
+        public cmpObjIndex, 
+        public methodIndex,
+    ) {
+        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         this.scriptPath = path.join(__dirname, '../../py-scripts/taylor-diagram.py')
         this.cmpMethodName = `contour-map`;
     }
@@ -41,51 +48,6 @@ export default class ContourMap extends CmpMethod {
             ncPaths.push(fpath)
             markerLabels.push(dataRefer.msName)
         });
-        // const cp = child_process.spawn('python', [
-        //     this.scriptPath,
-        //     `--variables=${JSON.stringify(variables)}`,
-        //     `--ncPaths=${JSON.stringify(ncPaths)}`,
-        //     `--markerLabels=${JSON.stringify(markerLabels)}`,
-        //     `--bboxs=${JSON.stringify(bboxs)}`,
-        //     `--output=${output}`,
-        // ])
-        // let stdout = '',
-        //     stderr = '';
-        // cp.stdout.on('data', data => {
-        //     stdout += data.toString();
-        // });
-        // cp.stderr.on('data', data => {
-        //     stderr += data.toString();
-        // })
-        // cp.on('close', async code => {
-        //     console.log(code)
-        //     if(code === 0) {
-        //         try {
-        //             console.log(this.finishMessage)
-        //         }
-        //         catch(e) {
-        //             console.error(e)
-        //             this.emit('onCmpFailed')
-        //         }
-        //     }
-        //     else {
-        //         console.error(stderr);
-        //         this.emit('onCmpFailed')
-        //     }
-        // })
-    }
-
-    public async afterCmp(taskId, cmpObjIndex, methodIndex) {
-        try {
-            // TODO
-            await TaskModel.updateOne({ _id: taskId }, {
-                $set: { [`cmpObjs.${cmpObjIndex}.methods.${methodIndex}.result`]: this.result }
-            })
-            return { code: 200 }
-        }
-        catch (e) {
-            console.error(e);
-            return { code: 500 }
-        }
+        
     }
 }

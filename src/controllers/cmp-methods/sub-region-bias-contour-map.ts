@@ -19,12 +19,18 @@ import { addYears, addDays, format, parse, addHours } from 'date-fns';
  */
 export default class SubContourMap extends CmpMethod {
     scriptPath
-    finishMessage
     timeVariable
     timeLabels
     cmpMethodName
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public regions) {
-        super(dataRefers, schemas)
+    constructor(
+        public dataRefers: DataRefer[], 
+        public schemas: UDXSchema[], 
+        public regions,
+        public taskId, 
+        public cmpObjIndex, 
+        public methodIndex,
+    ) {
+        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-contour-map.py')
         this.cmpMethodName = `sub-region-contour-map`;
 
@@ -77,8 +83,8 @@ export default class SubContourMap extends CmpMethod {
             markerLabels.push(dataRefer.msName)
         });
 
-        return new Bluebird((resolve, reject) => {
-            const cp = child_process.spawn('python', [
+        let interpretor = 'python',
+            argv = [
                 this.scriptPath,
                 `--variables=${JSON.stringify(variables)}`,
                 `--ncPaths=${JSON.stringify(ncPaths)}`,
@@ -86,48 +92,18 @@ export default class SubContourMap extends CmpMethod {
                 `--bboxs=${JSON.stringify(bboxs)}`,
                 `--timeLabels=${JSON.stringify(this.timeLabels)}`,
                 `--output=${output}`,
-            ])
-            let stdout = '',
-                stderr = '';
-            cp.stdout.on('data', data => {
-                stdout += data.toString();
-            });
-            cp.stderr.on('data', data => {
-                stderr += data.toString();
-            })
-            cp.on('close', async code => {
-                console.log(`${this.cmpMethodName}: ${code}`)
-                if(code === 0) {
-                    this.result = { 
-                        state: CmpState.FINISHED_SUCCEED,
-                        imgPrefix: outputName,
-                        timeLabels: this.timeLabels,
-                        regionLength: this.regions.length,
-                        ext: '.png',
-                        format: 'prefix-timeLabel-R1.png'  // 从 1 开始
-                    }
-                    console.log(outputName)
-                    console.log(this.finishMessage)
-                    resolve();
+            ],
+            onSucceed = async () => {
+                this.result = { 
+                    state: CmpState.FINISHED_SUCCEED,
+                    imgPrefix: outputName,
+                    timeLabels: this.timeLabels,
+                    regionLength: this.regions.length,
+                    ext: '[".png", ".gif"]',
+                    format: '["prefix-timeLabel-R1.png","prefix-R1.gif"]'  // 从 1 开始
                 }
-                else {
-                    console.error(stderr);
-                    reject(stderr)
-                }
-            })
-        })
-    }
-
-    public async afterCmp(taskId, cmpObjIndex, methodIndex) {
-        try {
-            await TaskModel.updateOne({ _id: taskId }, {
-                $set: { [`cmpObjs.${cmpObjIndex}.methods.${methodIndex}.result`]: this.result }
-            })
-            return { code: 200 }
-        }
-        catch (e) {
-            console.error(e);
-            return { code: 500 }
-        }
+                console.log(outputName)
+            }
+        return super._start(interpretor, argv, onSucceed);
     }
 }
