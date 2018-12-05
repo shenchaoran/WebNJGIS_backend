@@ -10,6 +10,7 @@ const fs = Bluebird.promisifyAll(require('fs'));
 export default class TableChartCMP extends CmpMethod {
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
         super(dataRefers, schemas)
+        this.cmpMethodName = 'table chart'
     }
 
     /**
@@ -61,7 +62,7 @@ export default class TableChartCMP extends CmpMethod {
         let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
         await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
         this.result = cmpResultFName
-        console.log(`******table chart cmp finished!`)
+        console.log(this.finishMessage)
     }
 
     protected async extractCSVColumn(dataRefer, fpath) {

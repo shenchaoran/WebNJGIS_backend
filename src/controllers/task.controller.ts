@@ -245,7 +245,7 @@ export default class CmpTaskCtrl {
                         // TODO 可能会出现并发问题
                         let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas, cmpObj.regions);
                         await cmpMethod.start();
-                        cmpMethod.afterCmp(task._id, i, j);
+                        await cmpMethod.afterCmp(task._id, i, j);
                     }))
                 })
             })

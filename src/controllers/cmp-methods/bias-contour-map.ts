@@ -20,11 +20,10 @@ import * as _ from 'lodash';
  */
 export default class ContourMap extends CmpMethod {
     scriptPath
-    finishMessage
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public regions) {
         super(dataRefers, schemas)
         this.scriptPath = path.join(__dirname, '../../py-scripts/taylor-diagram.py')
-        this.finishMessage = `******sub-region-line-chart cmp finished!`;
+        this.cmpMethodName = `contour-map`;
     }
 
     public async start() {

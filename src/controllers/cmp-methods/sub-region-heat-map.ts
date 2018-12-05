@@ -30,7 +30,7 @@ export default class SubHeatMap extends CmpMethod {
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public regions) {
         super(dataRefers, schemas)
         this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-heat-map.py')
-        this.finishMessage = `******sub-region-heat-map cmp finished!`;
+        this.cmpMethodName = `sub-region-heat-map`;
     }
 
     public async start() {
@@ -66,7 +66,7 @@ export default class SubHeatMap extends CmpMethod {
                 stderr += data.toString();
             })
             cp.on('close', async code => {
-                console.log(code)
+                console.log(`${this.cmpMethodName}: ${code}`)
                 if(code === 0) {
                     try {
                         let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)

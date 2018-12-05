@@ -6,6 +6,8 @@ import { start } from 'repl';
 
 export default class CmpMethod extends EventEmitter implements ICmpMethod {
     result;
+    cmpMethodName;
+    get finishMessage() { return `****** ${this.cmpMethodName} finished`};
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
         super()
     }

@@ -8,6 +8,7 @@ import numpy as np
 import time
 from datetime import datetime
 from math import ceil, floor
+from pyproj import Proj, transform
 
 GRID_LENGTH = 0.5
 LON_START = -179.75
@@ -66,30 +67,42 @@ if __name__ == '__main__':
         rowNumber = ceil(plotsNumber/colNumber)
 
         # TODO bias
-        # TODO time label
         # TODO progress
+        dpi = 100
+        p1 = Proj(init='epsg:4326')
+        p2 = Proj(init='epsg:3857')
         for l, timeLabel in enumerate(timeLabels):
             # 太慢了，测试通过了就注释掉这里
-            if l < 2:
+            # if l < 2:
                 for i, region in enumerate(regions):
-                    aLat = min(maxLat, region[1])
-                    zLat = min(maxLat, region[3])
-                    aLong = min(maxLong, region[0])
-                    zLong = min(maxLong, region[2])
-                    lats = latVariable[aLat:zLat]
-                    longs = longVariable[aLong:zLong]
+                    aLatIndex = min(maxLat, region[1])
+                    zLatIndex = min(maxLat, region[3])
+                    aLongIndex = min(maxLong, region[0])
+                    zLongIndex = min(maxLong, region[2])
+                    aLat = bboxs[i, 1]
+                    aLon = bboxs[i, 0]
+                    zLon = bboxs[i, 2]
+                    zLat = bboxs[i, 3]
+                    aX, aY = transform(p1, p2, aLon, aLat)
+                    zX, zY = transform(p1, p2, zLon, zLat)
+                    lats = latVariable[aLatIndex:zLatIndex]
+                    longs = longVariable[aLongIndex:zLongIndex]
                     outputPath = output + '-' + timeLabel + '-' + 'R' + str(i+1) + '.png'
+
+                    figW = abs((zLongIndex-aLongIndex)/dpi*10)
+                    figH =  abs((zY - aY) * figW / (zX - aX) / 2)
+                    fig = plt.figure(figsize=(figW, figH), tight_layout=True, dpi=dpi)
                     for j in range(rowNumber):
                         for k in range(colNumber):
                             plotIndex = j*colNumber + k + 1
                             if plotIndex <= len(ncPaths):
-                                data = dataList[plotIndex-1][l, aLat:zLat, aLong:zLong]
-                                ax = plt.subplot(rowNumber, colNumber, plotIndex)
-                                ax.set_title(markerLabels[plotIndex-1] + '-time' + str(l+1))
+                                data = dataList[plotIndex-1][l, aLatIndex:zLatIndex, aLongIndex:zLongIndex]
+                                ax = fig.add_subplot(rowNumber, colNumber, plotIndex)
+                                ax.set_title(markerLabels[plotIndex-1] + '-' + timeLabel + '-R' + str(i+1))
                                 plt.sca(ax)
-                                m = Basemap(epsg='4326', \
-                                    llcrnrlon = bboxs[i, 0], llcrnrlat = bboxs[i, 1], \
-                                    urcrnrlon = bboxs[i, 2], urcrnrlat = bboxs[i, 3], \
+                                m = Basemap(epsg='3857', \
+                                    llcrnrlon = aLon, llcrnrlat = aLat, \
+                                    urcrnrlon = zLon, urcrnrlat = zLat, \
                                     resolution = 'l')
                                 m.drawcoastlines(linewidth=0.5)
                                 m.drawcountries(linewidth=0.25)
@@ -98,7 +111,7 @@ if __name__ == '__main__':
                                 m.colorbar(cs, location='bottom')
 
                     # plt.show()
-                    plt.savefig(outputPath, dpi=500)
+                    fig.savefig(outputPath, format='png', transparent=True)
 
         print('******CMIP-PY-START')
         print('SUCCESS')

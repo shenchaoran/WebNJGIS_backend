@@ -11,11 +11,10 @@ import * as _ from 'lodash';
 
 export default class TaylorDiagram extends CmpMethod {
     scriptPath
-    finishMessage
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
         super(dataRefers, schemas)
         this.scriptPath = path.join(__dirname, '../../py-scripts/taylor-diagram.py')
-        this.finishMessage = `******sub-region-line-chart cmp finished!`;
+        this.cmpMethodName = `taylor-diagram`;
     }
 
     public async start() {
@@ -40,31 +39,31 @@ export default class TaylorDiagram extends CmpMethod {
         ])
         let stdout = '',
             stderr = '';
-        return new Bluebird((resolve, reject) => {
-            cp.stdout.on('data', data => {
-                stdout += data.toString();
-            });
-            cp.stderr.on('data', data => {
-                stderr += data.toString();
-            })
-            cp.on('close', async code => {
-                console.log(code)
-                if(code === 0) {
-                    try {
-                        console.log(this.finishMessage)
-                        return resolve()
-                    }
-                    catch(e) {
-                        console.error(e)
-                        return reject(e)
-                    }
-                }
-                else {
-                    console.error(stderr);
-                    return reject(stderr)
-                }
-            })
-        })
+        // return new Bluebird((resolve, reject) => {
+        //     cp.stdout.on('data', data => {
+        //         stdout += data.toString();
+        //     });
+        //     cp.stderr.on('data', data => {
+        //         stderr += data.toString();
+        //     })
+        //     cp.on('close', async code => {
+        //         console.log(`${this.cmpMethodName}: ${code}`)
+        //         if(code === 0) {
+        //             try {
+        //                 console.log(this.finishMessage)
+        //                 return resolve()
+        //             }
+        //             catch(e) {
+        //                 console.error(e)
+        //                 return reject(e)
+        //             }
+        //         }
+        //         else {
+        //             console.error(stderr);
+        //             return reject(stderr)
+        //         }
+        //     })
+        // })
     }
 
 

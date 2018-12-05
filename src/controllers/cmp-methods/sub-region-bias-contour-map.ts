@@ -22,10 +22,11 @@ export default class SubContourMap extends CmpMethod {
     finishMessage
     timeVariable
     timeLabels
+    cmpMethodName
     constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public regions) {
         super(dataRefers, schemas)
         this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-contour-map.py')
-        this.finishMessage = `******sub-region-contour-map cmp finished!`;
+        this.cmpMethodName = `sub-region-contour-map`;
 
         _.map(this.dataRefers, dataRefer => {
             _.map(this.schemas, schema => {
@@ -95,9 +96,8 @@ export default class SubContourMap extends CmpMethod {
                 stderr += data.toString();
             })
             cp.on('close', async code => {
-                console.log(code)
+                console.log(`${this.cmpMethodName}: ${code}`)
                 if(code === 0) {
-                    console.log(this.finishMessage)
                     this.result = { 
                         state: CmpState.FINISHED_SUCCEED,
                         imgPrefix: outputName,
@@ -106,6 +106,8 @@ export default class SubContourMap extends CmpMethod {
                         ext: '.png',
                         format: 'prefix-timeLabel-R1.png'  // 从 1 开始
                     }
+                    console.log(outputName)
+                    console.log(this.finishMessage)
                     resolve();
                 }
                 else {
