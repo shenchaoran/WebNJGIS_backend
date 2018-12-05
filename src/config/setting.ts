@@ -7,7 +7,7 @@ const release_mongodb_host = '223.2.43.23';
 export const setting = {
     auth: false,
     API_prefix: '/api',
-    port: '9999',
+    port: 9999,
     fiddler_proxy: {
         host: 'localhost',
         port: 3122,
