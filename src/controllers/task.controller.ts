@@ -21,6 +21,7 @@ import {
     CalcuTaskState,
     SchemaName,
     CmpState,
+    MetricModel,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
 
@@ -36,19 +37,50 @@ export default class CmpTaskCtrl {
     };
 
     async findByPages(pageOpt) {
+        let queryTasks
         if (pageOpt.userId === undefined) {
-            return TaskModel.findByPages({}, pageOpt)
-                .then(rst => {
-                    _.map(rst.docs, doc => {
-                        this.reduceDoc(doc, '2');
-                    });
-                    return Bluebird.resolve(rst);
-                })
-                .catch(Bluebird.reject);
+            queryTasks = () => TaskModel.findByPages({}, pageOpt)
         } else {
-            return TaskModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
+            queryTasks = () => TaskModel.findByUserId(pageOpt.userId)
         }
-
+        let {count, docs} = await queryTasks()
+        let tasks = []
+        _.map(docs, doc => {
+            let task = _.pick(doc._doc, ['_id', 'meta', 'auth', 'state'])
+            let initCmp = 0,
+                runningCmp = 0,
+                succeedCmp = 0,
+                failedCmp = 0;
+            _.chain(doc._doc)
+                .get('cmpObjs')
+                .map(cmpObj => {
+                    _.map(cmpObj.methods, method => {
+                        if(method.state === CmpState.FINISHED_SUCCEED) {
+                            succeedCmp++;
+                        }
+                        else if(method.state === CmpState.FINISHED_FAILED) {
+                            failedCmp++;
+                        }
+                        else if(method.state === CmpState.RUNNING) {
+                            runningCmp++;
+                        }
+                        else if(!method.state) {
+                            initCmp++;
+                        }
+                    })
+                })
+                .value();
+            
+            _.set(task, 'initCmp', initCmp)
+            _.set(task, 'runningCmp', runningCmp)
+            _.set(task, 'succeedCmp', succeedCmp)
+            _.set(task, 'failedCmp', failedCmp)
+            _.set(task, 'totalCmp', initCmp + runningCmp + succeedCmp + failedCmp)
+            // let opt = {}
+            // _.set(task, 'chartOption', opt)
+            tasks.push(task)
+        })
+        return {count, docs: tasks}
     }
 
     /**
@@ -70,10 +102,14 @@ export default class CmpTaskCtrl {
 
     async findOne(id: string) {
         try {
-            // TODO 数据库设计 及 异步流程控制
             let task = await TaskModel.findOne({ _id: id })
-            let solution = await SolutionModel.findOne({ _id: task.solutionId });
+            let [solution, calcuTasks, metrics] = await Bluebird.all([
+                SolutionModel.findOne({ _id: task.solutionId }),
+                CalcuTaskModel.findByIds(task.calcuTaskIds),
+                MetricModel.find({}),
+            ]);
             let ptMSs = await ModelServiceModel.findByIds(solution.msIds);
+
             for(let cmpObj of task.cmpObjs) {
                 for( let method of cmpObj.methods) {
                     if(
@@ -84,7 +120,7 @@ export default class CmpTaskCtrl {
 
                     }
                     else if(
-                        (method.name === 'Heat map' || method.name === 'Sub-region line chart') &&
+                        (method.name === 'Heat map' || method.name === 'Sub-region line chart' || 'table series visualization') &&
                         method.result
                     ) {
                         let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
@@ -92,33 +128,13 @@ export default class CmpTaskCtrl {
                     }
                 }
             }
-            return { task, solution, ptMSs, }
+            return { task, solution, ptMSs, calcuTasks, metrics, }
         }
         catch (e) {
             console.error(e);
             return Bluebird.reject(e);
         }
     };
-
-    /**
-     * 以不同力度缩减文档
-     * 查询list时，level = 2，查询item 时，level = 1
-     */
-    private async reduceDoc(doc, level?: '1' | '2') {
-        if (level === undefined || level === '1') {
-            _.map(doc.cmpObjs as any[], cmpObj => {
-                _.map(cmpObj.dataRefers as any[], dataRefer => {
-                    dataRefer.cmpResult = null
-                })
-            });
-        }
-        else if (level === '2') {
-            doc.cmpResults = undefined;
-
-            _.set(doc, 'cmpObjs', undefined);
-        }
-        return doc;
-    }
 
     /**
      * deprecated
@@ -243,9 +259,18 @@ export default class CmpTaskCtrl {
                 cmpObj.methods.map((method, j) => {
                     promises.push(new Bluebird(async (resolve, reject) => {
                         // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas, cmpObj.regions);
+                        let cmpMethod = CmpMethodFactory(
+                            (method as any).name, 
+                            cmpObj.dataRefers, 
+                            task.schemas, 
+                            task.regions,
+                            task._id, 
+                            i, 
+                            j
+                        );
                         await cmpMethod.start();
-                        await cmpMethod.afterCmp(task._id, i, j);
+                        await cmpMethod.afterCmp();
+                        resolve()
                     }))
                 })
             })

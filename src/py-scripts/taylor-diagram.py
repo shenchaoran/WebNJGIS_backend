@@ -35,7 +35,8 @@ def plotTaylorDiagram(observationVariable, ncPath, variableName):
 
 if __name__ == '__main__':
     try:
-        options, args = getopt.getopt(sys.argv[1:], '', ['variables=', 'ncPaths=', 'markerLabels=', 'output=', 'bboxs='])
+        options, args = getopt.getopt(sys.argv[1:], '', ['variables=', \
+                'markerLabels=', 'timeLabels=', 'ncPaths=', 'output=', 'bboxs='])
         for opt in options:
             if opt[0] == '--variables':
                 variables = json.loads(opt[1].replace('\'', '\"'))

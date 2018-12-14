@@ -22,8 +22,15 @@ import { addYears, addDays, format, parse, addHours } from 'date-fns';
 export default class SubLineChart extends CmpMethod {
     scriptPath;
     timeVariable;
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[], public regions) {
-        super(dataRefers, schemas)
+    constructor(
+        public dataRefers: DataRefer[], 
+        public schemas: UDXSchema[], 
+        public regions,
+        public taskId, 
+        public cmpObjIndex, 
+        public methodIndex,
+    ) {
+        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-line-chart.py')
         this.cmpMethodName = `sub-region-line-chart`;
 
@@ -53,51 +60,25 @@ export default class SubLineChart extends CmpMethod {
             ncPaths.push(tmp.fpath)
         })
 
-        // let bboxs = "[[-73.125, -51.9442648790288,-45,16.1302620120348], [-17.578125,-36.4566360115962, 49.21875, 36.1733569352216 ], [ 75.234375, 14.0939571778362, 132.890625, 50.4015153227824 ], [ 105.46875, -40.8470603560712, 161.015625, -10.3149192858131 ], [ 131.484375, 29.0753751795583, 149.765625, 44.7155137320213 ], [ 51.328125, 51.2894059027168, 170.859375, 74.4493575006342 ], [ -1.40625, 57.0407298383609, 43.59375, 72.867930498614 ], [ -13.359375, 38.4105582509461, 40.78125, 57.0407298383609 ], [ -146.953125, 49.951219908662, -47.109375, 70.6708810701575 ], [ -144.140625, 20.1384703124511, -59.765625, 49.4966745274704]]",
-        //     variables = "['all_lai', 'aylail']",
-        //     ncPaths = "['src/py-scripts/data/Biome-BGC-out.nc', 'src/py-scripts/data/IBIS-out.nc']";
-        return new Bluebird((resolve, reject) => {
-            const cp = child_process.spawn('python', [
+        let interpretor = 'python',
+            argv = [
                 this.scriptPath,
                 `--bboxs=${JSON.stringify(bboxs)}`,
                 `--variables=${JSON.stringify(variables)}`,
                 `--ncPaths=${JSON.stringify(ncPaths)}`
-            ])
-            let stdout = '',
-                stderr = '';
-            cp.stdout.on('data', data => {
-                stdout += data.toString();
-            });
-            cp.stderr.on('data', data => {
-                stderr += data.toString();
-            })
-            cp.on('close', async code => {
-                console.log(`${this.cmpMethodName}: ${code}`)
-                if(code === 0) {
-                    try {
-                        let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
-                        let result =group[1].replace(/nan/g, '0')
-                        result = JSON.parse(result)
-                        let chartOption = this.convert2ChartOption(result)
-    
-                        let cmpResultFName = new ObjectID().toString() + '.json'
-                        let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
-                        await fs.writeFileAsync(cmpResultFPath, JSON.stringify(chartOption), 'utf8')
-                        this.result = cmpResultFName;
-                        console.log(this.finishMessage)
-                        return resolve();
-                    }
-                    catch(e) {
-                        console.error(e)
-                        return reject(e)
-                    }
-                }
-                else {
-                    console.error(stderr);
-                    return reject(stderr)
-                }
-            })
-        })
+            ],
+            onSucceed = async (stdout) => {
+                let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
+                let result =group[1].replace(/nan/g, '0')
+                result = JSON.parse(result)
+                let chartOption = this.convert2ChartOption(result)
+
+                let cmpResultFName = new ObjectID().toString() + '.json'
+                let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
+                await fs.writeFileAsync(cmpResultFPath, JSON.stringify(chartOption), 'utf8')
+                this.result = cmpResultFName;
+            };
+        return super._start(interpretor, argv, onSucceed)
     }
 
     protected convert2ChartOption(data): any {
@@ -128,7 +109,7 @@ export default class SubLineChart extends CmpMethod {
             series = [],
             titles = [],
             // colNumber = Math.ceil(Math.sqrt(this.regions.length)),
-            colNumber = 4,
+            colNumber = 3,
             rowNumber = Math.ceil(this.regions.length/colNumber);
         for(let [i, modelTime2D] of data.entries()) {
             grids.push({

@@ -8,8 +8,15 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 
 export default class TableChartCMP extends CmpMethod {
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
-        super(dataRefers, schemas)
+    constructor(
+        public dataRefers: DataRefer[], 
+        public schemas: UDXSchema[], 
+        public regions,
+        public taskId, 
+        public cmpObjIndex, 
+        public methodIndex,
+    ) {
+        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
         this.cmpMethodName = 'table chart'
     }
 
@@ -62,7 +69,6 @@ export default class TableChartCMP extends CmpMethod {
         let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
         await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
         this.result = cmpResultFName
-        console.log(this.finishMessage)
     }
 
     protected async extractCSVColumn(dataRefer, fpath) {
@@ -70,8 +76,8 @@ export default class TableChartCMP extends CmpMethod {
             let column = []
             console.log('******csv path: ', fpath)
             let csv$ = fs.createReadStream(fpath, 'utf8');
-            let schema = this.schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
-            let colNum = schema.structure.columns.findIndex(col => col.id === dataRefer.field)
+            let schema: UDXSchema = this.schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
+            let colNum = (schema.structure as any).columns.findIndex(col => col.id === dataRefer.field)
             await new Bluebird((resolve, reject) => {
                 csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
                     delimiter: "",
@@ -81,7 +87,7 @@ export default class TableChartCMP extends CmpMethod {
                     skipEmptyLines: true,
                 }))
                     .on('data', item => {
-                        let scale = parseInt((schema.structure.columns[colNum] as any).unitScale);
+                        let scale = parseInt(((schema.structure as any).columns[colNum] as any).unitScale);
                         Number.isNaN(scale) && (scale = 1)
                         if(item instanceof Array && item.length === 1) {
                             item = item[0].split(/\s+/g).filter(v => !!v).map(v => parseFloat(v))

@@ -19,6 +19,7 @@ const schema = new Schema({
     progress: Number,
     state: String,
     cmpObjs: Schema.Types.Mixed,
+    regions: Schema.Types.Mixed,
     schemas: Schema.Types.Mixed,
     cid: String,
     subscribed_uids: Array,
@@ -45,6 +46,7 @@ export interface ITaskDocument extends Document {
     solutionId?: string;
     calcuTaskIds: string[];
     cmpObjs: Array<CmpObj>;
+    regions?: [][]
     schemas: UDXSchema[];
     cid: string;
     subscribed_uids: string[];

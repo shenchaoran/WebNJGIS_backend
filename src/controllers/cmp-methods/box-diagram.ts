@@ -15,8 +15,15 @@ const fs = Bluebird.promisifyAll(require('fs'));
  * @extends {CmpMethod}
  */
 export default class BoxDiagram extends CmpMethod {
-    constructor(public dataRefers: DataRefer[], public schemas: UDXSchema[]) {
-        super(dataRefers, schemas)
+    constructor(
+        public dataRefers: DataRefer[], 
+        public schemas: UDXSchema[], 
+        public regions,
+        public taskId, 
+        public cmpObjIndex, 
+        public methodIndex,
+    ) {
+        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
     }
 
     public async start() {

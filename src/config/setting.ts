@@ -38,6 +38,8 @@ export const setting = {
             maxSize: 10000
         }
     },
+    invoke_failed_tag: '-----this is an error identification-----',
+    progressReg: /-----Progress:(.*)%-----/,
     debug: {
         child_process: true
     },

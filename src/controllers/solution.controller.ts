@@ -8,7 +8,7 @@ import * as fs from 'fs';
 
 import { UDXCfg } from '../models/UDX-cfg.class';
 import { SchemaName } from '../models/UDX-schema.class';
-import { TopicModel, SolutionModel, TaskModel, ModelServiceModel, ResourceSrc, CmpMethodModel, ConversationModel, StdDataModel } from '../models';
+import { TopicModel, SolutionModel, MetricModel, TaskModel, ModelServiceModel, ResourceSrc, CmpMethodModel, ConversationModel, StdDataModel } from '../models';
 import ConversationCtrl from './conversation.controller';
 import TopicCtrl from './topic.controller';
 const conversationCtrl = new ConversationCtrl();
@@ -43,16 +43,15 @@ export default class SolutionCtrl {
     async findOne(sid) {
         try {
             let solution = await SolutionModel.findOne({ _id: sid });
-            console.log("taskIds:"+ JSON.stringify(solution.taskIds));
             return Bluebird.all([
-                // solution.topicId ? TopicModel.findOne({ _id: solution.topicId }) : null,
                 solution.topicIds ? TopicModel.findByIds(solution.topicIds) : [],
-                solution.taskIds ? TaskModel.findByIds(solution.taskIds) : [],
+                TaskModel.find({solutionId: sid}),
                 ModelServiceModel.find({}),
                 CmpMethodModel.find({}),
-                TopicModel.find({})
+                TopicModel.find({}),
+                MetricModel.find({}),
             ])
-                .then(([attached_topics, tasks, mss, cmpMethods, topicList]) => {
+                .then(([attached_topics, tasks, mss, cmpMethods, topicList, metrics]) => {
                     let ptMSs = mss.filter(ms => _.includes(solution.msIds, ms._id.toString()))
                     return {
                         solution,
@@ -72,11 +71,12 @@ export default class SolutionCtrl {
                         }),
                         ptMSs,
                         mss: mss.map(ms => {
-                            return {
-                                _id: ms._id,
-                                meta: ms.MDL.meta,
-                                auth: ms.auth
-                            };
+                            return ms
+                            // return {
+                            //     _id: ms._id,
+                            //     meta: ms.MDL.meta,
+                            //     auth: ms.auth
+                            // };
                         }),
                         cmpMethods: cmpMethods.map(method => {
                             return {
@@ -91,7 +91,8 @@ export default class SolutionCtrl {
                                 auth: topic.auth,
                                 solutionIds: topic.solutionIds,
                             };
-                        })
+                        }),
+                        metrics,
                     }
                 });
         }
@@ -112,8 +113,7 @@ export default class SolutionCtrl {
         try {
             let solution = await SolutionModel.findOne({ _id: sid });
             return Bluebird.all([
-                solution.msIds && solution.msIds.length ?
-                    ModelServiceModel.findByIds(solution.msIds) :
+                solution.msIds && solution.msIds.length ? ModelServiceModel.findByIds(solution.msIds) :
                     [],
                 StdDataModel.find({}),
             ])
@@ -136,15 +136,35 @@ export default class SolutionCtrl {
         pageIndex: number,
         userId: string,
     }) {
+        let querySln
         if (pageOpt.userId === undefined) {
-            return SolutionModel.findByPages({}, {
-                pageSize: pageOpt.pageSize,
-                pageIndex: pageOpt.pageIndex
-            })
+            querySln = () => {
+                return SolutionModel.findByPages({}, {
+                    pageSize: pageOpt.pageSize,
+                    pageIndex: pageOpt.pageIndex
+                })
+            }
         } else {
-            return SolutionModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
+            querySln = () => {
+                return SolutionModel.findByUserId(pageOpt.userId)
+            }
         }
-
+        let [{count, docs}, mss] = await Bluebird.all([
+            querySln(),
+            ModelServiceModel.find({})
+        ]);
+        let slns = []
+        _.map(docs, solution => {
+            slns.push(solution._doc)
+            _.set(solution, '_doc.mss', [])
+            _.map(solution._doc.msIds, msId => {
+                let ms = _.find(mss, ms => ms._id.toString() === msId)
+                solution._doc.mss.push(
+                    _.pick(ms, ['_id', 'MDL.meta', 'auth', ])
+                )
+            })
+        })
+        return {count, docs: slns};
     }
 
     insert(doc) {
@@ -242,70 +262,4 @@ export default class SolutionCtrl {
                 })
         }
     }
-}
-
-const expandDoc = (doc): Bluebird<any> => {
-    let methods = [];
-    _.map(doc.cmpObjs, cmpObj => {
-        _.map((cmpObj as any).methods as any[], method => {
-            if (methods.findIndex(v => v.id === method.id) === -1) {
-                methods.push(method)
-            }
-        })
-    })
-    return Bluebird.map(Array.from(methods), method => {
-        return CmpMethodModel.findOne({ _id: method.id }) as any
-    })
-        .then(rsts => {
-            doc.methods = rsts;
-            return Bluebird.resolve(doc);
-        })
-        .catch(Bluebird.reject);
-}
-
-export const convert2Tree = (user, docs: Array<any>): Bluebird<any> => {
-    const trees = {
-        public: [{
-            type: 'root',
-            label: 'Earth\'s carbon cycle model',
-            value: undefined,
-            id: 'bbbbbbbbb',
-            expanded: true,
-            items: []
-        }],
-        personal: undefined
-    };
-    const publicDocs = _.filter(docs, doc => doc.auth.src === ResourceSrc.PUBLIC);
-    let personalDocs = undefined;
-    if (user && user.username !== 'Tourist') {
-        trees.personal = [{
-            type: 'root',
-            label: 'Earth\'s carbon cycle model',
-            value: undefined,
-            id: 'ccccccccccc',
-            expanded: true,
-            items: []
-        }];
-        personalDocs = <Array<any>>_.filter(docs, doc => doc.auth.userId === user._id.toString());
-        if (personalDocs) {
-            _.map(personalDocs, doc => {
-                trees.personal[0].items.push({
-                    type: 'leaf',
-                    label: (<any>doc).meta.name,
-                    value: doc,
-                    id: (<any>doc)._id
-                });
-            });
-        }
-    }
-    _.map(publicDocs, doc => {
-        trees.public[0].items.push({
-            type: 'leaf',
-            label: doc.meta.name,
-            value: doc,
-            id: doc._id
-        });
-    });
-
-    return Bluebird.resolve(trees);
 }
