@@ -9,6 +9,8 @@ import {
     CalcuTaskState,
     ModelServiceModel,
     StdDataModel,
+    SolutionModel,
+    MetricModel,
 } from '../models';
 import * as child_process from 'child_process';
 import * as NodeCtrl from './computing-node.controller'
@@ -41,10 +43,19 @@ export default class ModelServiceCtrl extends EventEmitter {
         return Bluebird.all([
             ModelServiceModel.findOne({ _id: id }) as any,
             StdDataModel.find({ 'models': id }) as any,
-        ]).then(([ms, stds]) => {
+            SolutionModel.find({
+                msIds: { $in: [id]}
+            }),
+            CalcuTaskModel.find({msId: id}).sort({ _id: -1 }).limit(5),
+            MetricModel.find()
+        ]).then(([ms, stds, solutions, calcuTasks, metrics]) => {
+
             return {
                 ms,
                 stds,
+                solutions: _.chain(solutions).map(solution => _.pick(solution, ['_id', 'meta', 'auth'])).value(),
+                calcuTasks: _.chain(calcuTasks).map(calcuTask => _.pick(calcuTask, ['_id', 'meta', 'auth'])).value(),
+                metrics,
             };
         })
             .catch(e => {

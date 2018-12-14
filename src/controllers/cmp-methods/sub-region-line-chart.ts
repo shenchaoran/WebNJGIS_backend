@@ -109,7 +109,7 @@ export default class SubLineChart extends CmpMethod {
             series = [],
             titles = [],
             // colNumber = Math.ceil(Math.sqrt(this.regions.length)),
-            colNumber = 4,
+            colNumber = 3,
             rowNumber = Math.ceil(this.regions.length/colNumber);
         for(let [i, modelTime2D] of data.entries()) {
             grids.push({

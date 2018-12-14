@@ -10,15 +10,20 @@
     "license": "MIT",
     "scripts": {
         "start": "npm run build && npm run serve",
-        "debug": "npm run build && npm run watch",
+        "debug": "npm run build-ts && npm run watch",
         "build": "npm run build-ts && npm run tslint",
         "build-ts": "tsc",
         "tslint": "tslint -c tslint.json -p tsconfig.json",
-        "serve": "node --nolazy dist/server.js",
+        "serve": "node --nolazy --inspect=0.0.0.0:65535 dist/server.js",
         "watch": "run-p watch:*",
         "gulp": "gulp",
         "watch:ts": "tsc -w",
-        "watch:serve": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js"
+        "watch:serve": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
+        "pm2": "pm2 start dist/server.js",
+        "tsnode": "ts-node --project tsconfig.json src/server.ts",
+        "ssh": "ssh -R 52698:127.0.0.1:52698 root@192.168.139.128",
+        "folderPath": "/home/shencr/Projects/model_comparison_backend",
+        "rmate": "rmate -p 52698 ~/index.js"
     },
     "jest": {
         "globals": {

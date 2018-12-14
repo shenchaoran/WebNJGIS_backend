@@ -46,6 +46,7 @@ if __name__ == '__main__':
         regions[:,3] = (regions[:,3] - LAT_START) // GRID_LENGTH
         regions = regions.astype(int)
 
+        # TODO 经度的范围是无限制的，所以 maxLong 可能会小于 minLong，导致 ndarray 的切片出现这种情况 arr[5:1]
         # outputPath = output + '-' + markerLabels[i] + '.png'
         dataList = []
         for i, ncPath in enumerate(ncPaths):
@@ -69,7 +70,7 @@ if __name__ == '__main__':
 
         # TODO bias
         # TODO progress
-        dpi = 100
+        dpi = 88
         p1 = Proj(init='epsg:4326')
         p2 = Proj(init='epsg:3857')
         for i, region in enumerate(regions):
@@ -96,29 +97,29 @@ if __name__ == '__main__':
             with imageio.get_writer(gifPath, mode='I', duration=1) as writer:
                 for l, timeLabel in enumerate(timeLabels):
                     
-                    figW = abs((zLongIndex-aLongIndex)/dpi*10)
+                    figW = abs((zLongIndex-aLongIndex)/dpi*4)
                     figH =  abs((zY - aY) * figW / (zX - aX) / 2)
                     fig = plt.figure(figsize=(figW, figH), tight_layout=True, dpi=dpi)
                     outputPath = output + '-' + timeLabel + '-' + 'R' + str(i+1) + '.png'
                     # 太慢了，测试通过了就注释掉这里
-                    if l < 2:
-                        for j in range(rowNumber):
-                            for k in range(colNumber):
-                                plotIndex = j*colNumber + k + 1
-                                if plotIndex <= len(ncPaths):
-                                    data = dataList[plotIndex-1][l, aLatIndex:zLatIndex, aLongIndex:zLongIndex]
-                                    ax = fig.add_subplot(rowNumber, colNumber, plotIndex)
-                                    ax.set_title(markerLabels[plotIndex-1] + '-' + timeLabel + '-R' + str(i+1))
-                                    plt.sca(ax)
-                                    m = Basemap(epsg='3857', \
-                                        llcrnrlon = aLon, llcrnrlat = aLat, \
-                                        urcrnrlon = zLon, urcrnrlat = zLat, \
-                                        resolution = 'l')
-                                    m.drawcoastlines(linewidth=0.5)
-                                    m.drawcountries(linewidth=0.25)
-                                    xx, yy = np.meshgrid(longs, lats)
-                                    cs = m.contourf(xx, yy, data, latlon=True, cmap=plt.cm.jet)
-                                    m.colorbar(cs, location='bottom')
+                    # if l < 2:
+                    for j in range(rowNumber):
+                        for k in range(colNumber):
+                            plotIndex = j*colNumber + k + 1
+                            if plotIndex <= len(ncPaths):
+                                data = dataList[plotIndex-1][l, aLatIndex:zLatIndex, aLongIndex:zLongIndex]
+                                ax = fig.add_subplot(rowNumber, colNumber, plotIndex)
+                                ax.set_title(markerLabels[plotIndex-1] + '-' + timeLabel + '-R' + str(i+1))
+                                plt.sca(ax)
+                                m = Basemap(epsg='3857', \
+                                    llcrnrlon = aLon, llcrnrlat = aLat, \
+                                    urcrnrlon = zLon, urcrnrlat = zLat, \
+                                    resolution = 'l')
+                                m.drawcoastlines(linewidth=0.5)
+                                m.drawcountries(linewidth=0.25)
+                                xx, yy = np.meshgrid(longs, lats)
+                                cs = m.contourf(xx, yy, data, latlon=True, cmap=plt.cm.jet)
+                                m.colorbar(cs, location='bottom')
 
                     # plt.show()
                     fig.savefig(outputPath, format='png', transparent=True)

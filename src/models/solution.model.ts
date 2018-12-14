@@ -15,7 +15,6 @@ const schema = new Schema({
     topicIds: Array,
     msIds: Array,
     cmpObjs: Array,
-    taskIds: Array,
     cid: String,
     subscribed_uids: Array,
 }, { collection: collectionName });
@@ -37,7 +36,6 @@ export interface ISolutionDocument extends Document {
         src: ResourceSrc
     };
     topicIds?: string[];
-    taskIds?: string[];
     msIds?: string[];
     cmpObjs: CmpObj[];
     cid: string;
@@ -72,6 +70,7 @@ export class CmpObj {
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<DataRefer>;
     schemaId?: string;
+    temporal?: 'annual' | 'monthly' | 'daily';
     methods: {
         id: string,
         name: string,
@@ -80,7 +79,6 @@ export class CmpObj {
         progress: number,
         state: CmpState,
     }[];
-    regions?: [][]
 }
 
 export class DataRefer {
@@ -89,6 +87,7 @@ export class DataRefer {
     eventType: 'inputs' | 'outputs';
     eventId: string;
     eventName: string;
+    stdEventName?: string;              // 用于将多个模型的 event 对应起来
     schemaId: string;
     msrName?: string;
     msrId?: string;

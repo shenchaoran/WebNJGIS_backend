@@ -82,6 +82,20 @@ router.route('/:id')
             })
             .catch(next);
     })
+    .delete(async (req, res, next) => {
+        try {
+            let msg = await TaskModel.deleteOne({_id: req.params.id})
+            if(msg.ok === msg.n && msg.n === 1) {
+                return res.json({data: true})
+            }
+            else {
+                return next('delete document failed!');
+            }
+        }
+        catch(e) {
+            return next(e);
+        }
+    })
 
 router.route('/:id/start')
     .post((req: Request, res: Response, next: NextFunction) => {

@@ -20,6 +20,10 @@ import * as Papa from 'papaparse';
 import { ModelServiceModel } from '../models/model-service.model';
 import SubHeatMap from './cmp-methods/sub-region-heat-map';
 
+// import Draw, {createBox} from '../test/module.test';
+// import * as Draw from '../test/module.test';
+// console.log(Draw.default(), Draw.createBox())
+
 // let cp = child_process.spawn('conda', ['activate base'])
 // cp.stdout.on('data', data => {
 //     console.log(data.toString());
