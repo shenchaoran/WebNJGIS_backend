@@ -47,7 +47,11 @@ export default class TaylorDiagram extends CmpMethod {
                 `--output=${output}`,
             ],
             onSucceed = async stdout => {
-
+                this.result = { 
+                    state: CmpState.FINISHED_SUCCEED,
+                    imgPrefix: outputName,
+                    ext: '[".png"]',
+                }
             };
         return super._start(interpretor, argv, onSucceed)
     }

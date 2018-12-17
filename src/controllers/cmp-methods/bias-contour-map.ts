@@ -29,15 +29,14 @@ export default class ContourMap extends CmpMethod {
         public methodIndex,
     ) {
         super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
-        this.scriptPath = path.join(__dirname, '../../py-scripts/taylor-diagram.py')
-        this.cmpMethodName = `contour-map`;
+        this.scriptPath = path.join(__dirname, '../../py-scripts/bias-contour-map.py')
+        this.cmpMethodName = `bias-contour-map`;
     }
 
     public async start() {
         let variables = [],
             ncPaths = [],
             markerLabels = [],
-            bboxs = this.regions,
             outputName = new ObjectId().toHexString(),
             output = path.join(__dirname, '../../public/images', outputName);
 
@@ -48,6 +47,23 @@ export default class ContourMap extends CmpMethod {
             ncPaths.push(fpath)
             markerLabels.push(dataRefer.msName)
         });
+
+        let interpretor = 'python',
+            argv = [
+                this.scriptPath,
+                `--variables=${JSON.stringify(variables)}`,
+                `--ncPaths=${JSON.stringify(ncPaths)}`,
+                `--markerLabels=${JSON.stringify(markerLabels)}`,
+                `--output=${output}`,
+            ],
+            onSucceed = async stdout => {
+                this.result = { 
+                    state: CmpState.FINISHED_SUCCEED,
+                    imgPrefix: outputName,
+                    ext: '[".gif"]',
+                }
+            };
+        return super._start(interpretor, argv, onSucceed)
         
     }
 }

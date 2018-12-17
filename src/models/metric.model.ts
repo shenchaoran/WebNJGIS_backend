@@ -28,7 +28,7 @@ export interface IMetricDocument extends Document {
     category: string | 'Carbon emission';           // 领域
     // scale?: number;             // 缩放因子，默认为1，应该放在 event 里
     // offset?: number;            // 偏移量，默认为0，同放在 event 里
-    min: number;                // 最小合理值
-    max: number;                // 最大合理值
-    couldCMP: boolean;          // 是否参与对比
+    min: number;                // 最小合理值，默认 null
+    max: number;                // 最大合理值，默认 null
+    couldCMP: boolean;          // 是否参与对比，默认 false
 }
