@@ -3,7 +3,7 @@ module.exports = {
     name: 'CMIP-backend',
     script: 'dist/server.js',
     args: '--nolazy --inspect=0.0.0.0:65535',
-    instances: 4,
+    instances: 2,
     autorestart: true,
     watch: true,
     max_memory_restart: '2G',
@@ -18,16 +18,5 @@ module.exports = {
     log_date_format: 'YYYY-MM-DD HH:mm',
     merge_logs: true,
 
-  }],
-
-  deploy : {
-    production : {
-      user : 'node',
-      host : '212.83.163.1',
-      ref  : 'origin/master',
-      repo : 'git@github.com:repo.git',
-      path : '/var/www/production',
-      'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env production'
-    }
-  }
+  }]
 };

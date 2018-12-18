@@ -9,13 +9,14 @@
     "license": "MIT",
     "scripts": {
         "start": "run-s build gulp pm2",
-        "debug": "run-p build gulp pm2",
+        "debug": "run-p build gulp serve-w",
         "build": "run-s ts-build ts-lint ts-watch",
         "ts-build": "tsc",
         "ts-lint": "tslint -c tslint.json -p tsconfig.json",
         "ts-watch": "tsc -w",
         "serve": "node --nolazy --inspect=0.0.0.0:65535 dist/server.js",
         "gulp": "gulp",
+        "serve-w": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
         "pm2": "pm2 start ecosystem.config.js --only CMIP-backend"
     },
     "jest": {
