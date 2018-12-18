@@ -113,14 +113,18 @@ export default class CmpTaskCtrl {
             for(let cmpObj of task.cmpObjs) {
                 for( let method of cmpObj.methods) {
                     if(
-                        method.name === 'Sub-region bias contour map' || 
                         method.name === 'Bias contour map' ||
-                        method.name === 'Taylor diagram'
+                        method.name === 'Taylor diagram' ||
+                        method.name === 'Box diagram' ||
+                        method.name === 'Scatter diagram'
                     ) {
 
                     }
                     else if(
-                        (method.name === 'Heat map' || method.name === 'Sub-region line chart' || 'table series visualization') &&
+                        (method.name === 'Heat map' || 
+                        method.name === 'Sub-region line chart' || 
+                        method.name === 'table series visualization' ||
+                        method.name === 'Line chart') &&
                         method.result
                     ) {
                         let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
@@ -268,7 +272,10 @@ export default class CmpTaskCtrl {
                             i, 
                             j
                         );
-                        await cmpMethod.start();
+                        await cmpMethod.start()
+                            .catch(e => {
+                                console.log(`cmp failed ${method.name}`)
+                            });
                         await cmpMethod.afterCmp();
                         resolve()
                     }))

@@ -47,38 +47,44 @@ export default class SubLineChart extends CmpMethod {
     }
 
     public async start() {
-        let bboxs = this.regions,
+        try {
+            let bboxs = this.regions,
             variables = [],
             ncPaths = [];
-        let tmps = await Bluebird.map(this.dataRefers, async dataRefer => {
-            let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
-            let fpath = path.join(setting.geo_data.path, geoData.meta.path);
-            return {fpath, variable: dataRefer.field}
-        });
-        _.map(tmps, tmp => {
-            variables.push(tmp.variable)
-            ncPaths.push(tmp.fpath)
-        })
+            let tmps = await Bluebird.map(this.dataRefers, async dataRefer => {
+                let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
+                let fpath = path.join(setting.geo_data.path, geoData.meta.path);
+                return {fpath, variable: dataRefer.field}
+            });
+            _.map(tmps, tmp => {
+                variables.push(tmp.variable)
+                ncPaths.push(tmp.fpath)
+            })
 
-        let interpretor = 'python',
-            argv = [
-                this.scriptPath,
-                `--bboxs=${JSON.stringify(bboxs)}`,
-                `--variables=${JSON.stringify(variables)}`,
-                `--ncPaths=${JSON.stringify(ncPaths)}`
-            ],
-            onSucceed = async (stdout) => {
-                let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
-                let result =group[1].replace(/nan/g, '0')
-                result = JSON.parse(result)
-                let chartOption = this.convert2ChartOption(result)
+            let interpretor = 'python',
+                argv = [
+                    this.scriptPath,
+                    `--bboxs=${JSON.stringify(bboxs)}`,
+                    `--variables=${JSON.stringify(variables)}`,
+                    `--ncPaths=${JSON.stringify(ncPaths)}`
+                ],
+                onSucceed = async (stdout) => {
+                    let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
+                    let result =group[1].replace(/nan/g, '0')
+                    result = JSON.parse(result)
+                    let chartOption = this.convert2ChartOption(result)
 
-                let cmpResultFName = new ObjectID().toString() + '.json'
-                let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
-                await fs.writeFileAsync(cmpResultFPath, JSON.stringify(chartOption), 'utf8')
-                this.result = cmpResultFName;
-            };
-        return super._start(interpretor, argv, onSucceed)
+                    let cmpResultFName = new ObjectID().toString() + '.json'
+                    let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
+                    await fs.writeFileAsync(cmpResultFPath, JSON.stringify(chartOption), 'utf8')
+                    this.result = cmpResultFName;
+                };
+            return super._start(interpretor, argv, onSucceed)
+        }
+        catch(e) {
+            console.log(e)
+            Bluebird.reject(e)
+        }
     }
 
     protected convert2ChartOption(data): any {

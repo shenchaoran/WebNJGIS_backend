@@ -24,51 +24,57 @@ export default class TableChartCMP extends CmpMethod {
      * @returns {echart-opt, statisticTable}
      */
     public async start() {
-        let dataRefers = this.dataRefers.filter(v => !!v.value);
-        const cols = await Bluebird.map(dataRefers, async dataRefer => {
-            let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
-            let fpath = path.join(setting.geo_data.path, geoData.meta.path);
-            return this.extractCSVColumn(dataRefer, fpath)
-        })
-
-        let opt = {
-            progress: 100,
-            state: CmpState.FINISHED_SUCCEED,
-            xAxis: {
-                type: 'category',
-                data: new Array((cols[0] as any).length).fill(0).map((v, i) => i + 1)
-            },
-            legend: {
-                data: dataRefers.map(v => `${v.msrName}: ${v.eventName}`)
-            },
-            yAxis: {
-                type: 'value'
-            },
-            dataZoom: [
-                {
-                    show: true,
-                    start: 0,
-                    end: 100
-                },
-                {
-                    type: 'inside',
-                    realtime: true,
-                    start: 0,
-                    end: 100
-                }
-            ],
-            series: cols.map((col, i) => {
-                return {
-                    name: `${dataRefers[i].msrName}: ${dataRefers[i].eventName}`,
-                    data: col,
-                    type: 'line'
-                }
+        try {
+            let dataRefers = this.dataRefers.filter(v => !!v.value);
+            const cols = await Bluebird.map(dataRefers, async dataRefer => {
+                let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
+                let fpath = path.join(setting.geo_data.path, geoData.meta.path);
+                return this.extractCSVColumn(dataRefer, fpath)
             })
-        };
-        let cmpResultFName = new ObjectID().toString() + '.json'
-        let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
-        await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
-        this.result = cmpResultFName
+    
+            let opt = {
+                progress: 100,
+                state: CmpState.FINISHED_SUCCEED,
+                xAxis: {
+                    type: 'category',
+                    data: new Array((cols[0] as any).length).fill(0).map((v, i) => i + 1)
+                },
+                legend: {
+                    data: dataRefers.map(v => `${v.msrName}: ${v.eventName}`)
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                dataZoom: [
+                    {
+                        show: true,
+                        start: 0,
+                        end: 100
+                    },
+                    {
+                        type: 'inside',
+                        realtime: true,
+                        start: 0,
+                        end: 100
+                    }
+                ],
+                series: cols.map((col, i) => {
+                    return {
+                        name: `${dataRefers[i].msrName}: ${dataRefers[i].eventName}`,
+                        data: col,
+                        type: 'line'
+                    }
+                })
+            };
+            let cmpResultFName = new ObjectID().toString() + '.json'
+            let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
+            await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
+            this.result = cmpResultFName
+        }
+        catch(e) {
+            console.log(e)
+            Bluebird.reject(e)
+        }
     }
 
     protected async extractCSVColumn(dataRefer, fpath) {

@@ -6,7 +6,7 @@ const release_mongodb_host = '223.2.43.23';
 
 export const setting = {
     auth: false,
-    API_prefix: '/api',
+    API_prefix: '/CMIP-backend/api',
     port: 9999,
     fiddler_proxy: {
         host: 'localhost',

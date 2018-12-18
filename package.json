@@ -19,7 +19,7 @@
         "gulp": "gulp",
         "watch:ts": "tsc -w",
         "watch:serve": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
-        "pm2": "pm2 start dist/server.js",
+        "pm2": "pm2 start ecosystem.config.js --only CMIP-backend",
         "tsnode": "ts-node --project tsconfig.json src/server.ts",
         "ssh": "ssh -R 52698:127.0.0.1:52698 root@192.168.139.128",
         "folderPath": "/home/shencr/Projects/model_comparison_backend",

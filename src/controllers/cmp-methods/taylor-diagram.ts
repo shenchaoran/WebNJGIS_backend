@@ -25,34 +25,40 @@ export default class TaylorDiagram extends CmpMethod {
     }
 
     public async start() {
-        let variables = [],
+        try {
+            let variables = [],
             ncPaths = [],
             markerLabels = [],
             outputName = new ObjectId().toHexString() + '.png',
-            output = path.join(setting.geo_data.path, outputName);
-        await Bluebird.map(this.dataRefers, async dataRefer => {
-            let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
-            let fpath = path.join(setting.geo_data.path, geoData.meta.path);
-            variables.push(dataRefer.field)
-            ncPaths.push(fpath)
-            markerLabels.push(dataRefer.msName)
-        });
+            output = path.join(__dirname, '../../public/images/plots', outputName);
+            await Bluebird.map(this.dataRefers, async dataRefer => {
+                let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
+                let fpath = path.join(setting.geo_data.path, geoData.meta.path);
+                variables.push(dataRefer.field)
+                ncPaths.push(fpath)
+                markerLabels.push(dataRefer.msName)
+            });
 
-        let interpretor = 'python',
-            argv = [
-                this.scriptPath,
-                `--variables=${JSON.stringify(variables)}`,
-                `--ncPaths=${JSON.stringify(ncPaths)}`,
-                `--markerLabels=${JSON.stringify(markerLabels)}`,
-                `--output=${output}`,
-            ],
-            onSucceed = async stdout => {
-                this.result = { 
-                    state: CmpState.FINISHED_SUCCEED,
-                    imgPrefix: outputName,
-                    ext: '[".png"]',
-                }
-            };
-        return super._start(interpretor, argv, onSucceed)
+            let interpretor = 'python',
+                argv = [
+                    this.scriptPath,
+                    `--variables=${JSON.stringify(variables)}`,
+                    `--ncPaths=${JSON.stringify(ncPaths)}`,
+                    `--markerLabels=${JSON.stringify(markerLabels)}`,
+                    `--output=${output}`,
+                ],
+                onSucceed = async stdout => {
+                    this.result = { 
+                        state: CmpState.FINISHED_SUCCEED,
+                        img: outputName,
+                        ext: '[".png"]',
+                    }
+                };
+            return super._start(interpretor, argv, onSucceed)
+        }
+        catch(e) {
+            console.log(e)
+            Bluebird.reject(e)
+        }
     }
 }

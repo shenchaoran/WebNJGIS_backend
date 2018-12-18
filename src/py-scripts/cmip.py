@@ -30,6 +30,7 @@ lats = np.arange(LAT_START, LAT_END, GRID_LENGTH)
 
 class CMIP(object):
     def __init__(self):
+        bboxs = None
         options, args = getopt.getopt(sys.argv[1:], '', ['variables=', \
                 'markerLabels=', 'timeLabels=', 'ncPaths=', 'output=', 'bboxs=', 'stdCFName='])
         for opt in options:
@@ -64,6 +65,8 @@ class CMIP(object):
         self.ncCount = len(self.ncPaths)
         self.latCount = None
         self.longCount = None
+        self.latVariable = None
+        self.longVariable = None
 
     # TODO 将要素 invalid range 的值 mask 掉# 
     # TODO 和 variable-range 结合起来，要不然出的图有很多无效范围  

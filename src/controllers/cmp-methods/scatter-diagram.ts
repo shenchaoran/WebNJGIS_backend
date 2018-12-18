@@ -8,15 +8,9 @@ import * as path from 'path';
 import * as child_process from 'child_process';
 const fs = Bluebird.promisifyAll(require('fs'));
 import * as _ from 'lodash';
+import TaylorDiagram from './taylor-diagram';
 
-/**
- * 
- *
- * @export
- * @class BoxDiagram
- * @extends {CmpMethod}
- */
-export default class BoxDiagram extends CmpMethod {
+export default class ScatterDiagram extends TaylorDiagram {
     scriptPath
     constructor(
         public dataRefers: DataRefer[], 
@@ -27,8 +21,8 @@ export default class BoxDiagram extends CmpMethod {
         public methodIndex,
     ) {
         super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
-        this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-box-diagram.py')
-        this.cmpMethodName = `sub-region-box-diagram`;
+        this.scriptPath = path.join(__dirname, '../../py-scripts/scatter-diagram.py')
+        this.cmpMethodName = `scatter-diagram`;
     }
 
     public async start() {
@@ -37,8 +31,7 @@ export default class BoxDiagram extends CmpMethod {
             ncPaths = [],
             markerLabels = [],
             outputName = new ObjectId().toHexString() + '.png',
-            output = path.join(__dirname, '../../public/images/plots', outputName),
-            bboxs = this.regions;
+            output = path.join(__dirname, '../../public/images/plots', outputName);
             await Bluebird.map(this.dataRefers, async dataRefer => {
                 let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
                 let fpath = path.join(setting.geo_data.path, geoData.meta.path);
@@ -53,7 +46,6 @@ export default class BoxDiagram extends CmpMethod {
                     `--variables=${JSON.stringify(variables)}`,
                     `--ncPaths=${JSON.stringify(ncPaths)}`,
                     `--markerLabels=${JSON.stringify(markerLabels)}`,
-                    `--bboxs=${JSON.stringify(bboxs)}`,
                     `--output=${output}`,
                 ],
                 onSucceed = async stdout => {

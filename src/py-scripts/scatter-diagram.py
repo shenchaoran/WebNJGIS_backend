@@ -49,8 +49,8 @@ if __name__ == '__main__':
             y = np.polyval(p1, x)
             axScatter.plot(x, y, '-', color='#ff7f0e')
 
-        plt.show()
-        plt.savefig(cmip.output)
+        # plt.show()
+        plt.savefig(cmip.output, format='png', transparent=True)
         print('******CMIP-PY-START')
         print('SUCCESS')
         print('******CMIP-PY-END')

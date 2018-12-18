@@ -5,7 +5,9 @@ import * as EventEmitter from 'events';
 import * as child_process from 'child_process';
 import { setting } from '../../config/setting';
 
+// TODO 加并行限制，一次能运行多少个脚本，其他脚本放在任务队列中
 export default class CmpMethod extends EventEmitter implements ICmpMethod {
+    
     result;
     cmpMethodName;
     constructor(
@@ -23,43 +25,49 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
 
     protected async _start(interpretor, argv, cb) {
         return new Bluebird((resolve, reject) => {
-            const cp = child_process.spawn(interpretor, argv)
-            let stdout = '',
-                stderr = '';
-            cp.stdout.on('data', data => {
-                // update progress
-                let output = data.toString()
-                stdout += output;
-                let group = output.match(setting.progressReg);
-                let progress = group? group[1]: undefined;
-                if(progress) {
-                    console.log('******', this.cmpMethodName, 'progress: ', progress);
-                    this.updateProgress(progress, CmpState.RUNNING)
-                }
-            });
-            cp.stderr.on('data', data => {
-                let output = data.toString()
-                stderr += output;
-                console.error(`${interpretor} script error:`, output)
-            })
-            cp.on('close', async code => {
-                console.log(`${this.cmpMethodName} exit code: ${code}`)
-                if(code === 0) {
-                    try {
-                        await cb(stdout)
-                        await this.updateProgress(100, CmpState.FINISHED_SUCCEED)
-                        resolve();
+            try {
+                const cp = child_process.spawn(interpretor, argv)
+                let stdout = '',
+                    stderr = '';
+                cp.stdout.on('data', data => {
+                    // update progress
+                    let output = data.toString()
+                    stdout += output;
+                    let group = output.match(setting.progressReg);
+                    let progress = group? group[1]: undefined;
+                    if(progress) {
+                        console.log('******', this.cmpMethodName, 'progress: ', progress);
+                        this.updateProgress(progress, CmpState.RUNNING)
                     }
-                    catch(e) {
-                        console.error(e)
-                        reject(e)
+                });
+                cp.stderr.on('data', data => {
+                    let output = data.toString()
+                    stderr += output;
+                    console.error(`${interpretor} script error:`, output)
+                })
+                cp.on('close', async code => {
+                    console.log(`${this.cmpMethodName} exit code: ${code}`)
+                    if(code === 0) {
+                        try {
+                            await cb(stdout)
+                            await this.updateProgress(100, CmpState.FINISHED_SUCCEED)
+                            resolve();
+                        }
+                        catch(e) {
+                            console.error(e)
+                            reject(e)
+                        }
                     }
-                }
-                else {
-                    await this.updateProgress(undefined, CmpState.FINISHED_FAILED)
-                    reject(stderr)
-                }
-            })
+                    else {
+                        await this.updateProgress(undefined, CmpState.FINISHED_FAILED)
+                        reject(stderr)
+                    }
+                })
+            }
+            catch(e) {
+                console.log(e)
+                return Bluebird.reject(e)
+            }
         })
     }
 

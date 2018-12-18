@@ -37,7 +37,7 @@ if __name__ == '__main__':
                         # tickSTD = np.arange(9,20,5), 
                         # tickCOR = intervalsCOR,
                         rmslabelformat = ':.1f')
-        plt.savefig(cmip.output)
+        plt.savefig(cmip.output, format='png', transparent=True)
         print('******CMIP-PY-START')
         print('SUCCESS')
         print('******CMIP-PY-END')
