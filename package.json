@@ -1,29 +1,22 @@
 {
     "name": "CMIP-backend",
     "version": "0.1.0",
-    "description": "A starting point for Node.js express apps with TypeScript",
+    "description": "CMIP-backend",
     "repository": {
-        "type": "git",
-        "url": "https://github.com/sahat/hackathon-starter.git"
+        "type": "git"
     },
     "author": "Bowden Kelly",
     "license": "MIT",
     "scripts": {
-        "start": "npm run build && npm run serve",
-        "debug": "npm run build-ts && npm run watch",
-        "build": "npm run build-ts && npm run tslint",
-        "build-ts": "tsc",
-        "tslint": "tslint -c tslint.json -p tsconfig.json",
+        "start": "run-s build gulp pm2",
+        "debug": "run-p build gulp pm2",
+        "build": "run-s ts-build ts-lint ts-watch",
+        "ts-build": "tsc",
+        "ts-lint": "tslint -c tslint.json -p tsconfig.json",
+        "ts-watch": "tsc -w",
         "serve": "node --nolazy --inspect=0.0.0.0:65535 dist/server.js",
-        "watch": "run-p watch:*",
         "gulp": "gulp",
-        "watch:ts": "tsc -w",
-        "watch:serve": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
-        "pm2": "pm2 start ecosystem.config.js --only CMIP-backend",
-        "tsnode": "ts-node --project tsconfig.json src/server.ts",
-        "ssh": "ssh -R 52698:127.0.0.1:52698 root@192.168.139.128",
-        "folderPath": "/home/shencr/Projects/model_comparison_backend",
-        "rmate": "rmate -p 52698 ~/index.js"
+        "pm2": "pm2 start ecosystem.config.js --only CMIP-backend"
     },
     "jest": {
         "globals": {

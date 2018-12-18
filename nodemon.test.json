@@ -1,7 +1,0 @@
-{
-    "verbose": true,
-    "watch": [
-        "dist/controllers/test.js",
-        "src/controllers/test.ts"
-    ]
-}
