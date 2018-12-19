@@ -10,7 +10,7 @@ import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
 import * as EventEmitter from 'events';
-import { GeoDataModel, CalcuTaskModel, CalcuTaskState, ModelServiceModel } from '../models';
+import { GeoDataModel, CalcuTaskModel, OGMSState, ModelServiceModel } from '../models';
 const fs: any = Bluebird.promisifyAll(fs_)
 
 export default class DataCtrl extends EventEmitter {
@@ -152,7 +152,7 @@ export default class DataCtrl extends EventEmitter {
                 let serverURL = await NodeCtrl.telNode(msr.nodeId);
                 let fetchEvent = await RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path)
                 fetchEvent.on('afterWrite', ({ fname, fpath }) => {
-                    if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
+                    if (msr.state === OGMSState.FINISHED_SUCCEED) {
                         let gdid = new ObjectID();
                         let setObj = {
                             [`IO.${eventType}.${eventIndex}.value`]: gdid.toHexString(),
@@ -217,7 +217,7 @@ export default class DataCtrl extends EventEmitter {
                 concurrency: 1
             })
             .then(rsts => {
-                console.log('****** cache data succeed of msr: ' + msrId);
+                console.log('********  cache data succeed of msr: ' + msrId);
                 // 这里暂不管缓存结果，在比较时从 db 里的记录里取缓存结果
                 this.emit('afterDataBatchCached', {
                     code: 200,

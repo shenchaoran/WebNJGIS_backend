@@ -6,7 +6,7 @@ import DataCtrl from './data.controller';
 import * as path from 'path'
 import {
     CalcuTaskModel,
-    CalcuTaskState,
+    OGMSState,
     ModelServiceModel,
     StdDataModel,
     SolutionModel,
@@ -92,13 +92,13 @@ export default class ModelServiceCtrl extends EventEmitter {
                 await CalcuTaskModel.upsert({ _id: msr._id }, msr);
             }
 
-            if (CalcuTaskState.INIT === msr.state)
+            if (OGMSState.INIT === msr.state)
                 return {
                     msrId: msr._id,
                     code: 500,
                     desc: 'this calculation task is not ready to start!'
                 };
-            else if (CalcuTaskState.COULD_START === msr.state) {
+            else if (OGMSState.COULD_START === msr.state) {
                 // 查找 node 的 host 和 port
                 let ms = await ModelServiceModel.findOne({ _id: msr.msId });
                 let serverURL = await NodeCtrl.telNode(msr.nodeId)
@@ -148,7 +148,7 @@ export default class ModelServiceCtrl extends EventEmitter {
                 }
 
             }
-            else if (CalcuTaskState.FINISHED_SUCCEED === msr.state) {
+            else if (OGMSState.FINISHED_SUCCEED === msr.state) {
                 this.emit('beforeModelInvoke', { code: 200 })
                 return {
                     msrId: msr._id,

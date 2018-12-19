@@ -1,4 +1,4 @@
-import { TaskModel, DataRefer, GeoDataModel, UDXSchema, CmpState } from '../../models';
+import { TaskModel, DataRefer, GeoDataModel, UDXSchema, OGMSState } from '../../models';
 import { ObjectID, ObjectId } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -50,7 +50,7 @@ export default class ScatterDiagram extends TaylorDiagram {
                 ],
                 onSucceed = async stdout => {
                     this.result = { 
-                        state: CmpState.FINISHED_SUCCEED,
+                        state: OGMSState.FINISHED_SUCCEED,
                         img: outputName,
                         ext: '[".png"]',
                     }
@@ -58,7 +58,7 @@ export default class ScatterDiagram extends TaylorDiagram {
             return super._start(interpretor, argv, onSucceed)
         }
         catch(e) {
-            console.log(e)
+            console.error(e)
             Bluebird.reject(e)
         }
     }

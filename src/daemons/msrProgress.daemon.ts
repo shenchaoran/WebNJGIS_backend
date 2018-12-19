@@ -2,7 +2,7 @@ import { CalcuTaskModel, GeoDataModel, ICalcuTaskDocument } from '../models'
 import { Observable, interval, from, of, forkJoin } from 'rxjs'
 import { startWith, map, flatMap, switchMap, filter, mergeMap } from 'rxjs/operators'
 import { setting } from '../config/setting';
-import { CalcuTaskState } from '../models';
+import { OGMSState } from '../models';
 import * as _ from 'lodash'
 import * as Bluebird from 'bluebird';
 
@@ -16,27 +16,27 @@ export default class MSRProgressDaemon {
         );
         return new Bluebird((resolve, reject) => {
             let subscription = msr$.subscribe((msr: ICalcuTaskDocument) => {
-                if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
+                if (msr.state === OGMSState.FINISHED_SUCCEED) {
                     subscription.unsubscribe();
                     return resolve({
                         code: 200
                     });
                 }
-                else if (msr.state === CalcuTaskState.FINISHED_FAILED) {
+                else if (msr.state === OGMSState.FINISHED_FAILED) {
                     subscription.unsubscribe();
                     return resolve({
                         code: 500,
-                        error: `****** model run failed! ${this.msrId}`
+                        error: `********  model run failed! ${this.msrId}`
                     });
                 }
-                else if(msr.state === CalcuTaskState.COULD_START) {
+                else if(msr.state === OGMSState.COULD_START) {
 
                 }
-                else if (msr.state !== CalcuTaskState.RUNNING) {
+                else if (msr.state !== OGMSState.RUNNING) {
                     subscription.unsubscribe();
                     return resolve({
                         code: 501,
-                        error: `****** invalid model run state! ${this.msrId}`
+                        error: `********  invalid model run state! ${this.msrId}`
                     });
                 }
             });

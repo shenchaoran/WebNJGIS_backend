@@ -4,7 +4,7 @@ import { RouterExtends } from './base.route';
 const express = require('express');
 import TaskCtrl from '../controllers/task.controller';
 import CalcuTaskCtrl from '../controllers/calcu-task.controller';
-import { TaskModel, CmpState } from '../models';
+import { TaskModel, OGMSState } from '../models';
 import ConversationCtrl from '../controllers/conversation.controller';
 const conversationCtrl = new ConversationCtrl();
 const taskCtrl = new TaskCtrl();
@@ -53,7 +53,7 @@ router.route('/')
             ])
                 .then(rsts => {
                     cmpTaskId = rsts[0]
-                    if(req.body.task.state === CmpState.COULD_START) {
+                    if(req.body.task.state === OGMSState.COULD_START) {
                         return new TaskCtrl().start(cmpTaskId);
                     }
                 })
@@ -109,6 +109,23 @@ router.route('/:id/start')
             })
             .catch(next);
     });
+
+router.route('/:id/cmpMethod')
+    .post((req, res, next) => {
+        let taskId = req.params.id,
+            cmpObjId = req.body.cmpObjId,
+            methodId = req.body.methodId,
+            message = req.body.message;
+        if(taskId && methodId && cmpObjId) {
+            new TaskCtrl().startOneCmpMethod(taskId, cmpObjId, methodId, message).then(msg => {
+                return res.json({data: msg})
+            })
+            .catch(next)
+        }
+        else {
+            return next('invalid query params of cmp-method startup!')
+        }
+    })
 
 /**
  * @return{

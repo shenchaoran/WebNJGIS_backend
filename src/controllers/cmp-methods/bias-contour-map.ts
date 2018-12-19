@@ -1,10 +1,10 @@
-import { DataRefer, GeoDataModel, UDXSchema, CmpState, TaskModel } from '../../models';
+import { DataRefer, GeoDataModel, UDXSchema, OGMSState, TaskModel } from '../../models';
 import { ObjectID, ObjectId } from 'mongodb';
 import CmpMethod from './cmp-base';
-import * as Bluebird from 'bluebird';
 import { setting } from '../../config/setting';
 import * as path from 'path';
 import * as child_process from 'child_process';
+import * as Bluebird from 'bluebird';
 const fs = Bluebird.promisifyAll(require('fs'));
 import * as _ from 'lodash';
 import { addYears, addDays, format, parse, addHours } from 'date-fns';
@@ -95,19 +95,18 @@ export default class ContourMap extends CmpMethod {
                 ],
                 onSucceed = async stdout => {
                     this.result = { 
-                        state: CmpState.FINISHED_SUCCEED,
+                        state: OGMSState.FINISHED_SUCCEED,
                         imgPrefix: outputName,
                         timeLabels: this.timeLabels,
                         regionLength: this.regions.length,
                         ext: '[".png", ".gif"]',
                         format: '["prefix-timeLabel.png","prefix.gif"]'  // 从 1 开始
                     }
-                    console.log(outputName)
                 };
             return super._start(interpretor, argv, onSucceed)
         }
         catch(e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e)
         }
     }

@@ -20,6 +20,24 @@ import * as Papa from 'papaparse';
 import { ModelServiceModel } from '../models/model-service.model';
 import SubHeatMap from './cmp-methods/sub-region-heat-map';
 
+(process as any).on('custom', msg => {
+    console.log(msg)
+})
+(process as any).emit('custom', 'custom event')
+
+// let cp = child_process.spawn('ls', ['-lh', '/usr'])
+// cp.stdout.on('data', data => {
+//     console.log(data.toString())
+// })
+// cp.stderr.on('data', data => {
+//     console.log(data.toString())
+// })
+// cp.on('close', code => {
+//     console.log(code)
+// })
+
+
+
 // import Draw, {createBox} from '../test/module.test';
 // import * as Draw from '../test/module.test';
 // console.log(Draw.default(), Draw.createBox())

@@ -12,7 +12,7 @@ import {
     CmpMethodEnum,
     SchemaName,
     UDXCfg,
-    CmpState,
+    OGMSState,
 } from '../models';
 import * as PropCtrl from './UDX.property.controller';
 import * as VisualCtrl from './UDX.visualization.controller';

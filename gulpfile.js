@@ -13,7 +13,7 @@ var jsSrc = 'src/child-process/**',
     jsDest = 'dist/child-process'
     publicSrc = 'src/public/**',
     publicDest = 'dist/public',
-    pySrc = 'src/py-scripts/**',
+    pySrc = 'src/py-scripts/**.py',
     pyDest = 'dist/py-scripts';
 
 gulp.task('py-scripts', () => {

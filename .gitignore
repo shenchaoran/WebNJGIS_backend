@@ -50,3 +50,4 @@ tags
 src/py-scripts/data/Biome-BGC-out.nc
 process.yml.save
 /src/py-scripts/__pycache__
+/src/logs

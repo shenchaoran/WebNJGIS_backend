@@ -1,4 +1,4 @@
-import { DataRefer, GeoDataModel, UDXSchema, CmpState } from '../../models';
+import { DataRefer, GeoDataModel, UDXSchema, OGMSState } from '../../models';
 import { ObjectID } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -6,6 +6,8 @@ import * as Papa from 'papaparse';
 import { setting } from '../../config/setting';
 import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
+import ProcessCtrl from '../process.controller';
+let processCtrl = new ProcessCtrl()
 
 export default class TableChartCMP extends CmpMethod {
     constructor(
@@ -34,7 +36,7 @@ export default class TableChartCMP extends CmpMethod {
     
             let opt = {
                 progress: 100,
-                state: CmpState.FINISHED_SUCCEED,
+                state: OGMSState.FINISHED_SUCCEED,
                 xAxis: {
                     type: 'category',
                     data: new Array((cols[0] as any).length).fill(0).map((v, i) => i + 1)
@@ -70,9 +72,11 @@ export default class TableChartCMP extends CmpMethod {
             let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
             await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
             this.result = cmpResultFName
+            await this.afterCmp();
+            processCtrl.shift();
         }
         catch(e) {
-            console.log(e)
+            console.error(e)
             Bluebird.reject(e)
         }
     }
@@ -80,7 +84,6 @@ export default class TableChartCMP extends CmpMethod {
     protected async extractCSVColumn(dataRefer, fpath) {
         try {
             let column = []
-            console.log('******csv path: ', fpath)
             let csv$ = fs.createReadStream(fpath, 'utf8');
             let schema: UDXSchema = this.schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
             let colNum = (schema.structure as any).columns.findIndex(col => col.id === dataRefer.field)

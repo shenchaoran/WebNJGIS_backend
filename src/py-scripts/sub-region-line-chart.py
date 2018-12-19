@@ -16,9 +16,9 @@ if __name__ == '__main__':
             progress = (i+1)*100/cmip.ncCount
             print('-----Progress:%.2f%%-----' % progress)
         result = np.array(modelRegionTime3D).transpose(1, 0, 2)
-        print('******CMIP-PY-START')
+        print('******** CMIP-PY-START')
         print(result.tolist())
-        print('******CMIP-PY-END')
+        print('******** CMIP-PY-END')
     except Exception as instance:
         print(instance)
         sys.exit(1)

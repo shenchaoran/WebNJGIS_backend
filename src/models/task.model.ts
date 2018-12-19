@@ -41,7 +41,7 @@ export interface ITaskDocument extends Document {
         userId: string,
         userName: string
     };
-    state: CmpState;
+    state: OGMSState;
     progress: number;
     solutionId?: string;
     calcuTaskIds: string[];
@@ -52,12 +52,13 @@ export interface ITaskDocument extends Document {
     subscribed_uids: string[];
 }
 
-export enum CmpState {
+export enum OGMSState {
     INIT = 'INIT',
     COULD_START = 'COULD_START',
     RUNNING = 'RUNNING',
     FINISHED_SUCCEED = 'FINISHED_SUCCEED',
-    FINISHED_FAILED = 'FINISHED_FAILED'
+    FINISHED_FAILED = 'FINISHED_FAILED',
+    PENDING = 'PENDING',
 };
 
 export class CmpResult {

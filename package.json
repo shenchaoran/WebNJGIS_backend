@@ -8,16 +8,17 @@
     "author": "Bowden Kelly",
     "license": "MIT",
     "scripts": {
-        "start": "run-s build gulp pm2",
-        "debug": "run-p build gulp serve-w",
+        "start": "run-s build gulp pm2-release",
+        "debug": "run-p build gulp serve-watch",
         "build": "run-s ts-build ts-lint ts-watch",
         "ts-build": "tsc",
         "ts-lint": "tslint -c tslint.json -p tsconfig.json",
         "ts-watch": "tsc -w",
         "serve": "node --nolazy --inspect=0.0.0.0:65535 dist/server.js",
         "gulp": "gulp",
-        "serve-w": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
-        "pm2": "pm2 start ecosystem.config.js --only CMIP-backend"
+        "serve-watch": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
+        "pm2-debug": "pm2 start ecosystem.config.js --only CMIP-debug",
+        "pm2-release": "pm2 start ecosystem.config.js --only CMIP-release"
     },
     "jest": {
         "globals": {
@@ -82,6 +83,7 @@
         "passport": "0.3.2",
         "passport-facebook": "^2.1.1",
         "passport-local": "^1.0.0",
+        "postal": "^2.0.5",
         "proj4": "^2.4.4",
         "pug": "^2.0.3",
         "request": "^2.88.0",

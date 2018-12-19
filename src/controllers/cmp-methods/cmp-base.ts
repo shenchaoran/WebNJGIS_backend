@@ -1,13 +1,15 @@
-import { TaskModel, UDXSchema, CmpState } from './../../models';
-import { DataRefer } from '../../models/solution.model';
+import { TaskModel, UDXSchema, OGMSState, DataRefer } from './../../models';
 import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'events';
 import * as child_process from 'child_process';
 import { setting } from '../../config/setting';
+import ProcessCtrl from '../process.controller';
+let processCtrl = new ProcessCtrl()
+import * as _ from 'lodash';
 
 // TODO 加并行限制，一次能运行多少个脚本，其他脚本放在任务队列中
 export default class CmpMethod extends EventEmitter implements ICmpMethod {
-    
+    task;
     result;
     cmpMethodName;
     constructor(
@@ -24,20 +26,32 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
     public start() {}
 
     protected async _start(interpretor, argv, cb) {
+        this.task = await TaskModel.findOne({_id: this.taskId})
         return new Bluebird((resolve, reject) => {
             try {
                 const cp = child_process.spawn(interpretor, argv)
+                let condition = { _id: this.taskId },
+                    updatePath = `cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.state`;
+                processCtrl.add({
+                    pid: cp.pid,
+                    condition,
+                    updatePath,
+                    taskId: this.taskId.toString(),
+                    cmpObjId: _.get(this, `task.cmpObjs.${this.cmpObjIndex}.id`),
+                    methodId: _.get(this, `task.cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.id`)
+                } as any)
                 let stdout = '',
                     stderr = '';
                 cp.stdout.on('data', data => {
                     // update progress
                     let output = data.toString()
                     stdout += output;
+                    console.log(output);
                     let group = output.match(setting.progressReg);
                     let progress = group? group[1]: undefined;
                     if(progress) {
-                        console.log('******', this.cmpMethodName, 'progress: ', progress);
-                        this.updateProgress(progress, CmpState.RUNNING)
+                        console.log('******** ', this.cmpMethodName, 'progress: ', progress);
+                        this.updateProgress(progress, OGMSState.RUNNING)
                     }
                 });
                 cp.stderr.on('data', data => {
@@ -46,11 +60,14 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                     console.error(`${interpretor} script error:`, output)
                 })
                 cp.on('close', async code => {
-                    console.log(`${this.cmpMethodName} exit code: ${code}`)
+                    console.log(`******** ${this.cmpMethodName} exit code: ${code}`);
+                    processCtrl.remove(cp.pid);
+                    processCtrl.shift();
                     if(code === 0) {
                         try {
                             await cb(stdout)
-                            await this.updateProgress(100, CmpState.FINISHED_SUCCEED)
+                            await this.updateProgress(100, OGMSState.FINISHED_SUCCEED)
+                            await this.afterCmp()
                             resolve();
                         }
                         catch(e) {
@@ -59,13 +76,13 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                         }
                     }
                     else {
-                        await this.updateProgress(undefined, CmpState.FINISHED_FAILED)
+                        await this.updateProgress(undefined, OGMSState.FINISHED_FAILED)
                         reject(stderr)
                     }
                 })
             }
             catch(e) {
-                console.log(e)
+                console.error(e)
                 return Bluebird.reject(e)
             }
         })

@@ -37,6 +37,9 @@ if __name__ == '__main__':
 
         axHistx.xaxis.set_major_formatter(nullfmt)
         axHisty.yaxis.set_major_formatter(nullfmt)
+        
+        axScatter.set_xlabel(cmip.markerLabels[0])
+        axScatter.set_ylabel(cmip.markerLabels[1])
 
         axScatter.scatter(xDataset, yDataset, alpha=0.4)
         axHistx.hist(xDataset.compressed(), bins = 50)
@@ -51,9 +54,9 @@ if __name__ == '__main__':
 
         # plt.show()
         plt.savefig(cmip.output, format='png', transparent=True)
-        print('******CMIP-PY-START')
+        print('******** CMIP-PY-START')
         print('SUCCESS')
-        print('******CMIP-PY-END')
+        print('******** CMIP-PY-END')
     except Exception as instance:
         print(instance)
         sys.exit(1)

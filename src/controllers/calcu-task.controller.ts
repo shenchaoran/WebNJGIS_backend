@@ -4,7 +4,7 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import * as fs from 'fs';
-import { CalcuTaskModel, CalcuTaskState, TaskModel, ConversationModel } from '../models';
+import { CalcuTaskModel, OGMSState, TaskModel, ConversationModel } from '../models';
 import { ObjectID } from 'mongodb';
 import ConversationCtrl from './conversation.controller';
 const conversationCtrl = new ConversationCtrl();

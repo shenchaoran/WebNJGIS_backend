@@ -75,7 +75,7 @@ class CMIP(object):
         maxV=10
         data[:] = np.ma.masked_invalid(data)
         data[:] = np.ma.masked_where(data[:] == 0, data[:])
-        data[:] = np.ma.masked_where((data[:] < minV) | (data[:] > maxV), data[:])
+        # data[:] = np.ma.masked_where((data[:] < minV) | (data[:] > maxV), data[:])
         return data
 
     def getSubRegionData(self, ncIndex, allTime=False, timeIndex=0):

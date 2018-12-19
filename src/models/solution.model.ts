@@ -5,7 +5,7 @@
 import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
 import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { CmpState } from './task.model';
+import { OGMSState } from './task.model';
 import * as _ from 'lodash';
 
 const collectionName = 'CmpSolution';
@@ -77,7 +77,7 @@ export class CmpObj {
         // 保存结果文件路径，或者其他格式的比较结果
         result: any,
         progress: number,
-        state: CmpState,
+        state: OGMSState,
     }[];
 }
 

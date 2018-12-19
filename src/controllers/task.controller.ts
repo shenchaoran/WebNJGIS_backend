@@ -18,12 +18,14 @@ import {
     ModelServiceModel,
     CalcuTaskModel,
     ICalcuTaskDocument,
-    CalcuTaskState,
+    OGMSState,
     SchemaName,
-    CmpState,
     MetricModel,
+    CmpObj,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
+import ProcessCtrl from './process.controller'
+let processCtrl = new ProcessCtrl();
 
 export default class CmpTaskCtrl {
     constructor() { }
@@ -55,13 +57,13 @@ export default class CmpTaskCtrl {
                 .get('cmpObjs')
                 .map(cmpObj => {
                     _.map(cmpObj.methods, method => {
-                        if(method.state === CmpState.FINISHED_SUCCEED) {
+                        if(method.state === OGMSState.FINISHED_SUCCEED) {
                             succeedCmp++;
                         }
-                        else if(method.state === CmpState.FINISHED_FAILED) {
+                        else if(method.state === OGMSState.FINISHED_FAILED) {
                             failedCmp++;
                         }
-                        else if(method.state === CmpState.RUNNING) {
+                        else if(method.state === OGMSState.RUNNING) {
                             runningCmp++;
                         }
                         else if(!method.state) {
@@ -216,7 +218,7 @@ export default class CmpTaskCtrl {
         try {
             await TaskModel.updateOne({ _id: cmpTaskId }, {
                 $set: {
-                    state: CmpState.RUNNING
+                    state: OGMSState.RUNNING
                 }
             })
             let task = await TaskModel.findOne({ _id: cmpTaskId });
@@ -258,41 +260,28 @@ export default class CmpTaskCtrl {
                 })
             })
             await TaskModel.updateOne({ _id: task._id }, { $set: task })
-            let promises = [];
-            task.cmpObjs.map((cmpObj, i) => {
-                cmpObj.methods.map((method, j) => {
-                    promises.push(new Bluebird(async (resolve, reject) => {
-                        // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory(
-                            (method as any).name, 
-                            cmpObj.dataRefers, 
-                            task.schemas, 
-                            task.regions,
-                            task._id, 
-                            i, 
-                            j
-                        );
-                        await cmpMethod.start()
-                            .catch(e => {
-                                console.log(`cmp failed ${method.name}`)
-                            });
-                        await cmpMethod.afterCmp();
-                        resolve()
-                    }))
+
+            task.cmpObjs.map(cmpObj => {
+                cmpObj.methods.map(method => {
+                    processCtrl.push(task._id, cmpObj.id, method.id)
                 })
-            })
-            Bluebird.all(promises).then(rsts => {
-                // let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
-                TaskModel.updateOne({ _id: task }, {
-                    $set: {
-                        state: CmpState.FINISHED_SUCCEED
-                    }
-                })
-                .then(console.log)
             })
         }
         catch(e) {
             console.error(e);
         }
+    }
+
+    async startOneCmpMethod(cmpTaskId, cmpObjId, methodId, type) {
+        if(type === 'start') {
+            processCtrl.push(cmpTaskId, cmpObjId, methodId)
+        }
+        else if(type === 'restart') {
+            processCtrl.restart(cmpTaskId, cmpObjId, methodId)
+        }
+        else if(type === 'stop') {
+            processCtrl.shutdown(cmpTaskId, cmpObjId, methodId)
+        }
+        return true;
     }
 }

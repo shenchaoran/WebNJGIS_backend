@@ -7,6 +7,7 @@ import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import * as _ from 'lodash';
 import { Event } from './model-service.model';
+import { OGMSState } from './task.model';
 
 const collectionName = 'Calcu_Task';
 const schema = new Schema({
@@ -63,19 +64,9 @@ export interface ICalcuTaskDocument extends Document {
         cached: boolean,
         dataId: string
     };
-    state: CalcuTaskState;
+    state: OGMSState;
     progress: number;
     subscribed_uids: string[];
     cid: string;
     [key: string]: any;
 }
-
-export enum CalcuTaskState {
-    INIT = 'INIT',
-    COULD_START = 'COULD_START',
-    START_PENDING = 'START_PENDING',
-    START_FAILED = 'START_FAILED',
-    RUNNING = 'RUNNING',
-    FINISHED_FAILED = 'FINISHED_FAILED',
-    FINISHED_SUCCEED = 'FINISHED_SUCCEED'
-};

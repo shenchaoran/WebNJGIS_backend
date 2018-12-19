@@ -49,7 +49,7 @@ if __name__ == '__main__':
                 fig = plt.figure(figsize=(figW, figH), tight_layout=True, dpi=dpi)
                 outputPath = cmip.output + '-' + timeLabel + '.png'
                 # 太慢了，测试通过了就注释掉这里
-                if l < 5:
+                if l < 2:
                     for j in range(rowNumber):
                         for k in range(colNumber):
                             plotIndex = j*colNumber + k + 1
@@ -68,17 +68,17 @@ if __name__ == '__main__':
                                 cs = m.contourf(xx, yy, data, latlon=True, cmap=cm.jet)
                                 m.colorbar(cs, location='bottom')
 
-                # TODO progress doesn't work, because of parallel compute
-                progress = (l+1)*100/ cmip.timeCount
-                print('-----Progress:%.2f%%-----' % progress)
-                fig.tight_layout()
-                # plt.show()
-                fig.savefig(outputPath, format='png', transparent=True)
-                image = imageio.imread(outputPath)
-                writer.append_data(image)
+                    # TODO progress doesn't work, because of parallel compute
+                    progress = (l+1)*100/ cmip.timeCount
+                    print('-----Progress:%.2f%%-----' % progress)
+                    fig.tight_layout()
+                    plt.savefig(outputPath, format='png', transparent=True)
+                    image = imageio.imread(outputPath)
+                    writer.append_data(image)
 
-        print('******CMIP-PY-START')
+        print('******** CMIP-PY-START')
         print('SUCCESS')
-        print('******CMIP-PY-END')
+        print('******** CMIP-PY-END')
     except Exception as instance:
         print(instance)
+        sys.exit(1)

@@ -17,3 +17,4 @@ export * from './site.model';
 export * from './cmp-methods.model';
 export * from './conversation.model';
 export * from './metric.model';
+export * from './process-queue.model';

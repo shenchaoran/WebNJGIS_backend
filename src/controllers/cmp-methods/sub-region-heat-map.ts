@@ -1,4 +1,4 @@
-import { DataRefer, GeoDataModel, UDXSchema, CmpState } from '../../models';
+import { DataRefer, GeoDataModel, UDXSchema, OGMSState } from '../../models';
 import { ObjectID } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -75,7 +75,7 @@ export default class SubHeatMap extends CmpMethod {
             return super._start(interpretor, argv, onSucceed);
         }
         catch(e) {
-            console.log(e)
+            console.error(e)
             Bluebird.reject(e)
         }
     }
@@ -166,7 +166,7 @@ export default class SubHeatMap extends CmpMethod {
             tooltip: {
                 position: "top"
             },
-            state: CmpState.FINISHED_SUCCEED,
+            state: OGMSState.FINISHED_SUCCEED,
             title: titles,
             xAxis: xAxes,
             yAxis: yAxes,
