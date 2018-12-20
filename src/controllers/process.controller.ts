@@ -65,6 +65,8 @@ export default class ProcessCtrl {
     // 添加子进程 id
     async add(cmpProcess: IProcessQueueDocument) {
         if(!_.find(this.child_processes, child_process => child_process.pid === cmpProcess.pid)) {
+            console.log(`******** add started child_process record`, cmpProcess)
+            console.log(this.child_processes)
             this.child_processes.push(cmpProcess)
         }
     }
@@ -99,7 +101,11 @@ export default class ProcessCtrl {
     }
 
     async shutdown(taskId, cmpObjId, methodId) {
-        try {let cp = _.find(this.child_processes, {taskId, cmpObjId, methodId}) as IProcessQueueDocument
+        try {
+            console.log(this.child_processes)
+            let cp = _.find(this.child_processes, cp => {
+                return cp.taskId === taskId && cp.cmpObjId === cmpObjId && cp.methodId === methodId
+            }) as IProcessQueueDocument
             if(cp) {
                 process.kill(cp.pid)
                 console.log(`******** shutdown: pid-${cp.pid}-methodId-${methodId}-taskId-${cmpObjId}-cmpObjId-${taskId}`)

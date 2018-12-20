@@ -36,6 +36,7 @@ if __name__ == '__main__':
         plt.tight_layout()
         # plt.show()
         plt.savefig(cmip.output, format='png', transparent=True)
+        plt.close('all')
         print('******** CMIP-PY-START')
         print('******** CMIP-PY-END')
     except Exception as instance:

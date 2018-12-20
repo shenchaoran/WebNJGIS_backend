@@ -54,6 +54,7 @@ if __name__ == '__main__':
 
         # plt.show()
         plt.savefig(cmip.output, format='png', transparent=True)
+        plt.close('all')
         print('******** CMIP-PY-START')
         print('SUCCESS')
         print('******** CMIP-PY-END')
