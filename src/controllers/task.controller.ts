@@ -11,6 +11,7 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import CalcuTaskCtrl from './calcu-task.controller';
 import ModelServiceCtrl from './model-service.controller';
 import { CmpMethodFactory } from './cmp-methods';
+import * as postal from 'postal';
 import {
     TaskModel,
     SolutionModel,
@@ -216,51 +217,7 @@ export default class CmpTaskCtrl {
 
     private async startInBackground(cmpTaskId) {
         try {
-            await TaskModel.updateOne({ _id: cmpTaskId }, {
-                $set: {
-                    state: OGMSState.RUNNING
-                }
-            })
-            let task = await TaskModel.findOne({ _id: cmpTaskId });
-            // let solution = await SolutionModel.findOne({ _id: task.solutionId });
-            let calcuTasks = await Bluebird.map( task.calcuTaskIds,
-                calcuTaskId => {
-                    return new Bluebird((resolve, reject) => {
-                        let msCtrl = new ModelServiceCtrl()
-                        msCtrl.on('afterDataBatchCached', ({ code }) => {
-                            if (code === 200)
-                                return CalcuTaskModel.findOne({ _id: calcuTaskId }).then(resolve)
-                            else if (code === 500)
-                                resolve(undefined)
-                        })
-                        msCtrl.on('onModelFinished', ({code}) => {
-                            if(code === 500) {
-                                resolve(undefined)
-                            }
-                        })
-
-                        msCtrl.invoke(calcuTaskId).catch(reject)
-                    })
-                },
-                { concurrency: 10 }
-            )
-            calcuTasks = calcuTasks.filter(v => !!v);
-            // updateCmpObjs
-            task.cmpObjs.map(cmpObj => {
-                cmpObj.dataRefers.map(dataRefer => {
-                    let msr = (calcuTasks as any[]).find(msr => msr._id.toHexString() === dataRefer.msrId);
-                    if (msr)
-                        for (let key in msr.IO) {
-                            if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
-                                let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
-                                if (event)
-                                    dataRefer.value = event.value
-                            }
-                        }
-                })
-            })
-            await TaskModel.updateOne({ _id: task._id }, { $set: task })
-
+            let task = await this.invokeAndCache(cmpTaskId);
             task.cmpObjs.map(cmpObj => {
                 cmpObj.methods.map(method => {
                     processCtrl.push(task._id, cmpObj.id, method.id)
@@ -272,9 +229,53 @@ export default class CmpTaskCtrl {
         }
     }
 
+    private async invokeAndCache(cmpTaskId) {
+        await TaskModel.updateOne({ _id: cmpTaskId }, { $set: { state: OGMSState.RUNNING } })
+        let task = await TaskModel.findOne({ _id: cmpTaskId });
+        let calcuTasks = await Bluebird.map(task.calcuTaskIds, calcuTaskId => {
+            return new Bluebird((resolve, reject) => {
+                let msCtrl = new ModelServiceCtrl()
+                msCtrl.invoke(calcuTaskId).catch(reject)
+                postal.channel(calcuTaskId).subscribe('onModelFinished', msg => {
+                    if(msg.code !== 200) {
+                        resolve(undefined);
+                    }
+                })
+                postal.channel(calcuTaskId).subscribe('afterDataBatchCached', async msg => {
+                    if(msg.code === 200) {
+                        let calcuTask = await CalcuTaskModel.findOne({ _id: calcuTaskId })
+                        resolve(calcuTask);
+                    }
+                    else {
+                        // 数据缓存失败的不参与对比，但是也不能影响其他模型对比的流程
+                        resolve(undefined);
+                    }
+                })
+            })
+        }, { concurrency: 10 })
+        calcuTasks = calcuTasks.filter(v => !!v);
+        task.cmpObjs.map(cmpObj => {
+            cmpObj.dataRefers.map(dataRefer => {
+                let msr = (calcuTasks as any[]).find(msr => msr._id.toHexString() === dataRefer.msrId);
+                if (msr)
+                    for (let key in msr.IO) {
+                        if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
+                            let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
+                            if (event)
+                                dataRefer.value = event.value
+                        }
+                    }
+            })
+        })
+        await TaskModel.updateOne({ _id: task._id }, { $set: task })
+        return task;
+    }
+
     async startOneCmpMethod(cmpTaskId, cmpObjId, methodId, type) {
         if(type === 'start') {
-            processCtrl.push(cmpTaskId, cmpObjId, methodId)
+            this.invokeAndCache(cmpTaskId).then(task => {
+                processCtrl.push(cmpTaskId, cmpObjId, methodId)
+            })
         }
         else if(type === 'restart') {
             processCtrl.restart(cmpTaskId, cmpObjId, methodId)

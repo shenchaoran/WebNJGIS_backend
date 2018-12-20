@@ -30,6 +30,13 @@ export default class ProcessCtrl {
     constructor() {
         if(!(ProcessCtrl as any).instance) {
             this.child_processes = [];
+            this.child_processes = new Proxy(this.child_processes, {
+                set: (target, property, value, receiver) => {
+                    console.log(`******** cmp-process number: ${target.length}`);
+                    return Reflect.set(target, property, value, receiver)
+                }
+            });
+
             (ProcessCtrl as any).instance = this
         }
         return (ProcessCtrl as any).instance
@@ -41,7 +48,10 @@ export default class ProcessCtrl {
             this.child_processes.map(async child_process => {
                 process.kill(child_process.pid);
                 await TaskModel.updateOne(child_process.condition, {
-                    $set: { [child_process.updatePath]: OGMSState.FINISHED_FAILED }
+                    $set: { 
+                        [`${child_process.updatePath}.state`]: OGMSState.FINISHED_FAILED,
+                        [`${child_process.updatePath}.result`]: null,
+                    }
                 })
                 console.log(`******** clean db success: ${child_process}`)
                 _.remove(this.child_processes, cp => cp.pid === child_process.pid)
@@ -95,7 +105,10 @@ export default class ProcessCtrl {
                 console.log(`******** shutdown: pid-${cp.pid}-methodId-${methodId}-taskId-${cmpObjId}-cmpObjId-${taskId}`)
                 this.remove(cp.pid)
                 await TaskModel.update(cp.condition, {
-                    $set: { [cp.updatePath]: OGMSState.FINISHED_FAILED }
+                    $set: { 
+                        [`${cp.updatePath}.state`]: OGMSState.FINISHED_FAILED,
+                        [`${cp.updatePath}.result`]: null,
+                    }
                 })
             }
         }

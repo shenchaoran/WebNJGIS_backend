@@ -29,10 +29,11 @@ if __name__ == '__main__':
             dataList.append(data)
 
         plotsNumber = len(cmip.ncPaths)
-        if plotsNumber <= 2:
-            colNumber = plotsNumber
-        else:
-            colNumber = 3
+        # if plotsNumber <= 2:
+        #     colNumber = plotsNumber
+        # else:
+        #     colNumber = 3
+        colNumber = 1
         rowNumber = ceil(plotsNumber/colNumber)
 
         # TODO bias
@@ -45,7 +46,7 @@ if __name__ == '__main__':
                 figW = abs(cmip.longCount/dpi*8)
                 # TODO 长宽比
                 # figH =  abs(cmip.latCount * figW / cmip.longCount)
-                figH = (560 * figW / 900 / 2)
+                figH = (560 * figW / 900 * 2)
                 fig = plt.figure(figsize=(figW, figH), tight_layout=True, dpi=dpi)
                 outputPath = cmip.output + '-' + timeLabel + '.png'
                 # 太慢了，测试通过了就注释掉这里

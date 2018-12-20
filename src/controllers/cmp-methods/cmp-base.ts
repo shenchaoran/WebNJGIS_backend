@@ -31,7 +31,7 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
             try {
                 const cp = child_process.spawn(interpretor, argv)
                 let condition = { _id: this.taskId },
-                    updatePath = `cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.state`;
+                    updatePath = `cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}`;
                 processCtrl.add({
                     pid: cp.pid,
                     condition,

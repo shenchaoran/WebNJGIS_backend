@@ -20,6 +20,7 @@ const schema = new Schema({
     state: String,
     cmpObjs: Schema.Types.Mixed,
     regions: Schema.Types.Mixed,
+    sites: Array,
     schemas: Schema.Types.Mixed,
     cid: String,
     subscribed_uids: Array,
@@ -46,7 +47,13 @@ export interface ITaskDocument extends Document {
     solutionId?: string;
     calcuTaskIds: string[];
     cmpObjs: Array<CmpObj>;
-    regions?: [][]
+    regions?: [][];
+    sites?: {
+        index: number,
+        lat: number,
+        long: number,
+        coor?: number[]
+    }[];
     schemas: UDXSchema[];
     cid: string;
     subscribed_uids: string[];

@@ -62,7 +62,7 @@ export default class SubHeatMap extends CmpMethod {
                     `--ncPaths=${JSON.stringify(ncPaths)}`
                 ],
                 onSucceed = async (stdout) => {
-                    let group = stdout.match(/\*\*\*\*\*\*CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*CMIP-PY-END/m)
+                    let group = stdout.match(/\*\*\*\*\*\*\*\* CMIP-PY-START\n([\s\S]*)\n\*\*\*\*\*\*\*\* CMIP-PY-END/m)
                     let result =group[1].replace(/nan/g, '0')
                     result = JSON.parse(result)
                     let chartOption = this.convert2ChartOption(result)

@@ -72,6 +72,8 @@ export default class TableChartCMP extends CmpMethod {
             let cmpResultFPath = path.join(setting.geo_data.path, cmpResultFName);
             await fs.writeFileAsync(cmpResultFPath, JSON.stringify(opt), 'utf8')
             this.result = cmpResultFName
+            console.log(`******** ${this.cmpMethodName} exit code: 0`);
+            await this.updateProgress(100, OGMSState.FINISHED_SUCCEED)
             await this.afterCmp();
             processCtrl.shift();
         }
