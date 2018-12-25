@@ -10,6 +10,7 @@ const jwt = require('jwt-simple');
 const path = require('path');
 const favicon = require('serve-favicon');
 import * as _ from 'lodash';
+const methodOverride = require('method-override');
 
 import { setting } from '../config/setting';
 import { UserModel } from '../models/user.model';
@@ -48,6 +49,8 @@ export const preReqMid = (app) => {
     // 加载静态资源中间件，前后端分离就不要了
     app.use(setting.API_prefix, express.static(path.join(__dirname, '..', 'public')));
 
+    app.use(methodOverride('X-HTTP-Method-Override'))
+    
     // all cross origin
     app.all('*', function(req: Request, res: Response, next: NextFunction) {
         // TODO 为防止CSRF攻击，应设置为前端所在的域名

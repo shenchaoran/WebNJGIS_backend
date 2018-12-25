@@ -74,6 +74,7 @@
         "jwt-simple": "^0.5.1",
         "lodash": "^4.17.4",
         "lusca": "^1.6.1",
+        "method-override": "^3.0.0",
         "moment": "^2.22.2",
         "mongodb": "^3.1.10",
         "mongoose": "^5.3.11",
