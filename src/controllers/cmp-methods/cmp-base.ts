@@ -10,7 +10,7 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
         super()
     }
 
-    public start(){}
+    public start() {}
 }
 
 export interface ICmpMethod {
