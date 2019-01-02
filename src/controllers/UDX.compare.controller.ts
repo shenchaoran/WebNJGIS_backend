@@ -12,7 +12,7 @@ import {
     CmpMethodEnum,
     SchemaName,
     UDXCfg,
-    CmpState,
+    OGMSState,
 } from '../models';
 import * as PropCtrl from './UDX.property.controller';
 import * as VisualCtrl from './UDX.visualization.controller';
@@ -72,7 +72,7 @@ export const compare = (dataId: string, methods: string[], field?: string): Blue
                         return promise
                             .then(resolve)
                             .catch(e => {
-                               console.log(e);
+                               console.error(e);
                                const rst = {};
                                rst[key] = {progress: -1};
                                return resolve(rst);

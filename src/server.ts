@@ -2,18 +2,12 @@ const express = require('express');
 const app = express();
 const http = require('http');
 import * as _ from 'lodash';
-import { setting } from './config/setting';
+import { setting } from './config/setting'; 
 import { router } from './routes/index.route';
 import { preReqMid, postResMid } from './middlewares';
 import { init } from './init';
-
-process.on('uncaughtException', (error: any) => {
-    console.error('uncaughtException', error)
-})
-
-process.on('unhandledRejection', (error: any) => {
-    console.error('unhandledRejection', error)
-})
+import './controllers/process.controller';
+require('./controllers/cmp-methods')
 
 init()
     .then(() => {

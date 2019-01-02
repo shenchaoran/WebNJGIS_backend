@@ -1,17 +1,14 @@
 import * as os from 'os';
 import * as path from 'path';
 
-const debuge_mongodb_host = '127.0.0.1';
-const release_mongodb_host = '223.2.43.23';
-
 export const setting = {
     auth: false,
-    API_prefix: '/api',
-    port: '9999',
+    API_prefix: '/CMIP-backend/api',
+    port: 9999,
     fiddler_proxy: {
         host: 'localhost',
         port: 3122,
-        use: true
+        use: false
     },
     session_secret: 'ashdfjhaxaskjfxfjksdjhflak',
     jwt_secret: 'asdl;fjl;asdjflasjkfsl;jfdl;asdfjl;asdjkflsda',
@@ -24,7 +21,7 @@ export const setting = {
     })(),
     mongodb: {
         name: 'Comparison',
-        host: debuge_mongodb_host,
+        host: '223.2.35.73',
         port: '27017'
     },
     geo_data: {
@@ -38,6 +35,8 @@ export const setting = {
             maxSize: 10000
         }
     },
+    invoke_failed_tag: '-----this is an error identification-----',
+    progressReg: /-----Progress:(.*)%-----/,
     debug: {
         child_process: true
     },

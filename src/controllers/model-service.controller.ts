@@ -6,10 +6,13 @@ import DataCtrl from './data.controller';
 import * as path from 'path'
 import {
     CalcuTaskModel,
-    CalcuTaskState,
+    OGMSState,
     ModelServiceModel,
     StdDataModel,
+    SolutionModel,
+    MetricModel,
 } from '../models';
+import * as postal from 'postal';
 import * as child_process from 'child_process';
 import * as NodeCtrl from './computing-node.controller'
 import { getByServer, postByServer, PostRequestType } from '../utils/request.utils';
@@ -17,10 +20,8 @@ import { getByServer, postByServer, PostRequestType } from '../utils/request.uti
 import MSRProgressDaemon from '../daemons/msrProgress.daemon'
 import * as EventEmitter from 'events'
 
-export default class ModelServiceCtrl extends EventEmitter {
-    constructor() {
-        super()
-    }
+export default class ModelServiceCtrl {
+    constructor() {}
 
     /**
      * @returns 
@@ -41,14 +42,23 @@ export default class ModelServiceCtrl extends EventEmitter {
         return Bluebird.all([
             ModelServiceModel.findOne({ _id: id }) as any,
             StdDataModel.find({ 'models': id }) as any,
-        ]).then(([ms, stds]) => {
+            SolutionModel.find({
+                msIds: { $in: [id]}
+            }),
+            CalcuTaskModel.find({msId: id}).sort({ _id: -1 }).limit(5),
+            MetricModel.find()
+        ]).then(([ms, stds, solutions, calcuTasks, metrics]) => {
+
             return {
                 ms,
                 stds,
+                solutions: _.chain(solutions).map(solution => _.pick(solution, ['_id', 'meta', 'auth'])).value(),
+                calcuTasks: _.chain(calcuTasks).map(calcuTask => _.pick(calcuTask, ['_id', 'meta', 'auth'])).value(),
+                metrics,
             };
         })
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 Bluebird.reject(e);
             })
     }
@@ -81,13 +91,15 @@ export default class ModelServiceCtrl extends EventEmitter {
                 await CalcuTaskModel.upsert({ _id: msr._id }, msr);
             }
 
-            if (CalcuTaskState.INIT === msr.state)
-                return {
-                    msrId: msr._id,
-                    code: 500,
-                    desc: 'this calculation task is not ready to start!'
-                };
-            else if (CalcuTaskState.COULD_START === msr.state) {
+            // if (OGMSState.INIT === msr.state) {
+            //     // postal.channel(msr._id.toString()).publish('')
+            //     // return {
+            //     //     msrId: msr._id,
+            //     //     code: 500,
+            //     //     desc: 'this calculation task is not ready to start!'
+            //     // };
+            // }
+            if (OGMSState.INIT === msr.state || OGMSState.COULD_START === msr.state) {
                 // 查找 node 的 host 和 port
                 let ms = await ModelServiceModel.findOne({ _id: msr.msId });
                 let serverURL = await NodeCtrl.telNode(msr.nodeId)
@@ -99,27 +111,13 @@ export default class ModelServiceCtrl extends EventEmitter {
                 }, PostRequestType.JSON)
                 if (res.code === 200) {
                     // 监控运行进度，结束后主动将数据拉过来
-                    this.progressDaemon(msr._id).then(msg => {
-                        this.emit('onModelFinished', msg)
-                        if ((msg as any).code === 200) {
+                    postal.channel(msr._id.toString()).subscribe('onModelFinished', msg => {
+                        if(msg.code === 200) {
                             let dataCtrl = new DataCtrl()
-                            // 模型运行成功，且数据缓存成功
-                            dataCtrl.on('afterDataBatchCached', msg => {
-                                this.emit('afterDataBatchCached', msg)
-                            })
                             dataCtrl.cacheDataBatch(msr._id)
                         }
-                        // else if((msg as any).code === 500) {
-                        //     // 模型运行失败
-                        // }
-                        // else{
-                        //     // this.emit('afterDataBatchCached', { code: 500 })
-                        // }
                     })
-                        .catch(e => {
-                            console.log(e);
-                            this.emit('afterDataBatchCached', { code: 500 })
-                        });
+                    this.progressDaemon(msr._id)
 
                     return {
                         msrId: msr._id,
@@ -128,7 +126,7 @@ export default class ModelServiceCtrl extends EventEmitter {
                     };
                 }
                 else {
-                    this.emit('onModelFinished', {code: 200})
+                    postal.channel(msr._id).publish('onModelFinished', {code: 500})
                     return {
                         msrId: msr._id,
                         code: 501,
@@ -137,8 +135,10 @@ export default class ModelServiceCtrl extends EventEmitter {
                 }
 
             }
-            else if (CalcuTaskState.FINISHED_SUCCEED === msr.state) {
-                this.emit('beforeModelInvoke', { code: 200 })
+            else if (OGMSState.FINISHED_SUCCEED === msr.state) {
+                let dataCtrl = new DataCtrl()
+                dataCtrl.cacheDataBatch(msr._id)
+                // postal.channel(msr._id).publish('beforeModelInvoke', { code: 200 })
                 return {
                     msrId: msr._id,
                     code: 200,
@@ -147,7 +147,8 @@ export default class ModelServiceCtrl extends EventEmitter {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
+            postal.channel(msr._id).publish('onModelFinished', {code: 500})
             if (_.get(e, 'error.code') === 'ECONNREFUSED') {
                 return {
                     msrId: msr._id,
@@ -169,8 +170,7 @@ export default class ModelServiceCtrl extends EventEmitter {
         try {
             if (setting.debug.child_process) {
                 let daemon = new MSRProgressDaemon(msrId)
-                let msg = await daemon.start()
-                return msg;
+                daemon.start()
             }
             else {
                 let cpPath = path.join(__dirname, '../daemons/msrProgress.daemon.js')
@@ -186,7 +186,7 @@ export default class ModelServiceCtrl extends EventEmitter {
             }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }

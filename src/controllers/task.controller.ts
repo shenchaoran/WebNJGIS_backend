@@ -11,6 +11,7 @@ import { UDXCfg } from '../models/UDX-cfg.class';
 import CalcuTaskCtrl from './calcu-task.controller';
 import ModelServiceCtrl from './model-service.controller';
 import { CmpMethodFactory } from './cmp-methods';
+import * as postal from 'postal';
 import {
     TaskModel,
     SolutionModel,
@@ -18,11 +19,14 @@ import {
     ModelServiceModel,
     CalcuTaskModel,
     ICalcuTaskDocument,
-    CalcuTaskState,
+    OGMSState,
     SchemaName,
-    CmpState,
+    MetricModel,
+    CmpObj,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
+import ProcessCtrl from './process.controller'
+let processCtrl = new ProcessCtrl();
 
 export default class CmpTaskCtrl {
     constructor() { }
@@ -36,19 +40,50 @@ export default class CmpTaskCtrl {
     };
 
     async findByPages(pageOpt) {
+        let queryTasks
         if (pageOpt.userId === undefined) {
-            return TaskModel.findByPages({}, pageOpt)
-                .then(rst => {
-                    _.map(rst.docs, doc => {
-                        this.reduceDoc(doc, '2');
-                    });
-                    return Bluebird.resolve(rst);
-                })
-                .catch(Bluebird.reject);
+            queryTasks = () => TaskModel.findByPages({}, pageOpt)
         } else {
-            return TaskModel.findByUserId(pageOpt.userId).catch(Bluebird.reject);
+            queryTasks = () => TaskModel.findByUserId(pageOpt.userId)
         }
-
+        let {count, docs} = await queryTasks()
+        let tasks = []
+        _.map(docs, doc => {
+            let task = _.pick(doc._doc, ['_id', 'meta', 'auth', 'state'])
+            let initCmp = 0,
+                runningCmp = 0,
+                succeedCmp = 0,
+                failedCmp = 0;
+            _.chain(doc._doc)
+                .get('cmpObjs')
+                .map(cmpObj => {
+                    _.map(cmpObj.methods, method => {
+                        if(method.state === OGMSState.FINISHED_SUCCEED) {
+                            succeedCmp++;
+                        }
+                        else if(method.state === OGMSState.FINISHED_FAILED) {
+                            failedCmp++;
+                        }
+                        else if(method.state === OGMSState.RUNNING) {
+                            runningCmp++;
+                        }
+                        else if(!method.state) {
+                            initCmp++;
+                        }
+                    })
+                })
+                .value();
+            
+            _.set(task, 'initCmp', initCmp)
+            _.set(task, 'runningCmp', runningCmp)
+            _.set(task, 'succeedCmp', succeedCmp)
+            _.set(task, 'failedCmp', failedCmp)
+            _.set(task, 'totalCmp', initCmp + runningCmp + succeedCmp + failedCmp)
+            // let opt = {}
+            // _.set(task, 'chartOption', opt)
+            tasks.push(task)
+        })
+        return {count, docs: tasks}
     }
 
     /**
@@ -70,45 +105,43 @@ export default class CmpTaskCtrl {
 
     async findOne(id: string) {
         try {
-            // TODO 数据库设计 及 异步流程控制
             let task = await TaskModel.findOne({ _id: id })
-            let solution = await SolutionModel.findOne({ _id: task.solutionId });
+            let [solution, calcuTasks, metrics] = await Bluebird.all([
+                SolutionModel.findOne({ _id: task.solutionId }),
+                CalcuTaskModel.findByIds(task.calcuTaskIds),
+                MetricModel.find({}),
+            ]);
             let ptMSs = await ModelServiceModel.findByIds(solution.msIds);
+
             for(let cmpObj of task.cmpObjs) {
                 for( let method of cmpObj.methods) {
-                    if(method.result) {
+                    if(
+                        method.name === 'Bias contour map' ||
+                        method.name === 'Taylor diagram' ||
+                        method.name === 'Box diagram' ||
+                        method.name === 'Scatter diagram'
+                    ) {
+
+                    }
+                    else if(
+                        (method.name === 'Heat map' || 
+                        method.name === 'Sub-region line chart' || 
+                        method.name === 'table series visualization' ||
+                        method.name === 'Line chart') &&
+                        method.result
+                    ) {
                         let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
                         method.result = JSON.parse(opt);
                     }
                 }
             }
-            return { task, solution, ptMSs, }
+            return { task, solution, ptMSs, calcuTasks, metrics, }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     };
-
-    /**
-     * 以不同力度缩减文档
-     * 查询list时，level = 2，查询item 时，level = 1
-     */
-    private async reduceDoc(doc, level?: '1' | '2') {
-        if (level === undefined || level === '1') {
-            _.map(doc.cmpObjs as any[], cmpObj => {
-                _.map(cmpObj.dataRefers as any[], dataRefer => {
-                    dataRefer.cmpResult = null
-                })
-            });
-        }
-        else if (level === '2') {
-            doc.cmpResults = undefined;
-
-            _.set(doc, 'cmpObjs', undefined);
-        }
-        return doc;
-    }
 
     /**
      * deprecated
@@ -178,90 +211,78 @@ export default class CmpTaskCtrl {
             });
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
         }
     }
 
     private async startInBackground(cmpTaskId) {
         try {
-            await TaskModel.updateOne({ _id: cmpTaskId }, {
-                $set: {
-                    state: CmpState.RUNNING
-                }
-            })
-            let task = await TaskModel.findOne({ _id: cmpTaskId });
-            // let solution = await SolutionModel.findOne({ _id: task.solutionId });
-            let calcuTasks = await Bluebird.map( task.calcuTaskIds as any[],
-                calcuTaskId => {
-                    return new Bluebird((resolve, reject) => {
-                        let msCtrl = new ModelServiceCtrl()
-                        msCtrl.on('afterDataBatchCached', ({ code }) => {
-                            if (code === 200)
-                                return CalcuTaskModel.findOne({ _id: calcuTaskId._id }).then(resolve)
-                            else if (code === 500)
-                                resolve(undefined)
-                        })
-                        msCtrl.on('onModelFinished', ({code}) => {
-                            if(code === 500) {
-                                resolve(undefined)
-                            }
-                        })
-
-                        msCtrl.invoke(calcuTaskId._id).catch(reject)
-                    })
-                },
-                { concurrency: 10 }
-            )
-            calcuTasks = calcuTasks.filter(v => !!v);
-            // updateCmpObjs
+            let task = await this.invokeAndCache(cmpTaskId);
             task.cmpObjs.map(cmpObj => {
-                cmpObj.dataRefers.map(dataRefer => {
-                    let msr = (calcuTasks as any[]).find(msr => msr._id.toHexString() === dataRefer.msrId);
-                    if (msr)
-                        for (let key in msr.IO) {
-                            if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
-                                let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
-                                if (event)
-                                    dataRefer.value = event.value
-                            }
-                        }
+                cmpObj.methods.map(method => {
+                    processCtrl.push(task._id, cmpObj.id, method.id)
                 })
-            })
-            await TaskModel.updateOne({ _id: task._id }, { $set: task })
-            let promises = [];
-            task.cmpObjs.map((cmpObj, i) => {
-                cmpObj.methods.map((method, j) => {
-                    promises.push(new Bluebird((resolve, reject) => {
-                        // TODO 可能会出现并发问题
-                        let cmpMethod = CmpMethodFactory((method as any).name, cmpObj.dataRefers, task.schemas)
-                        cmpMethod.on('afterCmp', async resultFPath => {
-                            try {
-                                await TaskModel.updateOne({ _id: task._id }, {
-                                    $set: { [`cmpObjs.${i}.methods.${j}.result`]: resultFPath }
-                                })
-                                resolve({ code: 200 })
-                            }
-                            catch (e) {
-                                console.log(e);
-                                resolve({ code: 500 })
-                            }
-                        })
-                        cmpMethod.start();
-                    }))
-                })
-            })
-            Bluebird.all(promises).then(rsts => {
-                // let state = rsts.every(v => v.code === 200) ? CmpState.FINISHED_SUCCEED : CmpState.FINISHED_FAILED;
-                TaskModel.updateOne({ _id: task }, {
-                    $set: {
-                        state: CmpState.FINISHED_SUCCEED
-                    }
-                })
-                .then(console.log)
             })
         }
         catch(e) {
-            console.log(e);
+            console.error(e);
         }
+    }
+
+    private async invokeAndCache(cmpTaskId) {
+        await TaskModel.updateOne({ _id: cmpTaskId }, { $set: { state: OGMSState.RUNNING } })
+        let task = await TaskModel.findOne({ _id: cmpTaskId });
+        let calcuTasks = await Bluebird.map(task.calcuTaskIds, calcuTaskId => {
+            return new Bluebird((resolve, reject) => {
+                let msCtrl = new ModelServiceCtrl()
+                msCtrl.invoke(calcuTaskId).catch(reject)
+                postal.channel(calcuTaskId).subscribe('onModelFinished', msg => {
+                    if(msg.code !== 200) {
+                        resolve(undefined);
+                    }
+                })
+                postal.channel(calcuTaskId).subscribe('afterDataBatchCached', async msg => {
+                    if(msg.code === 200) {
+                        let calcuTask = await CalcuTaskModel.findOne({ _id: calcuTaskId })
+                        resolve(calcuTask);
+                    }
+                    else {
+                        // 数据缓存失败的不参与对比，但是也不能影响其他模型对比的流程
+                        resolve(undefined);
+                    }
+                })
+            })
+        }, { concurrency: 10 })
+        calcuTasks = calcuTasks.filter(v => !!v);
+        task.cmpObjs.map(cmpObj => {
+            cmpObj.dataRefers.map(dataRefer => {
+                let msr = (calcuTasks as any[]).find(msr => msr._id.toHexString() === dataRefer.msrId);
+                if (msr)
+                    for (let key in msr.IO) {
+                        if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
+                            let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
+                            if (event)
+                                dataRefer.value = event.value
+                        }
+                    }
+            })
+        })
+        await TaskModel.updateOne({ _id: task._id }, { $set: task })
+        return task;
+    }
+
+    async startOneCmpMethod(cmpTaskId, cmpObjId, methodId, type) {
+        if(type === 'start') {
+            this.invokeAndCache(cmpTaskId).then(task => {
+                processCtrl.push(cmpTaskId, cmpObjId, methodId)
+            })
+        }
+        else if(type === 'restart') {
+            processCtrl.restart(cmpTaskId, cmpObjId, methodId)
+        }
+        else if(type === 'stop') {
+            processCtrl.shutdown(cmpTaskId, cmpObjId, methodId)
+        }
+        return true;
     }
 }

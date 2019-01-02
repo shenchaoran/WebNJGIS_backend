@@ -4,19 +4,18 @@ import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as path from 'path';
 import { ObjectID } from 'mongodb';
-import * as fs_ from 'fs';
 import * as unzip from 'unzip';
 import { setting } from '../config/setting';
 import * as RequestCtrl from '../utils/request.utils';
 import * as NodeCtrl from './computing-node.controller'
 import * as EventEmitter from 'events';
-import { GeoDataModel, CalcuTaskModel, CalcuTaskState, ModelServiceModel } from '../models';
-const fs: any = Bluebird.promisifyAll(fs_)
+import { GeoDataModel, CalcuTaskModel, OGMSState, ModelServiceModel } from '../models';
+import * as postal from 'postal';
+import { resolve4 } from 'dns';
+const fs = Bluebird.promisifyAll(require('fs'))
 
-export default class DataCtrl extends EventEmitter {
-    constructor() {
-        super();
-    }
+export default class DataCtrl {
+    constructor() {}
 
 	/**
 	 * 条目保存到数据库，文件移动到upload/geo-data中
@@ -78,7 +77,7 @@ export default class DataCtrl extends EventEmitter {
             }
         }
         catch (e) {
-            console.log(e)
+            console.error(e)
             return Bluebird.reject(e);
         }
     };
@@ -91,7 +90,7 @@ export default class DataCtrl extends EventEmitter {
             return { fpath, fname: doc.meta.name }
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e.code === 'ENOENT' ? 'file don\'t exist!' : 'unpredictable error!');
         }
     };
@@ -142,7 +141,7 @@ export default class DataCtrl extends EventEmitter {
             // console.log(eventType, eventIndex)
 
             if (event.cached) {
-                this.emit('afterDataCached', { code: 200 })
+                postal.channel(`${msrId}-${eventId}`).publish('afterDataCached', { code: 200 })
                 let { fpath, fname } = await this.download(event.value);
                 let stream = fs.createReadStream(fpath);
                 return { stream, fname };
@@ -152,7 +151,7 @@ export default class DataCtrl extends EventEmitter {
                 let serverURL = await NodeCtrl.telNode(msr.nodeId);
                 let fetchEvent = await RequestCtrl.getFile(`${serverURL}/data/download?msrId=${msrId}&eventId=${eventId}`, setting.geo_data.path)
                 fetchEvent.on('afterWrite', ({ fname, fpath }) => {
-                    if (msr.state === CalcuTaskState.FINISHED_SUCCEED) {
+                    if (msr.state === OGMSState.FINISHED_SUCCEED) {
                         let gdid = new ObjectID();
                         let setObj = {
                             [`IO.${eventType}.${eventIndex}.value`]: gdid.toHexString(),
@@ -176,7 +175,7 @@ export default class DataCtrl extends EventEmitter {
                             })
                         ])
                             .then(rsts => {
-                                this.emit('afterDataCached', { code: 200 });
+                                postal.channel(`${msrId}-${eventId}`).publish('afterDataCached', { code: 200 })
                             })
                     }
                 })
@@ -187,7 +186,7 @@ export default class DataCtrl extends EventEmitter {
         }
         catch (e) {
             console.error(e)
-            this.emit('afterDataCached', { code: 500 });
+            postal.channel(`${msrId}-${eventId}`).publish('afterDataCached', { code: 500 })
             return Bluebird.reject(e)
         }
     }
@@ -210,25 +209,27 @@ export default class DataCtrl extends EventEmitter {
         return Bluebird.map(toPulls, toPull => {
             return new Bluebird((resolve, reject) => {
                 let dataCtrl = new DataCtrl()
-                dataCtrl.on('afterDataCached', resolve)
+                postal.channel(`${msrId}-${toPull.eventId}`).subscribe('afterDataCached', msg => {
+                    resolve(msg)
+                })
                 dataCtrl.cacheData(toPull)
             });
         }, {
                 concurrency: 1
             })
             .then(rsts => {
-                console.log('****** cache data succeed of msr: ' + msrId);
+                console.log('******** cache data succeed of msr: ' + msrId);
                 // 这里暂不管缓存结果，在比较时从 db 里的记录里取缓存结果
-                this.emit('afterDataBatchCached', {
+                postal.channel(msrId).publish('afterDataBatchCached', {
                     code: 200,
                     desc: 'cache data succeed!'
-                });
+                })
             })
             .catch(e => {
-                this.emit('afterDataBatchCached', {
+                postal.channel(msrId).publish('afterDataBatchCached', {
                     code: 500,
                     desc: 'cache data batch failed!'
-                });
+                })
             })
     }
 
@@ -265,7 +266,7 @@ export default class DataCtrl extends EventEmitter {
                 });
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return Bluebird.reject(e);
         }
     }

@@ -5,6 +5,7 @@
 import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
 import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
+import { OGMSState } from './task.model';
 import * as _ from 'lodash';
 
 const collectionName = 'CmpSolution';
@@ -14,7 +15,6 @@ const schema = new Schema({
     topicIds: Array,
     msIds: Array,
     cmpObjs: Array,
-    taskIds: Array,
     cid: String,
     subscribed_uids: Array,
 }, { collection: collectionName });
@@ -36,7 +36,6 @@ export interface ISolutionDocument extends Document {
         src: ResourceSrc
     };
     topicIds?: string[];
-    taskIds?: string[];
     msIds?: string[];
     cmpObjs: CmpObj[];
     cid: string;
@@ -71,14 +70,15 @@ export class CmpObj {
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<DataRefer>;
     schemaId?: string;
+    temporal?: 'annual' | 'monthly' | 'daily';
     methods: {
         id: string,
         name: string,
-        // 保存结果文件路径
-        result: string
+        // 保存结果文件路径，或者其他格式的比较结果
+        result: any,
+        progress: number,
+        state: OGMSState,
     }[];
-    regions?: [][]
-    progress?: number;
 }
 
 export class DataRefer {
@@ -87,6 +87,7 @@ export class DataRefer {
     eventType: 'inputs' | 'outputs';
     eventId: string;
     eventName: string;
+    stdEventName?: string;              // 用于将多个模型的 event 对应起来
     schemaId: string;
     msrName?: string;
     msrId?: string;

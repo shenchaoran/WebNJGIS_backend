@@ -58,6 +58,7 @@ export interface IModelServiceDocument extends Document {
 
 export class Event {
     id: string;
+    stdName?: string;
     name: string;
     description: string;
     schemaId: string;
@@ -75,4 +76,5 @@ export class Event {
     // 下载链接
     url?: string;
     ext: string;
+    temporal?: 'annual'|'monthly'|'daily';
 }

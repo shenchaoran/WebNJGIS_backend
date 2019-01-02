@@ -18,6 +18,58 @@ import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
 import { ModelServiceModel } from '../models/model-service.model';
+import SubHeatMap from './cmp-methods/sub-region-heat-map';
+
+(process as any).on('custom', msg => {
+    console.log(msg)
+})
+(process as any).emit('custom', 'custom event')
+
+// let cp = child_process.spawn('ls', ['-lh', '/usr'])
+// cp.stdout.on('data', data => {
+//     console.log(data.toString())
+// })
+// cp.stderr.on('data', data => {
+//     console.log(data.toString())
+// })
+// cp.on('close', code => {
+//     console.log(code)
+// })
+
+
+
+// import Draw, {createBox} from '../test/module.test';
+// import * as Draw from '../test/module.test';
+// console.log(Draw.default(), Draw.createBox())
+
+// let cp = child_process.spawn('conda', ['activate base'])
+// cp.stdout.on('data', data => {
+//     console.log(data.toString());
+// });
+// cp.stderr.on('data', data => {
+//     console.error(data.toString());
+// })
+// cp.on('close', async code => {
+//     console.log(code)
+// })
+
+// child_process.exec('sh conda activate base', (err, stdout, stderr) => {
+//     function toGBK(str) {
+//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
+//     }
+//     if (err) {
+//         console.log(toGBK(err.message))
+//     }
+//     if (stderr) {
+//         console.error(toGBK(stderr))
+//     }
+//     if (stdout) {
+//         console.log(toGBK(stdout))
+//     }
+// })
+
+// let heatMapCmp = new SubHeatMap()
+// heatMapCmp.start()
 
 // setTimeout(() => {
 //     ModelServiceModel.find({})
@@ -25,7 +77,7 @@ import { ModelServiceModel } from '../models/model-service.model';
 //             docs
 //         })
 //         .catch(e => {
-//             console.log(e)
+//             console.error(e)
 //         })
 // }, 1000);
 
@@ -40,7 +92,7 @@ import { ModelServiceModel } from '../models/model-service.model';
 //         })
 //     })
 //     .catch(e => {
-//         console.log(e);
+//         console.error(e);
 //     })
 // })
 
@@ -69,24 +121,6 @@ import { ModelServiceModel } from '../models/model-service.model';
 // read$.pipe(write$2)
 // read$.on('end', chunk => {
 //     console.log('end')
-// })
-
-// exec('activate base && python ../child-process/test2.py', { 
-//     encoding: 'binary',
-//     cwd: __dirname
-// }, (err, stdout, stderr) => {
-//     function toGBK(str) {
-//         return iconv.decode(Buffer.from(str, 'binary'), 'cp936')
-//     }
-//     if (err) {
-//         console.log(toGBK(err.message))
-//     }
-//     if (stderr) {
-//         console.log(toGBK(stderr))
-//     }
-//     if (stdout) {
-//         console.log(toGBK(stdout))
-//     }
 // })
 
 // console.log(process)
@@ -194,7 +228,7 @@ import { ModelServiceModel } from '../models/model-service.model';
 
 //     })
 //     .catch(e => {
-//         console.log(e);
+//         console.error(e);
 
 //     });
 

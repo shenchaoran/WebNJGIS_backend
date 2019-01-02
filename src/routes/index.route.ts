@@ -13,9 +13,9 @@ const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
 const CmpMethodRouter = require('./cmp-methods.route');
 const ConversationRouter = require('./conversation.route');
+import { setting } from '../config/setting';
 
 export const router = express.Router();
-
 
 router.use('/user', UserRouter);
 router.use('/search', SearchRouter);
@@ -33,17 +33,17 @@ router.use('/conversations', ConversationRouter);
 
 router.route('/')
     .get((req, res, next) => {
+        // return res.json({
+        //     code: 200,
+        //     data: 'model comparison container'
+        // })
+        return res.redirect(`${setting.API_prefix}/index`)
+    })
+
+router.route('/index')
+    .get((req, res, next) => {
         return res.json({
             code: 200,
             data: 'model comparison container'
         })
-        // return res.redirect('/index')
     })
-
-// router.route('/index')
-//     .get((req, res, next) => {
-//         return res.json({
-//             code: 200,
-//             data: 'model comparison container'
-//         })
-//     })

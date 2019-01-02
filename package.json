@@ -1,24 +1,24 @@
 {
-    "name": "express-typescript-starter",
+    "name": "CMIP-backend",
     "version": "0.1.0",
-    "description": "A starting point for Node.js express apps with TypeScript",
+    "description": "CMIP-backend",
     "repository": {
-        "type": "git",
-        "url": "https://github.com/sahat/hackathon-starter.git"
+        "type": "git"
     },
     "author": "Bowden Kelly",
     "license": "MIT",
     "scripts": {
-        "start": "npm run build && npm run serve",
-        "debug": "npm run build && npm run watch",
-        "build": "npm run build-ts && npm run tslint",
-        "build-ts": "tsc",
-        "tslint": "tslint -c tslint.json -p tsconfig.json",
-        "serve": "node --nolazy dist/server.js",
-        "watch": "run-p watch:*",
+        "start": "run-s build gulp pm2-release",
+        "debug": "run-p build gulp serve-watch",
+        "build": "run-s ts-build ts-lint ts-watch",
+        "ts-build": "tsc",
+        "ts-lint": "tslint -c tslint.json -p tsconfig.json",
+        "ts-watch": "tsc -w",
+        "serve": "node --nolazy --inspect=0.0.0.0:65535 dist/server.js",
         "gulp": "gulp",
-        "watch:ts": "tsc -w",
-        "watch:serve": "nodemon --nolazy --config nodemon.json --inspect=0.0.0.0:65535 dist/server.js"
+        "serve-watch": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
+        "pm2-debug": "pm2 start ecosystem.config.js --only CMIP-debug",
+        "pm2-release": "pm2 start ecosystem.config.js --only CMIP-release"
     },
     "jest": {
         "globals": {
@@ -66,9 +66,11 @@
         "fbgraph": "^1.4.4",
         "formidable": "^1.1.1",
         "geojson": "^0.5.0",
+        "gulp": "^3.9.1",
         "iconv-lite": "^0.4.23",
         "identicon.js": "^2.3.3",
         "jest": "^23.6.0",
+        "jshint": "^2.9.6",
         "jwt-simple": "^0.5.1",
         "lodash": "^4.17.4",
         "lusca": "^1.6.1",
@@ -81,6 +83,7 @@
         "passport": "0.3.2",
         "passport-facebook": "^2.1.1",
         "passport-local": "^1.0.0",
+        "postal": "^2.0.5",
         "proj4": "^2.4.4",
         "pug": "^2.0.3",
         "request": "^2.88.0",
@@ -113,7 +116,6 @@
         "@types/supertest": "^2.0.0",
         "concurrently": "^3.4.0",
         "del": "^3.0.0",
-        "gulp": "^3.9.1",
         "gulp-cache": "^1.0.2",
         "gulp-concat": "^2.6.1",
         "gulp-jshint": "^2.1.0",

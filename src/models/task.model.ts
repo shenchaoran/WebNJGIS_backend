@@ -15,10 +15,12 @@ const schema = new Schema({
     auth: Schema.Types.Mixed,
     solutionId: String,
     // topicId: String,
-    calcuTaskIds: Schema.Types.Mixed,
+    calcuTaskIds: Array,
     progress: Number,
     state: String,
     cmpObjs: Schema.Types.Mixed,
+    regions: Schema.Types.Mixed,
+    sites: Array,
     schemas: Schema.Types.Mixed,
     cid: String,
     subscribed_uids: Array,
@@ -40,25 +42,30 @@ export interface ITaskDocument extends Document {
         userId: string,
         userName: string
     };
-    state: CmpState;
+    state: OGMSState;
     progress: number;
     solutionId?: string;
-    calcuTaskIds: {
-        _id: string,
-        progress: number
-    }[];
+    calcuTaskIds: string[];
     cmpObjs: Array<CmpObj>;
+    regions?: [][];
+    sites?: {
+        index: number,
+        lat: number,
+        long: number,
+        coor?: number[]
+    }[];
     schemas: UDXSchema[];
     cid: string;
     subscribed_uids: string[];
 }
 
-export enum CmpState {
+export enum OGMSState {
     INIT = 'INIT',
     COULD_START = 'COULD_START',
     RUNNING = 'RUNNING',
     FINISHED_SUCCEED = 'FINISHED_SUCCEED',
-    FINISHED_FAILED = 'FINISHED_FAILED'
+    FINISHED_FAILED = 'FINISHED_FAILED',
+    PENDING = 'PENDING',
 };
 
 export class CmpResult {

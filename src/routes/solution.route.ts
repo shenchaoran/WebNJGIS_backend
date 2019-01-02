@@ -97,8 +97,19 @@ router.route('/:id')
             return next();
         }
     })
-    .delete((req, res, next) => {
-
+    .delete(async (req, res, next) => {
+        try {
+            let msg = await SolutionModel.deleteOne({_id: req.params.id})
+            if(msg.ok === msg.n && msg.n === 1) {
+                return res.json({data: true});
+            }
+            else {
+                return next('delete failed');
+            }
+        }
+        catch(e) {
+            return next(e);
+        }
     });
 
     

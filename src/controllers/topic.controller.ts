@@ -113,7 +113,7 @@ export default class TopicCtrl {
         return TopicModel.insert(topic)
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
@@ -125,7 +125,7 @@ export default class TopicCtrl {
         return TopicModel.remove({_id: topicId})
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             });
     }
@@ -144,7 +144,7 @@ export default class TopicCtrl {
         )
             .then(v => true)
             .catch(e => {
-                console.log(e);
+                console.error(e);
                 return false;
             })
     }
