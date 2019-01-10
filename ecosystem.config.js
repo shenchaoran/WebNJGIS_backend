@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: 'CMIP-debug',
+            name: 'CMIP-backend-debug',
             script: 'dist/server.js',
             args: '--nolazy --inspect=0.0.0.0:65535',
             node_args: '--nolazy --inspect=0.0.0.0:65535',
@@ -13,6 +13,7 @@ module.exports = {
                 'dist/logs',
                 'dist/public',
                 'dist/py-scripts',
+                'dist/refactors',
                 'dist/test',
                 'dist/upload',
                 'src',
@@ -27,7 +28,7 @@ module.exports = {
             merge_logs: true,
         },
         {
-            name: 'CMIP-release',
+            name: 'CMIP-backend-release',
             script: 'dist/server.js',
             args: '--nolazy --inspect=0.0.0.0:65535',
             node_args: '--nolazy --inspect=0.0.0.0:65535',
@@ -38,6 +39,7 @@ module.exports = {
                 'dist/logs',
                 'dist/public',
                 'dist/py-scripts',
+                'dist/refactors',
                 'dist/test',
                 'dist/upload',
                 'src',

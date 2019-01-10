@@ -15,8 +15,10 @@ const schema = new Schema({
     topicIds: Array,
     msIds: Array,
     cmpObjs: Array,
+    temporal: String,
     cid: String,
     subscribed_uids: Array,
+    observationIds: Array,
 }, { collection: collectionName });
 Object.assign(schema.statics, OgmsSchemaStatics)
 interface ISolutionModel extends Model<ISolutionDocument>, IOgmsModel {}
@@ -37,7 +39,9 @@ export interface ISolutionDocument extends Document {
     };
     topicIds?: string[];
     msIds?: string[];
+    observationIds?: string[];
     cmpObjs: CmpObj[];
+    temporal?: '1 day' | '8 day' | '1 year',
     cid: string;
     subscribed_uids: string[];
     [key: string]: any;
@@ -69,8 +73,23 @@ export class CmpObj {
     // 此处的数据参考是比较对象的数据参考，可能是输入，但绝大多数都是输出
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<DataRefer>;
+    // 重构后的数据统一存到 csv 中
+    refactored?: {
+        fpath: string,
+        headers: number,
+        rowStart: number,
+        seperator: string,
+        columns: {
+            id: string,
+            type: string,
+            description: string,
+            unit: string,
+            scale: number,
+            offset: number,
+            missing_value: number,
+        }[]
+    };
     schemaId?: string;
-    temporal?: 'annual' | 'monthly' | 'daily';
     methods: {
         id: string,
         name: string,
@@ -82,17 +101,22 @@ export class CmpObj {
 }
 
 export class DataRefer {
-    msId: string;
-    msName: string;
-    eventType: 'inputs' | 'outputs';
-    eventId: string;
-    eventName: string;
+    type: 'simulation' | 'observation';
+    msId?: string;
+    msName?: string;
+    eventType?: 'inputs' | 'outputs';
+    eventId?: string;
+    eventName?: string;
     stdEventName?: string;              // 用于将多个模型的 event 对应起来
-    schemaId: string;
+    schemaId?: string;
     msrName?: string;
     msrId?: string;
     value?: string;
     field?: string;
+    lat?: number;
+    long?: number;
+    stdId?: string;
+    stdName?: string;
 }
 
 // {   // table-chart: echart-opt

@@ -16,62 +16,41 @@ var jsSrc = 'src/child-process/**',
     pySrc = 'src/py-scripts/**.py',
     pyDest = 'dist/py-scripts';
 
-gulp.task('py-scripts', () => {
-    gulp.src(pySrc)
-        .pipe(gulp.dest(pyDest))
-        .pipe(notify({
-            message: 'copy py-scripts file succeed!',
-            templateOptions: {
-                date: new Date()
-            }
-        }));
-})
+var copyTasks = [
+    {
+        src: 'src/py-scripts/**.py',
+        dist: 'dist/py-scripts',
+    },
+    {
+        src: 'src/refactors/**',
+        dist: 'dist/refactors',
+    },
+    {
+        src: 'src/public/**',
+        dist: 'dist/public',
+    }
+]
 
-// gulp.task('child-process', () => {
-//     gulp.src(jsSrc)
-//         .pipe(gulp.dest(jsDest))
-//         .pipe(notify({
-//             message: 'copy child-process file succeed!',
-//             templateOptions: {
-//                 date: new Date()
-//             }
-//         }));
-// });
-
-gulp.task('public', () => {
-    gulp.src(publicSrc)
-        .pipe(gulp.dest(publicDest))
+gulp.task('copy', () => {
+    copyTasks.map(copyTask => {
+        gulp.src(copyTask.src)
+        .pipe(gulp.dest(copyTask.dist))
         .pipe(notify({
-            message: 'copy public file succeed!',
-            templateOptions: {
-                date: new Date()
-            }
+            message: `copy ${copyTask.src} file succeed!`,
+            templateOptions: { date: new Date() }
         }));
+    })
 })
 
 gulp.task('watch', () => {
-    // gulp.watch(jsSrc, ['child-process'])
-    //     .on('change', (eventType, filename) => {
-    //         console.log(`${filename} changed`);
-    //     });
-    gulp.watch(pySrc, ['py-scripts'])
-        .on('change', (eventType, filename) => {
-            console.log(`${filename} changed`);
-        });
-    gulp.watch(publicSrc, ['public'])
-        .on('change', (eventType, filename) => {
-            console.log(`${filename} changed`);
-        });
+    copyTasks.map(copyTask => {
+        gulp.watch(copyTask.src, ['copy'])
+            .on('change', (eventType, filename) => {
+                console.log(`${filename} changed`);
+            });
+    })
 })
 
 gulp.task('default', () => {
-    gulp.start('public', 'py-scripts', 'watch')
+    gulp.start('copy', 'watch')
 })
-
-// gulp.series(
-//     gulp.parallel(
-//         gulp.task('public'), 
-//         gulp.task('child-process'),
-//     ),
-//     gulp.task('watch'),
-// )

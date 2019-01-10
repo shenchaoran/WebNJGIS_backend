@@ -9,6 +9,7 @@ const session = require('express-session');
 const jwt = require('jwt-simple');
 const path = require('path');
 const favicon = require('serve-favicon');
+const methodOverride = require('method-override');
 import * as _ from 'lodash';
 
 import { setting } from '../config/setting';
@@ -67,4 +68,5 @@ export const preReqMid = (app) => {
             return next();
         }
     });
+    app.use(methodOverride('X-HTTP-Method-Override'))
 }

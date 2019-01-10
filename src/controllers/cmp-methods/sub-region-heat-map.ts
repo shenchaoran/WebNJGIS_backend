@@ -1,4 +1,4 @@
-import { DataRefer, GeoDataModel, UDXSchema, OGMSState } from '../../models';
+import { DataRefer, GeoDataModel, ISchemaDocument, OGMSState } from '../../models';
 import { ObjectID } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -28,13 +28,12 @@ export default class SubHeatMap extends CmpMethod {
     timeVariable
     constructor(
         public dataRefers: DataRefer[], 
-        public schemas: UDXSchema[], 
         public regions,
         public taskId, 
         public cmpObjIndex, 
         public methodIndex,
     ) {
-        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
+        super(dataRefers, regions, taskId, cmpObjIndex, methodIndex)
         this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-heat-map.py')
         this.cmpMethodName = `sub-region-heat-map`;
     }

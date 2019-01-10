@@ -1,4 +1,4 @@
-import { StdDataModel } from '../models';
+import { StdDataModel, SchemaModel } from '../models';
 import * as proj4x from 'proj4';
 const proj4 = (proj4x as any).proj4;
 import { SiteModel } from '../models';

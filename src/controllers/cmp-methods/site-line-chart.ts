@@ -1,4 +1,4 @@
-import { DataRefer, GeoDataModel, UDXSchema, OGMSState } from '../../models';
+import { DataRefer, GeoDataModel, ISchemaDocument, OGMSState } from '../../models';
 import { ObjectID } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -12,13 +12,12 @@ let processCtrl = new ProcessCtrl()
 export default class TableChartCMP extends CmpMethod {
     constructor(
         public dataRefers: DataRefer[], 
-        public schemas: UDXSchema[], 
         public regions,
         public taskId, 
         public cmpObjIndex, 
         public methodIndex,
     ) {
-        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
+        super(dataRefers, regions, taskId, cmpObjIndex, methodIndex)
         this.cmpMethodName = 'table chart'
     }
 
@@ -87,7 +86,7 @@ export default class TableChartCMP extends CmpMethod {
         try {
             let column = []
             let csv$ = fs.createReadStream(fpath, 'utf8');
-            let schema: UDXSchema = this.schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
+            let schema: ISchemaDocument = (process as any).schemas.find(v => v.id === dataRefer.schemaId && v.msId === dataRefer.msId);
             let colNum = (schema.structure as any).columns.findIndex(col => col.id === dataRefer.field)
             await new Bluebird((resolve, reject) => {
                 csv$.pipe(Papa.parse(Papa.NODE_STREAM_INPUT, {
@@ -98,7 +97,7 @@ export default class TableChartCMP extends CmpMethod {
                     skipEmptyLines: true,
                 }))
                     .on('data', item => {
-                        let scale = parseInt(((schema.structure as any).columns[colNum] as any).unitScale);
+                        let scale = parseInt(((schema.structure as any).columns[colNum] as any).scale) || 1;
                         Number.isNaN(scale) && (scale = 1)
                         if(item instanceof Array && item.length === 1) {
                             item = item[0].split(/\s+/g).filter(v => !!v).map(v => parseFloat(v))

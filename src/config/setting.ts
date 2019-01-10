@@ -27,24 +27,24 @@ export const setting = {
     geo_data: {
         path: path.join(__dirname, '/../upload/geo-data')
     },
-    geo_models: {
-        path: path.join(__dirname, '/../upload/geo-models')
-    },
-    UDX: {
-        parse: {
-            maxSize: 10000
-        }
+    refactor: {
+        path: path.join(__dirname, '/../upload/refactor')
     },
     invoke_failed_tag: '-----this is an error identification-----',
     progressReg: /-----Progress:(.*)%-----/,
     debug: {
         child_process: true
     },
-    // std output(实测数据)
-    STD_DATA: {
-        path: 'E:/Data/STD_Measured_Data'
-    },
     daemon: {
         msr_progress: 5000
+    },
+    // 缓存的结果文件夹
+    STD_DATA: {
+        // 'IBIS_2.6b4': '/home/shencr/STD_DATA/IBIS_2.6b4',
+        'IBIS site': '/home/scr/Data/IBIS_Data',
+        'Biome-BGC site': '/home/scr/Data/Biome_BGC_Data',
+        'LPJ': '',
+        'IBIS global': '',              // 这个标准数据集存在上传文件夹中
+        'Biome-BGC global': '',         // 这个标准数据集存在上传文件夹中
     }
 };

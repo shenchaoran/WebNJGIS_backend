@@ -1,7 +1,7 @@
 import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
 import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { UDXSchema } from './UDX-schema.class';
+import { ISchemaDocument } from './UDX-schema.model';
 
 const collectionName = 'Model_Service';
 const schema = new Schema({
@@ -39,7 +39,6 @@ export interface IModelServiceDocument extends Document {
             wikiHTML?: string,
         },
         IO: {
-            schemas: UDXSchema[],
             std?: Event[],
             inputs: Event[],
             parameters?: Event[],

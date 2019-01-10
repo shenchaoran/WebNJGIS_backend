@@ -13,6 +13,7 @@ const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
 const CmpMethodRouter = require('./cmp-methods.route');
 const ConversationRouter = require('./conversation.route');
+const SchemaRouter = require('./schema.route');
 import { setting } from '../config/setting';
 
 export const router = express.Router();
@@ -30,6 +31,7 @@ router.use('/nodes', NodeRouter);
 router.use('/calculation', CalcuRouter);
 router.use('/std-data', STDDataRouter);
 router.use('/conversations', ConversationRouter);
+router.use('/schemas', SchemaRouter);
 
 router.route('/')
     .get((req, res, next) => {

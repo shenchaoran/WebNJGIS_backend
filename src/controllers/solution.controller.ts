@@ -7,8 +7,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import { UDXCfg } from '../models/UDX-cfg.class';
-import { SchemaName } from '../models/UDX-schema.class';
-import { TopicModel, SolutionModel, MetricModel, TaskModel, ModelServiceModel, ResourceSrc, CmpMethodModel, ConversationModel, StdDataModel } from '../models';
+import { SchemaName } from '../models/UDX-schema.model';
+import { TopicModel, SolutionModel, MetricModel, TaskModel, ModelServiceModel, 
+    ResourceSrc, CmpMethodModel, ConversationModel, StdDataModel } from '../models';
 import ConversationCtrl from './conversation.controller';
 import TopicCtrl from './topic.controller';
 const conversationCtrl = new ConversationCtrl();
@@ -50,9 +51,11 @@ export default class SolutionCtrl {
                 CmpMethodModel.find({}),
                 TopicModel.find({}),
                 MetricModel.find({}),
+                StdDataModel.find({tags: {$in: ['Observation']}})
             ])
-                .then(([attached_topics, tasks, mss, cmpMethods, topicList, metrics]) => {
-                    let ptMSs = mss.filter(ms => _.includes(solution.msIds, ms._id.toString()))
+                .then(([attached_topics, tasks, mss, cmpMethods, topicList, metrics, obs]) => {
+                    // let ptMSs = mss.filter(ms => _.includes(solution.msIds, ms._id.toString()))
+                    // let ptObs = obs.filter(obs => _.includes(solution.observationIds, obs._id.toString()))
                     return {
                         solution,
                         attached_topics: attached_topics.map(topic => {
@@ -69,7 +72,6 @@ export default class SolutionCtrl {
                                 auth: task.auth,
                             };
                         }),
-                        ptMSs,
                         mss: mss.map(ms => {
                             return ms
                             // return {
@@ -93,6 +95,7 @@ export default class SolutionCtrl {
                             };
                         }),
                         metrics,
+                        obs,
                     }
                 });
         }

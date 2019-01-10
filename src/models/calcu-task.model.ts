@@ -54,7 +54,6 @@ export interface ICalcuTaskDocument extends Document {
     nodeId: string;
     IO: {
         dataSrc: 'STD' | 'UPLOAD',
-        schemas: any[],
         inputs: Event[],
         parameters: Event[],
         outputs: Event[],

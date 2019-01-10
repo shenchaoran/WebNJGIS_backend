@@ -1,4 +1,4 @@
-import { TaskModel, UDXSchema, OGMSState, DataRefer } from './../../models';
+import { TaskModel, ISchemaDocument, OGMSState, DataRefer } from './../../models';
 import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'events';
 import * as child_process from 'child_process';
@@ -14,7 +14,6 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
     cmpMethodName;
     constructor(
         public dataRefers: DataRefer[], 
-        public schemas: UDXSchema[], 
         public regions,
         public taskId, 
         public cmpObjIndex, 

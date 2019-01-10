@@ -17,7 +17,7 @@ const proj4 = (proj4x as any).proj4;
 import { GeoDataModel, CmpMethodEnum, OGMSState } from '../models';
 import * as StringUtils from '../utils/string.utils';
 import { UDXCfg } from '../models/UDX-cfg.class';
-import { SchemaName } from '../models/UDX-schema.class';
+import { SchemaName } from '../models/UDX-schema.model';
 
 export const parse = (dataId: string, method?: string): Bluebird<any> => {
     return new Bluebird((resolve, reject) => {

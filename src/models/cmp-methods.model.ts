@@ -19,7 +19,6 @@ export interface ICmpMethodDocument extends Document {
         time: number
     };
     IO: {
-        schemas: any[],
         inputs: any[],
         outputs: any[]
     };

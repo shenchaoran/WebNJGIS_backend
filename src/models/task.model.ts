@@ -7,7 +7,7 @@ import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
 import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
 import { DataRefer, CmpObj } from './solution.model';
-import { UDXSchema } from './UDX-schema.class';
+import { ISchemaDocument } from './UDX-schema.model';
 
 const collectionName = 'CmpTask';
 const schema = new Schema({
@@ -19,9 +19,9 @@ const schema = new Schema({
     progress: Number,
     state: String,
     cmpObjs: Schema.Types.Mixed,
+    refactored: Schema.Types.Mixed,
     regions: Schema.Types.Mixed,
     sites: Array,
-    schemas: Schema.Types.Mixed,
     cid: String,
     subscribed_uids: Array,
 }, { collection: collectionName });
@@ -47,6 +47,10 @@ export interface ITaskDocument extends Document {
     solutionId?: string;
     calcuTaskIds: string[];
     cmpObjs: Array<CmpObj>;
+    refactored?: {
+        field: string,
+        fname: string,
+    }[];
     regions?: [][];
     sites?: {
         index: number,
@@ -54,7 +58,6 @@ export interface ITaskDocument extends Document {
         long: number,
         coor?: number[]
     }[];
-    schemas: UDXSchema[];
     cid: string;
     subscribed_uids: string[];
 }

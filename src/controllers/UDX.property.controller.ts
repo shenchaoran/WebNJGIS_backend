@@ -12,7 +12,7 @@ const debug = require('debug');
 const propDebug = debug('WebNJGIS: Property');
 import * as ArrayUtils from '../utils/array.utils';
 import { UDXCfg, GeoDataModel, OGMSState } from '../models';
-import { SchemaName } from '../models/UDX-schema.class';
+import { SchemaName } from '../models/UDX-schema.model';
 
 export const parse = (dataId: string): Bluebird<any> => {
     return new Bluebird((resolve, reject) => {

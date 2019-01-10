@@ -1,4 +1,4 @@
-import { DataRefer, GeoDataModel, UDXSchema, OGMSState } from '../../models';
+import { DataRefer, GeoDataModel, ISchemaDocument, OGMSState } from '../../models';
 import { ObjectID } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -24,18 +24,17 @@ export default class SubLineChart extends CmpMethod {
     timeVariable;
     constructor(
         public dataRefers: DataRefer[], 
-        public schemas: UDXSchema[], 
         public regions,
         public taskId, 
         public cmpObjIndex, 
         public methodIndex,
     ) {
-        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
+        super(dataRefers, regions, taskId, cmpObjIndex, methodIndex)
         this.scriptPath = path.join(__dirname, '../../py-scripts/sub-region-line-chart.py')
         this.cmpMethodName = `sub-region-line-chart`;
 
         _.map(this.dataRefers, dataRefer => {
-            _.map(this.schemas, schema => {
+            _.map((process as any).schemas, schema => {
                 if(!this.timeVariable && dataRefer.schemaId === schema.id) {
                     let timeVariable = _.find((schema.structure as any).variables, {name: 'time'})
                     if(timeVariable) {

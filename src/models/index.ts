@@ -8,7 +8,7 @@ export * from './resource.enum';
 export * from './response.class';
 export * from './UDX-cfg.class';
 export * from './UDX-data.model';
-export * from './UDX-schema.class';
+export * from './UDX-schema.model';
 export * from './UDX-type.class';
 export * from './user.model';
 export * from './topic.model';

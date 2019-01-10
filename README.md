@@ -46,3 +46,6 @@ Navigate to `http://localhost:9999`
     - [ ] nodeDB 添加一些软硬件环境信息
 - [ ] bug: 数据缓存，异步流程控制，返回给前台的是空的
 - [ ] bug: Biome-BGC ini 配置文件，输出控制全部设为 1
+
+## 数据处理
+actual data value (schema unit) = data value * schema scale + schema offset

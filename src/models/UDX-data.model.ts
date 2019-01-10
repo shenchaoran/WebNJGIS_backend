@@ -1,6 +1,6 @@
 import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
 import { Document, Schema, Model, model } from 'mongoose';
-import { UDXSchema } from './UDX-schema.class';
+import { ISchemaDocument } from './UDX-schema.model';
 import { UDXCfg } from './UDX-cfg.class';
 import { ResourceSrc } from './resource.enum';
 
@@ -15,7 +15,6 @@ interface IGeoDataModel extends Model<IGeoDataDocument>, IOgmsModel {}
 export const GeoDataModel: IGeoDataModel = model<IGeoDataDocument, IGeoDataModel>(collectionName, schema);
 
 export interface IGeoDataDocument extends Document {
-
     meta?: {
         name: string,
         path: string,

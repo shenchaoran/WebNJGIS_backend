@@ -3,14 +3,14 @@
  */
 
 import * as _ from 'lodash';
-import { UDXSchema } from './UDX-schema.class';
+import { ISchemaDocument } from './UDX-schema.model';
 import { ResourceSrc } from './resource.enum';
 
 export class UDXCfg {
     entrance?: string;
     entries?: string[];
     desc?: string;
-    schema$?: UDXSchema;
+    schema$?: ISchemaDocument;
 
     constructor() {
         this.entrance = undefined;

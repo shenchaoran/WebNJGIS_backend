@@ -1,4 +1,4 @@
-import { DataRefer, UDXSchema, TaskModel, CmpObj } from '../../models';
+import { DataRefer, ISchemaDocument, TaskModel, CmpObj } from '../../models';
 import * as _ from 'lodash';
 import TableChartCMP from './site-line-chart';
 import ContourMap from './bias-contour-map';
@@ -12,7 +12,6 @@ import * as postal from 'postal';
 export const CmpMethodFactory = function (
     methodName, 
     dataRefers: DataRefer[], 
-    schemas: UDXSchema[], 
     regions,
     taskId, 
     cmpObjIndex, 
@@ -20,9 +19,6 @@ export const CmpMethodFactory = function (
 ) {
     let CmpMethod;
     switch (methodName) {
-        case 'table series visualization':
-            CmpMethod = TableChartCMP;
-            break
         case 'Line chart':
             CmpMethod = TableChartCMP;
             break
@@ -45,22 +41,21 @@ export const CmpMethodFactory = function (
             CmpMethod = ScatterDiagram
             break
     }
-    return new CmpMethod(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex);
+    return new CmpMethod(dataRefers, regions, taskId, cmpObjIndex, methodIndex);
 }
 
-postal.channel('child-process').subscribe('start', async (data, envelope) => {
-    let task = await TaskModel.findOne({_id: data.taskId})
+postal.channel('child-process').subscribe('start', async ({taskId, cmpObjId, methodId}) => {
+    let task = await TaskModel.findOne({_id: taskId})
     if(!task) return false
-    let i = _.findIndex(task.cmpObjs, { id: data.cmpObjId})
+    let i = _.findIndex(task.cmpObjs, { id: cmpObjId})
     if(i === -1) return false
     let cmpObj: CmpObj = task.cmpObjs[i]
-    let j = _.findIndex(cmpObj.methods, {id: data.methodId});
+    let j = _.findIndex(cmpObj.methods, {id: methodId});
     if(j === -1) return false
     let method = cmpObj.methods[j];
     let cmpMethod = CmpMethodFactory(
         method.name, 
         cmpObj.dataRefers, 
-        task.schemas, 
         task.regions,
         task._id, 
         i, 

@@ -8,9 +8,11 @@ import { preReqMid, postResMid } from './middlewares';
 import { init } from './init';
 import './controllers/process.controller';
 require('./controllers/cmp-methods')
+import { SchemaModel } from './models/UDX-schema.model';
 
 init()
-    .then(() => {
+    .then(async () => {
+        (process as any).schemas = await SchemaModel.find({})
         //////////////////////////////////////router
         // (<any>global).app = app;
         app.set('port', setting.port || 3000);

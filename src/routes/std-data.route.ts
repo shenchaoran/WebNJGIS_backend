@@ -24,12 +24,7 @@ router.route('/')
                 .catch(next);
         }
         else {
-            let pageSize = parseInt(req.query.pageSize) || 15,
-                pageIndex = parseInt(req.query.pageIndex) || 1;
-            StdDataModel.findByPages({}, {
-                pageSize: pageSize,
-                pageIndex: pageIndex
-            })
+            StdDataModel.find({})
                 .then(rst => res.json({ data: rst }))
                 .catch(next);
         }

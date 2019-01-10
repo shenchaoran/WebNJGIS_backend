@@ -1,4 +1,4 @@
-import { DataRefer, GeoDataModel, UDXSchema, OGMSState, TaskModel } from '../../models';
+import { DataRefer, GeoDataModel, ISchemaDocument, OGMSState, TaskModel } from '../../models';
 import { ObjectID, ObjectId } from 'mongodb';
 import CmpMethod from './cmp-base';
 import { setting } from '../../config/setting';
@@ -25,18 +25,17 @@ export default class ContourMap extends CmpMethod {
     cmpMethodName
     constructor(
         public dataRefers: DataRefer[], 
-        public schemas: UDXSchema[], 
         public regions,
         public taskId, 
         public cmpObjIndex, 
         public methodIndex,
     ) {
-        super(dataRefers, schemas, regions, taskId, cmpObjIndex, methodIndex)
+        super(dataRefers, regions, taskId, cmpObjIndex, methodIndex)
         this.scriptPath = path.join(__dirname, '../../py-scripts/bias-contour-map.py')
         this.cmpMethodName = `bias-contour-map`;
 
         _.map(this.dataRefers, dataRefer => {
-            _.map(this.schemas, schema => {
+            _.map((process as any).schemas, schema => {
                 if(!this.timeVariable && dataRefer.schemaId === schema.id) {
                     let timeVariable = _.find((schema.structure as any).variables, {name: 'time'})
                     if(timeVariable) {

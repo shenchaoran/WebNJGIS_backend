@@ -11,6 +11,7 @@ import {
     StdDataModel,
     SolutionModel,
     MetricModel,
+    SchemaModel,
 } from '../models';
 import * as postal from 'postal';
 import * as child_process from 'child_process';
@@ -48,7 +49,6 @@ export default class ModelServiceCtrl {
             CalcuTaskModel.find({msId: id}).sort({ _id: -1 }).limit(5),
             MetricModel.find()
         ]).then(([ms, stds, solutions, calcuTasks, metrics]) => {
-
             return {
                 ms,
                 stds,
