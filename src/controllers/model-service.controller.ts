@@ -4,6 +4,7 @@ import { ObjectID } from 'mongodb';
 import { setting } from '../config/setting';
 import DataCtrl from './data.controller';
 import * as path from 'path'
+const fs = Bluebird.promisifyAll(require('fs'));
 import {
     CalcuTaskModel,
     OGMSState,
@@ -64,6 +65,7 @@ export default class ModelServiceCtrl {
     }
 
     /**
+     * 使用标准数据集，并且 parameters 为空时，数据缓存到 STD_DATA 路径下，否则缓存到 Geo_Data DB 中
      * resolve:
      *      {msrId, code, desc}
      *      code:
@@ -85,11 +87,31 @@ export default class ModelServiceCtrl {
         try {
             if (typeof msr === 'string')
                 msr = await CalcuTaskModel.findOne({ _id: msr });
-            else {
-                if (!msr._id)
-                    msr._id = new ObjectID()
-                await CalcuTaskModel.upsert({ _id: msr._id }, msr);
+            if (!msr._id)
+                msr._id = new ObjectID()
+            if(msr.IO.dataSrc === 'STD' && (!msr.IO.parameters || msr.IO.parameters.length === 0)) {
+                let stds = msr.IO.std
+                let datasetPath = _.find(stds, std => std.id === '--dataset').value
+                let index = _.find(stds, std => std.id === '--index').value
+                let fsuffix
+                if(msr.msName === 'Biome-BGC site') {
+                    fsuffix = '.daily.ascii'
+                }
+                else if(msr.msName === 'IBIS site') {
+                    fsuffix = '.state.txt'
+                }
+                let fpath = path.join(setting.STD_DATA[msr.msName], datasetPath, 'outputs', `${index}${fsuffix}`)
+                try {
+                    await fs.accessAsync(fpath, fs.constants.F_OK)
+                    msr.progress = 100
+                    msr.state = OGMSState.FINISHED_SUCCEED
+                    msr.cachedPosition = 'STD'
+                }
+                catch(e) {
+
+                }
             }
+            await CalcuTaskModel.upsert({ _id: msr._id }, msr);
 
             // if (OGMSState.INIT === msr.state) {
             //     // postal.channel(msr._id.toString()).publish('')
@@ -136,8 +158,13 @@ export default class ModelServiceCtrl {
 
             }
             else if (OGMSState.FINISHED_SUCCEED === msr.state) {
-                let dataCtrl = new DataCtrl()
-                dataCtrl.cacheDataBatch(msr._id)
+                if(msr.cachedPosition !== 'STD') {
+                    let dataCtrl = new DataCtrl()
+                    dataCtrl.cacheDataBatch(msr._id)
+                }
+                else {
+                    postal.channel(msr._id.toString()).publish('afterDataBatchCached', {code: 200})
+                }
                 // postal.channel(msr._id).publish('beforeModelInvoke', { code: 200 })
                 return {
                     msrId: msr._id,

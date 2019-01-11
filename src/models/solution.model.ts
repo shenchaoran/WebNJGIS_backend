@@ -15,6 +15,7 @@ const schema = new Schema({
     topicIds: Array,
     msIds: Array,
     cmpObjs: Array,
+    cmpMethods: Array,
     temporal: String,
     cid: String,
     subscribed_uids: Array,
@@ -41,6 +42,10 @@ export interface ISolutionDocument extends Document {
     msIds?: string[];
     observationIds?: string[];
     cmpObjs: CmpObj[];
+    cmpMethods: {
+        id: string,
+        name: string
+    }[];
     temporal?: '1 day' | '8 day' | '1 year',
     cid: string;
     subscribed_uids: string[];
@@ -73,34 +78,10 @@ export class CmpObj {
     // 此处的数据参考是比较对象的数据参考，可能是输入，但绝大多数都是输出
     // TODO 对于日期的处理，暂时理解为时间区域内只有一个输出
     dataRefers: Array<DataRefer>;
-    // 重构后的数据统一存到 csv 中
-    refactored?: {
-        fpath: string,
-        headers: number,
-        rowStart: number,
-        seperator: string,
-        columns: {
-            id: string,
-            type: string,
-            description: string,
-            unit: string,
-            scale: number,
-            offset: number,
-            missing_value: number,
-        }[]
-    };
-    schemaId?: string;
-    methods: {
-        id: string,
-        name: string,
-        // 保存结果文件路径，或者其他格式的比较结果
-        result: any,
-        progress: number,
-        state: OGMSState,
-    }[];
 }
 
 export class DataRefer {
+    cachedPosition: 'STD' | 'DB';
     type: 'simulation' | 'observation';
     msId?: string;
     msName?: string;
@@ -117,6 +98,7 @@ export class DataRefer {
     long?: number;
     stdId?: string;
     stdName?: string;
+    datasetId?: string;                 // 标准输入数据集 id
 }
 
 // {   // table-chart: echart-opt

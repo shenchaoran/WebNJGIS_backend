@@ -8,9 +8,9 @@ import { ITaskDocument, GeoDataModel, StdDataModel, TaskModel, ISchemaDocument }
 import { addYears, addDays, format, parse, addHours, max, min, differenceInDays } from 'date-fns';
 
 const refactorMap = {
-    table: 'csv.refactor.js',
-    'obs-table': 'csv.refactor.js',
-    NETCDF4: 'nc.refactor.js',
+    table: 'csv.refactor.py',
+    'obs-table': 'csv.refactor.py',
+    NETCDF4: 'nc.refactor.py',
 }
 
 export default class RefactorCtrl {
@@ -21,7 +21,7 @@ export default class RefactorCtrl {
     long;
     constructor(public task: ITaskDocument) {}
 
-    private formatDate(time, unit): Date {
+    private _formatDate(time, unit): Date {
         let endDate;
         let startDate = parse(unit + ' GMT+0')
         if(_.startsWith(unit, 'days since')) {
@@ -44,14 +44,21 @@ export default class RefactorCtrl {
         this.lat = this.task.sites[0].lat,
         this.long = this.task.sites[0].long;
         
-        _.map(this.task.cmpObjs, cmpObj => {
-            _.map(cmpObj.dataRefers, async df => {
+        this.task.isAllSTDCache = true
+        for(let cmpObj of this.task.cmpObjs) {
+            for(let df of cmpObj.dataRefers) {
                 try {
                     let id, inputFilePath;
                     if(df.type === 'simulation') {
                         id = `${df.msId}-${df.eventId}-${df.msrId}`
-                        let geoData = await GeoDataModel.findOne({_id: df.value})
-                        inputFilePath = path.join(setting.geo_data.path, geoData.meta.path);
+                        if(df.cachedPosition === 'DB') {
+                            let geoData = await GeoDataModel.findOne({_id: df.value})
+                            inputFilePath = path.join(setting.geo_data.path, geoData.meta.path);
+                            this.task.isAllSTDCache = false;
+                        }
+                        else if(df.cachedPosition === 'STD') {
+                            inputFilePath = path.join(setting.STD_DATA[df.msName], df.datasetId, 'outputs', df.value)
+                        }
                     }
                     else if(df.type === 'observation') {
                         id = `${df.stdId}`
@@ -84,12 +91,12 @@ export default class RefactorCtrl {
                     }
                     let schema = _.find((process as any).schemas, schema => schema.id === df.schemaId) as ISchemaDocument
                     refactorIO.fields.push(df.field)
-                    this.fields.add(df.field)
+                    this.fields.add(cmpObj.name)
                     if(schema) {
                         refactorIO.refactorScript = refactorMap[schema.structure.type]
                         if(schema.structure.type === 'table' || schema.structure.type === 'obs-table') {
-                            refactorIO.startDate = this.formatDate(schema.structure.start, schema.structure.unit);
-                            refactorIO.endDate = this.formatDate(schema.structure.end, schema.structure.unit);
+                            refactorIO.startDate = this._formatDate(schema.structure.start, schema.structure.unit);
+                            refactorIO.endDate = this._formatDate(schema.structure.end, schema.structure.unit);
                             refactorIO.start = schema.structure.start;
                             refactorIO.end = schema.structure.end;
                             refactorIO.step = schema.structure.step || 1;
@@ -104,8 +111,8 @@ export default class RefactorCtrl {
                         }
                         else if(schema.structure.type === 'NETCDF4') {
                             let timeVariable = _.find(schema.structure.variables, variable => variable.name === 'time')
-                            refactorIO.startDate = this.formatDate(timeVariable.start, timeVariable.unit);
-                            refactorIO.endDate = this.formatDate(timeVariable.end, timeVariable.unit);
+                            refactorIO.startDate = this._formatDate(timeVariable.start, timeVariable.unit);
+                            refactorIO.endDate = this._formatDate(timeVariable.end, timeVariable.unit);
                             refactorIO.start = timeVariable.start;
                             refactorIO.end = timeVariable.end;
                             refactorIO.step = timeVariable.step || 1;
@@ -121,29 +128,32 @@ export default class RefactorCtrl {
                 catch(e) {
                     console.error(e)
                 }
-            })
-        })
+            }
+        }
 
         // 处理 start, end, step
         let maxStart, minEnd, maxStep;
         maxStep = _.chain(this.refactorIOs).map(refactorIO => refactorIO.step).max().value();
-        maxStart = max(_.map(this.refactorIOs, refactorIO => refactorIO.startDate) as any);
-        minEnd = min(_.map(this.refactorIOs, refactorIO => refactorIO.endDate) as any);
+        maxStart = max(...(_.map(this.refactorIOs, refactorIO => refactorIO.startDate) as any));
+        minEnd = min(...(_.map(this.refactorIOs, refactorIO => refactorIO.endDate) as any));
         _.map(this.refactorIOs, refactorIO => {
-            refactorIO.start = differenceInDays(maxStart, refactorIO.start)
-            refactorIO.end -= differenceInDays(refactorIO.end, minEnd)
-            refactorIO.step = maxStep
+            refactorIO.start = parseInt(differenceInDays(maxStart, refactorIO.startDate)/refactorIO.step as any)
+            refactorIO.end -= parseInt(differenceInDays(refactorIO.endDate, minEnd)/refactorIO.step as any)
+            refactorIO.step = Math.ceil(maxStep/refactorIO.step)
         })
     }
 
     async refactor() {
         try {
             await this._parse();
-            await Bluebird.map(this.refactorIOs, refactorIO => {
+            await Bluebird.map(this.refactorIOs, v => {
+                let refactorIO = v;
                 return new Bluebird((resolve, reject) => {
                     let cmdStr = path.join(__dirname, '../refactors', refactorIO.refactorScript)
-                    const cp = child_process.spawn('python', [cmdStr, JSON.stringify(refactorIO)])
-                    let stdout, stderr;
+                    let args = [cmdStr, JSON.stringify(refactorIO)]
+                    const cp = child_process.spawn('python', args)
+                    // console.log(args)
+                    let stdout = '', stderr = '';
                     cp.stdout.on('data', data => {
                         stdout += data.toString()
                     })
@@ -152,38 +162,54 @@ export default class RefactorCtrl {
                     })
                     cp.on('close', async code => {
                         if(code === 0) {
-                            refactorIO.data = JSON.parse(stdout)
+                            try {
+                                refactorIO.data = JSON.parse(stdout)
+                            }
+                            catch(e) {
+
+                            }
+                            // console.log(refactorIO.refactorScript, refactorIO.label, stdout)
+                            console.log(`******* ${refactorIO.label} refactor succeed`)
                             resolve()
                         }
                         else {
+                            console.error(refactorIO.refactorScript, refactorIO.label, stderr)
                             resolve()
                         }
                     })
                 })
             })
             
-            if(!this.task.refactored)
-                this.task.refactored = [];
-            _.map(Array.from(this.fields) as string[], async field => {
-                let refactoredCSV
-                _.map(this.refactorIOs, refactorIO => {
+            this.task.refactored = [];
+            for(let field of Array.from(this.fields)) {
+                let refactoredCSV = []
+                for(let refactorIO of this.refactorIOs) {
                     if(refactorIO.data) {
                         let varIndex = _.findIndex(refactorIO.fields, key => key === field)
                         if(varIndex !== -1) {
-                            // refactoredCSV.push(_.concat(refactorIO.label, refactorIO.data))
-                            if(!refactoredCSV) {
-                                refactoredCSV = new Array(refactorIO.data.length + 1).fill([])
-                            }
-                            refactoredCSV[0].push(refactorIO.label)
-                            refactorIO.data.map((v, i) => {
-                                refactoredCSV[i+1].push(v)
-                            })
+                            refactoredCSV.push(_.concat([refactorIO.label], refactorIO.data[varIndex]))
                         }
                     }
-                })
-                let resultFname = `${this.index}-${this.lat}-${this.long}-${field}-${this.task._id.toString()}`
+                }
+                let csvT = [],
+                    colNum = refactoredCSV[0].length,
+                    rowNum = refactoredCSV.length;
+                for(let j=0; j< colNum; j++) {
+                    csvT.push([])
+                    for(let i=0; i< rowNum; i++) {
+                        csvT[j].push(refactoredCSV[i][j])
+                    }
+                }
+                // 或者结尾用 solutionId 也行（前提是只有一套标准输入集），这样查找缓存更方便
+                let resultFname
+                if(this.task.isAllSTDCache) {
+                    resultFname = `${this.index}-${this.lat}-${this.long}-${field}-${this.task.solutionId}`
+                }
+                else {
+                    resultFname = `${this.index}-${this.lat}-${this.long}-${field}-${this.task._id.toString()}`
+                }
                 let resultPath = path.join(setting.refactor.path, resultFname)
-                let resultStr = _.chain(refactoredCSV).map(row => row.join(',')).join('\n').value()
+                let resultStr = _.chain(csvT).map(row => row.join(',')).join('\n').value()
                 let err = await fs.writeFileAsync(resultPath, resultStr, 'utf8')
                 if(!err) {
                     this.task.refactored.push({
@@ -191,7 +217,7 @@ export default class RefactorCtrl {
                         fname: resultFname
                     })
                 }
-            })
+            }
             await TaskModel.updateOne({_id: this.task._id}, {$set: this.task})
             return this.task;
         }

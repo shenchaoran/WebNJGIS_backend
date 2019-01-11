@@ -19,7 +19,9 @@ const schema = new Schema({
     progress: Number,
     state: String,
     cmpObjs: Schema.Types.Mixed,
+    cmpMethods: Array,
     refactored: Schema.Types.Mixed,
+    isAllSTDCache: Boolean,
     regions: Schema.Types.Mixed,
     sites: Array,
     cid: String,
@@ -47,16 +49,30 @@ export interface ITaskDocument extends Document {
     solutionId?: string;
     calcuTaskIds: string[];
     cmpObjs: Array<CmpObj>;
+    methods: Array<{
+        id: string,
+        name: string,
+    }>;
     refactored?: {
         field: string,
         fname: string,
+        results: {
+            // isAllSTDCache === true: 
+            // imgFPath = `public/images/std-plots/`${index}-${lat}-${long}-${field}-${slnId}``
+            methodId: string,
+            methodName: string,
+            progress: number,
+            state: string,
+            img: string,
+        }[],
     }[];
+    isAllSTDCache?: boolean;
     regions?: [][];
     sites?: {
         index: number,
         lat: number,
         long: number,
-        coor?: number[]
+        coor?: string
     }[];
     cid: string;
     subscribed_uids: string[];
@@ -70,26 +86,3 @@ export enum OGMSState {
     FINISHED_FAILED = 'FINISHED_FAILED',
     PENDING = 'PENDING',
 };
-
-export class CmpResult {
-    image?: [{
-        extent: any,
-        path: string,                 // data/:id/:entry 此处返回一个图片的文件路径，不要把base64塞进去，不然太大
-        title: string,
-        progress: number
-    }];
-    chart?: {
-        show: any,
-        prop: any
-        // progress: number,
-        // path: string,               // data/:id/:entrance 同样的，这里也放一个文件路径，前台解析为二位数组，做成 chart
-        // row: any[]
-    };
-    GIF?: {
-        progress: number
-    };
-    statistic?: {
-        progress: number,
-        path: string
-    };
-}

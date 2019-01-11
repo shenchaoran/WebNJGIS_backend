@@ -1,6 +1,4 @@
-import csv
-import pandas
-import sys, getopt
+import sys
 import json
 import numpy as np
 from netCDF4 import Dataset
@@ -30,6 +28,7 @@ if 'offsets' not in params.keys():
 if 'step' not in params.keys():
     params['step'] = 1
 
+
 dataset = Dataset(params['inputFilePath'], 'r', format='NETCDF4')
 result = []
 for i, variableName in enumerate(params['fields']):
@@ -42,4 +41,11 @@ for i, variableName in enumerate(params['fields']):
     result.append(variable[:, latIndex, longIndex][::step] * scale + offset)
 
 dataset.close()
-print(np.array(result.T).tolist())
+
+formatted = []
+for i,row in enumerate(np.array(result).tolist()):
+    formatted.append([])
+    for j,cell in enumerate(row):
+        formatted[i].append(round(cell, 4))
+
+print(json.dumps(formatted))

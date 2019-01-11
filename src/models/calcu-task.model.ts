@@ -22,6 +22,7 @@ const schema = new Schema({
     topicId: String,
     topicName: String,
     log: Schema.Types.Mixed,
+    cachedPosition: String,
     state: String,
     progress: Number,
     cid: String,
@@ -63,6 +64,7 @@ export interface ICalcuTaskDocument extends Document {
         cached: boolean,
         dataId: string
     };
+    cachedPosition: 'STD' | 'DB';
     state: OGMSState;
     progress: number;
     subscribed_uids: string[];

@@ -1,12 +1,13 @@
 import { DataRefer, ISchemaDocument, TaskModel, CmpObj } from '../../models';
 import * as _ from 'lodash';
-import TableChartCMP from './site-line-chart';
+import TableChartCMP from './line-chart';
 import ContourMap from './bias-contour-map';
 import BoxDiagram from './box-diagram';
 import SubHeatMap from './sub-region-heat-map';
 import SubLineChart from './sub-region-line-chart';
 import TaylorDiagram from './taylor-diagram';
 import ScatterDiagram from './scatter-diagram';
+import SiteChart from './site-chart';
 import * as postal from 'postal';
 
 export const CmpMethodFactory = function (
@@ -20,11 +21,10 @@ export const CmpMethodFactory = function (
     let CmpMethod;
     switch (methodName) {
         case 'Line chart':
-            CmpMethod = TableChartCMP;
-            break
         case 'Taylor diagram':
-            CmpMethod = TaylorDiagram;
-            break
+        case 'Box diagram':
+        case 'Scatter diagram':
+            return new SiteChart(methodName, dataRefers)
         case 'Bias contour map':
             CmpMethod = ContourMap;
             break
@@ -33,12 +33,6 @@ export const CmpMethodFactory = function (
             break
         case 'Sub-region line chart':
             CmpMethod = SubLineChart;
-            break
-        case 'Box diagram':
-            CmpMethod = BoxDiagram;
-            break
-        case 'Scatter diagram':
-            CmpMethod = ScatterDiagram
             break
     }
     return new CmpMethod(dataRefers, regions, taskId, cmpObjIndex, methodIndex);

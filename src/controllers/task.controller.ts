@@ -260,14 +260,42 @@ export default class CmpTaskCtrl {
             task.cmpObjs.map(cmpObj => {
                 cmpObj.dataRefers.map(dataRefer => {
                     let msr = (calcuTasks as any[]).find(msr => msr._id.toHexString() === dataRefer.msrId);
-                    if (msr)
-                        for (let key in msr.IO) {
-                            if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
-                                let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
-                                if (event)
-                                    dataRefer.value = event.value
+                    if (msr) {
+                        if(msr.cachedPosition === 'STD') {
+                            if(dataRefer.type === 'simulation') {
+                                let index = _.find(msr.IO.std, std => std.id === '--index').value;
+                                if(dataRefer.eventId === '--do') {
+                                    if(dataRefer.msName === 'IBIS site') {
+                                        dataRefer.value = `${index}.daily.txt`
+                                    }
+                                    else if(dataRefer.msName === 'Biome-BGC site') {
+                                        dataRefer.value = `${index}.daily.ascii`
+                                    }
+                                }
+                                else if(dataRefer.eventId === '--ao') {
+                                    if(dataRefer.msName === 'IBIS site') {
+                                        dataRefer.value = `${index}.annual.txt`
+                                    }
+                                    else if(dataRefer.msName === 'Biome-BGC site') {
+                                        dataRefer.value = `${index}.annual.ascii`
+                                    }
+                                }
+                                dataRefer.datasetId = _.find(msr.IO.std, std => std.id === '--dataset').value;
+                                dataRefer.cachedPosition = 'STD'
                             }
                         }
+                        else {
+                            for (let key in msr.IO) {
+                                if (key === 'inputs' || key === 'outputs' || key === 'parameters') {
+                                    let event = msr.IO[key].find(event => event.id === dataRefer.eventId)
+                                    if (event) {
+                                        dataRefer.cachedPosition = 'DB'
+                                        dataRefer.value = event.value
+                                    }
+                                }
+                            }
+                        }
+                    }
                 })
             })
             await TaskModel.updateOne({ _id: task._id }, { $set: task })

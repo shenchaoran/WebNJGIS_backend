@@ -22,8 +22,8 @@ module.exports = {
                 'node_modules'
             ],
             max_memory_restart: '2G',
-            output: 'src/logs/log.log',
-            error: 'src/logs/error.err',
+            output: 'dist/logs/log.log',
+            error: 'dist/logs/error.err',
             log_date_format: 'YYYY-MM-DD HH:mm',
             merge_logs: true,
         },
