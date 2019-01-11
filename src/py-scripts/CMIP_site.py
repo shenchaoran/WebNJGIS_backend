@@ -18,30 +18,48 @@ from itertools import cycle, islice
 # {
 #     inputFilePath,
 #     chart: 'scatter' | 'line' | 'taylor' | 'box',
-#     obsIndex: null | number,
 #     outputPath,
 #     missing_value,
 #     header,
-#     field,
+#     metricName,
 # }
+
+argv = json.loads(sys.argv[1])
 
 connection = pymongo.MongoClient('223.2.35.73', 27017)
 cmpDB = connection['Comparison']
 metricTable = cmpDB['Metric']
-METRIC = metricTable.find_one({ "name" : field})
-
-argv = json.loads(sys.argv[1])
+METRIC = metricTable.find_one({ "name" : argv['metricName']})
+obsNameDict = {
+    "GPP": "GPP_f",
+    "NEE": "NEE_f",
+    "Reco": "Reco",
+    "NPP": "asdfsadfg"
+}
+obsOriginalName = obsNameDict[argv['metricName']]
 
 df = pd.read_csv(argv['inputFilePath'], header=0)
 df.mask(df > METRIC['max'], np.nan)
 df.mask(df < METRIC['min'], np.nan)
+if 'missing_value' in argv.keys():
+    df.mask(df == METRIC['missing_value'], np.nan)
 
 columnNumber = len(df.columns)
 rowNumber = len(df)
-obsCol = df.iloc[:, argv['obsIndex']]
-obsColName = df.columns[argv['obsIndex']]
-obsData = obsCol.values
+
+for i, col in enumerate(df.columns):
+    if col == obsOriginalName:
+        obsColIndex = i
+        obsColName = col
+        obsCol = df[obsColName]
+        obsData = obsCol.values
+# obsColName = next((col for col in df if col == obsOriginalName), None)
+# if obsColName:
+    
+
 if argv['chart'] == 'Scatter diagram':
+    if 'obsColName' not in locals().keys:
+        print('failed')
     # 多幅子图：每一幅是 simulation 和 observation 的散点图/回归直线
     plotColNumber = 2
     plotRowNumber = ceil(columnNumber/plotColNumber)
@@ -51,7 +69,7 @@ if argv['chart'] == 'Scatter diagram':
     fig = plt.figure(figsize=(14, 14), tight_layout=True)
 
     for i in range(columnNumber):
-        if i ==  argv['obsIndex']:
+        if i ==  obsColIndex:
             pass
         else:
             simCol = df.iloc[:,i]
@@ -81,12 +99,15 @@ if argv['chart'] == 'Scatter diagram':
                 y = np.polyval(p1, x)
                 ax.plot(x, y, '-', color='#ff7f0e')
             plotIndex += 1
-elif argv['chart'] == 'Box diagram':
+    print('succeed')
+elif argv['chart'] == 'Taylor diagram':
+    if 'obsColName' not in locals().keys: 
+        print('failed')
     stds = []
     rmsds = []
     coefs = []
     for i in range(columnNumber):
-        if i == argv['obsIndex']:
+        if i == obsColIndex:
             stds.append(obsData.std())
             rmsds.append(0)
             coefs.append(1)
@@ -103,6 +124,7 @@ elif argv['chart'] == 'Box diagram':
             coefs.append(coef)
     sm.taylor_diagram(np.array(stds), np.array(rmsds), np.array(coefs),
         markerLabel = df.columns, rmslabelformat=':.1f')
+    print('succeed')
 elif argv['chart'] == 'Line chart':
     x = np.arange(rowNumber)
     for i in range(columnNumber):
@@ -111,6 +133,7 @@ elif argv['chart'] == 'Line chart':
         simData = simCol.values
         plt.plot(x, simData, label=simColName)
     plt.legend()
+    print('succeed')
 elif argv['chart'] == 'Box diagram':
     seriesData = []
     for i in range(columnNumber):
@@ -124,7 +147,7 @@ elif argv['chart'] == 'Box diagram':
     # color = cm.jet(percent)
     # set_box_color(box, color)
     plt.plot([], label=df.columns)
+    print('succeed')
 
-plt.savefig(params['outputPath', format='png', transparent=True])
+plt.savefig(argv['outputPath'], format='png', transparent=True)
 plt.close('all')
-print('SUCCEDD: ' + argv['chart'])

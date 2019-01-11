@@ -49,21 +49,28 @@ export interface ITaskDocument extends Document {
     solutionId?: string;
     calcuTaskIds: string[];
     cmpObjs: Array<CmpObj>;
-    methods: Array<{
+    cmpMethods: Array<{
         id: string,
         name: string,
     }>;
     refactored?: {
-        field: string,
+        metricName: string,
         fname: string,
-        results: {
+        methods?: {
             // isAllSTDCache === true: 
             // imgFPath = `public/images/std-plots/`${index}-${lat}-${long}-${field}-${slnId}``
-            methodId: string,
-            methodName: string,
-            progress: number,
-            state: string,
-            img: string,
+            id: string,
+            name: string,
+            progress?: number,
+            state?: string,
+            result?: {
+                img?: string,
+                ext?: string,
+                imgPrefix?: string,
+                timeLabels?: string,
+                regionLength?: string,
+                format?: string,
+            },
         }[],
     }[];
     isAllSTDCache?: boolean;

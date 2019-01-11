@@ -27,9 +27,6 @@ export const setting = {
     geo_data: {
         path: path.join(__dirname, '/../upload/geo-data')
     },
-    refactor: {
-        path: path.join(__dirname, '/../upload/refactor')
-    },
     invoke_failed_tag: '-----this is an error identification-----',
     progressReg: /-----Progress:(.*)%-----/,
     debug: {

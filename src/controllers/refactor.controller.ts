@@ -15,7 +15,7 @@ const refactorMap = {
 
 export default class RefactorCtrl {
     refactorIOs: RefactorIO[] = []
-    fields = new Set()
+    metricNames = new Set()
     index;
     lat;
     long;
@@ -81,7 +81,7 @@ export default class RefactorCtrl {
                             long: this.long,
                             data: null,
                             label: df.msName? df.msName: df.stdName,
-                            fields: [],
+                            metricNames: [],
                             colIndexs: [],
                             scales: [],
                             offsets: [],
@@ -90,8 +90,8 @@ export default class RefactorCtrl {
                         this.refactorIOs.push(refactorIO)
                     }
                     let schema = _.find((process as any).schemas, schema => schema.id === df.schemaId) as ISchemaDocument
-                    refactorIO.fields.push(df.field)
-                    this.fields.add(cmpObj.name)
+                    refactorIO.metricNames.push(df.field)
+                    this.metricNames.add(cmpObj.name)
                     if(schema) {
                         refactorIO.refactorScript = refactorMap[schema.structure.type]
                         if(schema.structure.type === 'table' || schema.structure.type === 'obs-table') {
@@ -181,11 +181,11 @@ export default class RefactorCtrl {
             })
             
             this.task.refactored = [];
-            for(let field of Array.from(this.fields)) {
+            for(let metricName of Array.from(this.metricNames)) {
                 let refactoredCSV = []
                 for(let refactorIO of this.refactorIOs) {
                     if(refactorIO.data) {
-                        let varIndex = _.findIndex(refactorIO.fields, key => key === field)
+                        let varIndex = _.findIndex(refactorIO.metricNames, key => key === metricName)
                         if(varIndex !== -1) {
                             refactoredCSV.push(_.concat([refactorIO.label], refactorIO.data[varIndex]))
                         }
@@ -203,18 +203,26 @@ export default class RefactorCtrl {
                 // 或者结尾用 solutionId 也行（前提是只有一套标准输入集），这样查找缓存更方便
                 let resultFname
                 if(this.task.isAllSTDCache) {
-                    resultFname = `${this.index}-${this.lat}-${this.long}-${field}-${this.task.solutionId}`
+                    resultFname = `${this.index}-${this.lat}-${this.long}-${metricName}-${this.task.solutionId}.csv`
                 }
                 else {
-                    resultFname = `${this.index}-${this.lat}-${this.long}-${field}-${this.task._id.toString()}`
+                    resultFname = `${this.index}-${this.lat}-${this.long}-${metricName}-${this.task._id.toString()}.csv`
                 }
-                let resultPath = path.join(setting.refactor.path, resultFname)
+                let resultFolder
+                if(this.task.isAllSTDCache) {
+                    resultFolder = path.join(setting.geo_data.path, '../std-refactor')
+                }
+                else {
+                    resultFolder = path.join(setting.geo_data.path, '../custom-refactor')
+                }
+                let resultPath = path.join(resultFolder, resultFname)
                 let resultStr = _.chain(csvT).map(row => row.join(',')).join('\n').value()
                 let err = await fs.writeFileAsync(resultPath, resultStr, 'utf8')
                 if(!err) {
                     this.task.refactored.push({
-                        field,
-                        fname: resultFname
+                        metricName,
+                        fname: resultFname,
+                        methods: _.cloneDeep(this.task.cmpMethods),
                     })
                 }
             }
@@ -241,7 +249,7 @@ class RefactorIO {
     endDate?: Date;
     skiprows?: number;
     sep?: string;
-    fields: string[];
+    metricNames: string[];
     scales?: number[];
     offsets?: number[];
     colIndexs?: number[];
@@ -249,3 +257,4 @@ class RefactorIO {
     label: string;
     refactorScript: string;
 }
+

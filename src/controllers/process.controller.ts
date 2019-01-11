@@ -78,15 +78,15 @@ export default class ProcessCtrl {
     }
 
     // 添加比较任务到队列
-    async push(taskId, cmpObjId, methodId, rightNow=false) {
+    async push(taskId, metricName, methodName, rightNow=false) {
         if(this.child_processes.length < this.concurrency || rightNow) {
-            postal.channel('child-process').publish('start', { taskId, cmpObjId, methodId })
+            postal.channel('child-process').publish('start', { taskId, metricName, methodName })
         }
         else {
             ProcessQueueModel.insert({
                 taskId,
-                cmpObjId,
-                methodId
+                metricName,
+                methodName
             })
         }
     }
@@ -100,15 +100,15 @@ export default class ProcessCtrl {
         }
     }
 
-    async shutdown(taskId, cmpObjId, methodId) {
+    async shutdown(taskId, metricName, methodName) {
         try {
             console.log(this.child_processes)
             let cp = _.find(this.child_processes, cp => {
-                return cp.taskId === taskId && cp.cmpObjId === cmpObjId && cp.methodId === methodId
+                return cp.taskId === taskId && cp.metricName === metricName && cp.methodName === methodName
             }) as IProcessQueueDocument
             if(cp) {
                 process.kill(cp.pid)
-                console.log(`******** shutdown: pid-${cp.pid}-methodId-${methodId}-taskId-${cmpObjId}-cmpObjId-${taskId}`)
+                console.log(`******** shutdown: pid-${cp.pid}-metricName-${metricName}-methodName-${methodName}-taskId-${taskId}`)
                 this.remove(cp.pid)
                 await TaskModel.update(cp.condition, {
                     $set: { 
@@ -123,10 +123,10 @@ export default class ProcessCtrl {
         }
     }
 
-    async restart(taskId, cmpObjId, methodId) {
+    async restart(taskId, metricName, methodName) {
         try {
-            await this.shutdown(taskId, cmpObjId, methodId)
-            this.push(taskId, cmpObjId, methodId)
+            await this.shutdown(taskId, metricName, methodName)
+            this.push(taskId, metricName, methodName)
         }
         catch(e) {
             console.error(e)

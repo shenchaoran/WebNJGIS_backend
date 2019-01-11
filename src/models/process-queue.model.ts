@@ -4,8 +4,8 @@ import { Document, Schema, Model, model } from 'mongoose';
 const collectionName = 'Process_Queue';
 const schema = new Schema({
     taskId: String,
-    cmpObjId: String,
-    methodId: String,
+    metricName: String,
+    methodName: String,
 }, { collection: collectionName });
 Object.assign(schema.statics, OgmsSchemaStatics)
 
@@ -14,8 +14,8 @@ export const ProcessQueueModel: IProcessQueueModel = model<IProcessQueueDocument
 
 export interface IProcessQueueDocument extends Document {
     taskId: string;
-    cmpObjId: string;
-    methodId: string;
+    metricName: string;
+    methodName: string;
     pid: number;
     condition: any;                     // 数据库的查询语句
     updatePath: any;                    // 数据库的更新语句

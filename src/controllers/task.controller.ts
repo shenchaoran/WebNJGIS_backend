@@ -10,7 +10,6 @@ import RefactorCtrl from './refactor.controller';
 import { UDXCfg } from '../models/UDX-cfg.class';
 import CalcuTaskCtrl from './calcu-task.controller';
 import ModelServiceCtrl from './model-service.controller';
-import { CmpMethodFactory } from './cmp-methods';
 import * as postal from 'postal';
 import {
     TaskModel,
@@ -113,28 +112,28 @@ export default class CmpTaskCtrl {
             ]);
             let ptMSs = await ModelServiceModel.findByIds(solution.msIds);
 
-            for(let cmpObj of task.cmpObjs) {
-                for( let method of cmpObj.methods) {
-                    if(
-                        method.name === 'Bias contour map' ||
-                        method.name === 'Taylor diagram' ||
-                        method.name === 'Box diagram' ||
-                        method.name === 'Scatter diagram'
-                    ) {
+            // for(let cmpObj of task.cmpObjs) {
+            //     for( let method of task.cmpMethods) {
+            //         if(
+            //             method.name === 'Bias contour map' ||
+            //             method.name === 'Taylor diagram' ||
+            //             method.name === 'Box diagram' ||
+            //             method.name === 'Scatter diagram'
+            //         ) {
 
-                    }
-                    else if(
-                        (method.name === 'Heat map' || 
-                        method.name === 'Sub-region line chart' || 
-                        method.name === 'table series visualization' ||
-                        method.name === 'Line chart') &&
-                        method.result
-                    ) {
-                        let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
-                        method.result = JSON.parse(opt);
-                    }
-                }
-            }
+            //         }
+            //         else if(
+            //             (method.name === 'Heat map' || 
+            //             method.name === 'Sub-region line chart' || 
+            //             method.name === 'table series visualization' ||
+            //             method.name === 'Line chart') 
+            //             // method.result
+            //         ) {
+            //             // let opt = await fs.readFileAsync(path.join(setting.geo_data.path, method.result), 'utf8')
+            //             // method.result = JSON.parse(opt);
+            //         }
+            //     }
+            // }
             return { task, solution, ptMSs, calcuTasks, metrics, }
         }
         catch (e) {
@@ -220,9 +219,10 @@ export default class CmpTaskCtrl {
             let task = await this.invokeAndCache(cmpTaskId);
             let refactorCtrl = new RefactorCtrl(task);
             task = await refactorCtrl.refactor();
-            task.cmpObjs.map(cmpObj => {
-                cmpObj.methods.map(method => {
-                    processCtrl.push(task._id, cmpObj.id, method.id)
+            // TODO 如果 isAllSTDCache && 有缓存的话直接返回
+            task.refactored.map(refactored => {
+                task.cmpMethods.map(method => {
+                    processCtrl.push(task._id, refactored.metricName, method.name)
                 })
             })
         }

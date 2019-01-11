@@ -11,7 +11,7 @@ LAT_END = 82.25 + GRID_LENGTH
 
 # {
 #     inputFilePath: string,
-#     fields: string[],
+#     metricNames: string[],
 #     lat: number,
 #     long: number,
 #     scales: number[],
@@ -20,7 +20,7 @@ LAT_END = 82.25 + GRID_LENGTH
 # }
 
 params = json.loads(sys.argv[1])
-variableNumber = len(params['fields'])
+variableNumber = len(params['metricNames'])
 if 'scales' not in params.keys():
     params['scales'] = np.ones((variableNumber))
 if 'offsets' not in params.keys():
@@ -31,7 +31,7 @@ if 'step' not in params.keys():
 
 dataset = Dataset(params['inputFilePath'], 'r', format='NETCDF4')
 result = []
-for i, variableName in enumerate(params['fields']):
+for i, variableName in enumerate(params['metricNames']):
     variable = dataset.variables[variableName]
     latIndex = (params['lat'] - LAT_START) // GRID_LENGTH
     longIndex = (params['long'] - LON_START) // GRID_LENGTH

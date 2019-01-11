@@ -1,4 +1,4 @@
-import { TaskModel, DataRefer, GeoDataModel, ISchemaDocument, OGMSState } from '../../models';
+import { TaskModel, DataRefer, ITaskDocument, GeoDataModel, ISchemaDocument, OGMSState } from '../../models';
 import { ObjectID, ObjectId } from 'mongodb';
 import CmpMethod from './cmp-base';
 import * as Bluebird from 'bluebird';
@@ -12,46 +12,53 @@ import * as _ from 'lodash';
 export default class SiteChart extends CmpMethod {
     scriptPath
     constructor(
-        public chartType: string,
-        public dataRefers: DataRefer[], 
-        public regions,
-        public taskId, 
-        public cmpObjIndex, 
-        public methodIndex,
+        public task: ITaskDocument, 
+        public metricName, 
+        public methodName,
     ) {
-        super(dataRefers, regions, taskId, cmpObjIndex, methodIndex)
+        super(task, metricName, methodName)
         this.scriptPath = path.join(__dirname, '../../py-scripts/CMIP_site.py')
-        this.cmpMethodName = `taylor-diagram`;
     }
 
     public async start() {
         try {
-            let variables = [],
-            ncPaths = [],
-            markerLabels = [],
-            outputName = new ObjectId().toHexString() + '.png',
-            output = path.join(__dirname, '../../public/images/plots', outputName);
-            await Bluebird.map(this.dataRefers, async dataRefer => {
-                let geoData = await GeoDataModel.findOne({ _id: dataRefer.value });
-                let fpath = path.join(setting.geo_data.path, geoData.meta.path);
-                variables.push(dataRefer.field)
-                ncPaths.push(fpath)
-                markerLabels.push(dataRefer.msName)
-            });
-
+            let index = this.task.sites[0].index;
+            let lat = this.task.sites[0].lat;
+            let long = this.task.sites[0].long;
+            let outputName = `${index}-${lat}-${long}-${this.metricName}-${this.methodName}-${this.task._id}.png`;
+            let outputPath = path.join(__dirname, '../../public/images', this.task.isAllSTDCache? 'std-plots': 'custom-plots', outputName);
+            
+            let i = _.findIndex(this.task.refactored, item => item.metricName === this.metricName)
+            let j = _.findIndex(this.task.refactored[i].methods, item => item.name === this.methodName)   
+            let inputFilePath, inputFolder;
+            if(this.task.isAllSTDCache) {
+                inputFolder = path.join(setting.geo_data.path, '../std-refactor')
+            }
+            else {
+                inputFolder = path.join(setting.geo_data.path, '../custom-refactor')
+            }
+            inputFilePath = path.join(inputFolder, this.task.refactored[i].fname)
             let interpretor = 'python',
                 argv = [
                     this.scriptPath,
-                    `--variables=${JSON.stringify(variables)}`,
-                    `--ncPaths=${JSON.stringify(ncPaths)}`,
-                    `--markerLabels=${JSON.stringify(markerLabels)}`,
-                    `--output=${output}`,
+                    JSON.stringify({
+                        inputFilePath: inputFilePath,
+                        chart: this.methodName,
+                        outputPath: outputPath,
+                        metricName: this.metricName,
+                    })
                 ],
                 onSucceed = async stdout => {
-                    this.result = { 
-                        state: OGMSState.FINISHED_SUCCEED,
-                        img: outputName,
-                        ext: '[".png"]',
+                    if(stdout.indexOf('succeed') !== -1) {
+                        this.result = { 
+                            state: OGMSState.FINISHED_SUCCEED,
+                            img: outputName,
+                            ext: '[".png"]',
+                        }
+                        return true
+                    }
+                    else if(stdout === 'failed') {
+                        return false
                     }
                 };
             return super._start(interpretor, argv, onSucceed)

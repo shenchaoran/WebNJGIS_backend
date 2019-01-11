@@ -1,4 +1,4 @@
-import { TaskModel, ISchemaDocument, OGMSState, DataRefer } from './../../models';
+import { TaskModel, ITaskDocument, ISchemaDocument, OGMSState, DataRefer } from './../../models';
 import * as Bluebird from 'bluebird';
 import * as EventEmitter from 'events';
 import * as child_process from 'child_process';
@@ -9,15 +9,12 @@ import * as _ from 'lodash';
 
 // TODO 加并行限制，一次能运行多少个脚本，其他脚本放在任务队列中
 export default class CmpMethod extends EventEmitter implements ICmpMethod {
-    task;
     result;
-    cmpMethodName;
+    updatePath;
     constructor(
-        public dataRefers: DataRefer[], 
-        public regions,
-        public taskId, 
-        public cmpObjIndex, 
-        public methodIndex,
+        public task: ITaskDocument, 
+        public metricName, 
+        public methodName,
     ) {
         super()
     }
@@ -25,21 +22,22 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
     public start() {}
 
     protected async _start(interpretor, argv, cb) {
-        this.task = await TaskModel.findOne({_id: this.taskId})
         return new Bluebird(async (resolve, reject) => {
             try {
+                let i = _.findIndex(this.task.refactored, item => item.metricName === this.metricName)
+                let j = _.findIndex(this.task.refactored[i].methods, item => item.name === this.methodName)    
                 const cp = child_process.spawn(interpretor, argv)
-                let condition = { _id: this.taskId },
-                    updatePath = `cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}`;
-                console.log(`******** start ${this.cmpMethodName}`)
+                let condition = { _id: this.task._id };
+                this.updatePath = `refactored.${i}.methods.${j}`;
+                console.log(`******** start ${this.methodName}`)
                 console.log(`******** pid: ${cp.pid}`)
                 processCtrl.add({
                     pid: cp.pid,
                     condition,
-                    updatePath,
-                    taskId: this.taskId.toString(),
-                    cmpObjId: _.get(this, `task.cmpObjs.${this.cmpObjIndex}.id`),
-                    methodId: _.get(this, `task.cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.id`)
+                    updatePath: this.updatePath,
+                    taskId: this.task._id.toString(),
+                    metricName: this.metricName,
+                    methodName: this.methodName,
                 } as any)
                 await this.updateProgress(undefined, OGMSState.RUNNING)
 
@@ -50,11 +48,16 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                     let output = data.toString()
                     stdout += output;
                     console.log(output);
-                    let group = output.match(setting.progressReg);
-                    let progress = group? group[1]: undefined;
-                    if(progress) {
-                        console.log('******** ', this.cmpMethodName, 'progress: ', progress);
-                        this.updateProgress(progress, OGMSState.RUNNING)
+                    try {
+                        let group = output.match(setting.progressReg);
+                        let progress = group? group[1]: undefined;
+                        if(progress) {
+                            console.log('******** ', this.methodName, 'progress: ', progress);
+                            this.updateProgress(progress, OGMSState.RUNNING)
+                        }
+                    }
+                    catch(e) {
+
                     }
                 });
                 cp.stderr.on('data', data => {
@@ -63,14 +66,19 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                     console.error(`${interpretor} script error:`, output)
                 })
                 cp.on('close', async code => {
-                    console.log(`******** ${this.cmpMethodName} exit code: ${code}`);
+                    console.log(`******** ${this.methodName} exit code: ${code}`);
                     processCtrl.remove(cp.pid);
                     processCtrl.shift();
                     if(code === 0) {
                         try {
-                            await cb(stdout)
-                            await this.updateProgress(100, OGMSState.FINISHED_SUCCEED)
-                            await this.afterCmp()
+                            let isSucceed = await cb(stdout)
+                            if(isSucceed) {
+                                await this.updateProgress(100, OGMSState.FINISHED_SUCCEED)
+                                await this.updateResult()
+                            }
+                            else {
+                                await this.updateProgress(null, OGMSState.FINISHED_FAILED)
+                            }
                             resolve();
                         }
                         catch(e) {
@@ -91,10 +99,10 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
         })
     }
 
-    public async afterCmp() {
+    public async updateResult() {
         try {
-            await TaskModel.updateOne({ _id: this.taskId }, {
-                $set: { [`cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.result`]: this.result }
+            await TaskModel.updateOne({ _id: this.task._id }, {
+                $set: { [`${this.updatePath}.result`]: this.result }
             })
             return { code: 200 }
         }
@@ -108,10 +116,10 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
         try {
             let updateFields = {}
             if(state)
-                updateFields[`cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.state`] = state
+                updateFields[`${this.updatePath}.state`] = state
             if(progress)
-                updateFields[`cmpObjs.${this.cmpObjIndex}.methods.${this.methodIndex}.progress`] = progress
-            await TaskModel.updateOne({ _id: this.taskId }, { $set: updateFields })
+                updateFields[`${this.updatePath}.progress`] = progress
+            await TaskModel.updateOne({ _id: this.task._id }, { $set: updateFields })
             return { code: 200 }
         }
         catch (e) {
@@ -121,6 +129,6 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
 }
 
 export interface ICmpMethod {
-    // emit 'afterCmp' event when have finished the comparison
+    // emit 'updateResult' event when have finished the comparison
     start;
 }

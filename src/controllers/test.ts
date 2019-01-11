@@ -18,12 +18,12 @@ import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
 import { ModelServiceModel } from '../models/model-service.model';
-import SubHeatMap from './cmp-methods/sub-region-heat-map';
+// import SubHeatMap from './cmp-methods/sub-region-heat-map';
 
-(process as any).on('custom', msg => {
-    console.log(msg)
-})
-(process as any).emit('custom', 'custom event')
+// (process as any).on('custom', msg => {
+//     console.log(msg)
+// })
+// (process as any).emit('custom', 'custom event')
 
 // let cp = child_process.spawn('ls', ['-lh', '/usr'])
 // cp.stdout.on('data', data => {
