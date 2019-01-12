@@ -84,7 +84,8 @@ class Table_Schema {
         type: string,
         description: string,
         unit: string,
-        unitScale: number,
+        scale: number,
+        offset: number,
     }[]
 }
 
