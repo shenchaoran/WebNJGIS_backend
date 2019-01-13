@@ -58,7 +58,7 @@ for i, col in enumerate(df.columns):
     
 
 if argv['chart'] == 'Scatter diagram':
-    if 'obsColName' not in locals().keys:
+    if 'obsColName' not in locals().keys():
         print('failed')
     # 多幅子图：每一幅是 simulation 和 observation 的散点图/回归直线
     plotColNumber = 2
@@ -101,7 +101,7 @@ if argv['chart'] == 'Scatter diagram':
             plotIndex += 1
     print('succeed')
 elif argv['chart'] == 'Taylor diagram':
-    if 'obsColName' not in locals().keys: 
+    if 'obsColName' not in locals().keys(): 
         print('failed')
     stds = []
     rmsds = []

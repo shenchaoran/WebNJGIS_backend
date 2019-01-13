@@ -100,12 +100,19 @@ export default class ModelServiceCtrl {
                 else if(msr.msName === 'IBIS site') {
                     fsuffix = '.state.txt'
                 }
+
                 let fpath = path.join(setting.STD_DATA[msr.msName], datasetPath, 'outputs', `${index}${fsuffix}`)
                 try {
                     await fs.accessAsync(fpath, fs.constants.F_OK)
-                    msr.progress = 100
-                    msr.state = OGMSState.FINISHED_SUCCEED
-                    msr.cachedPosition = 'STD'
+                    let stats = await fs.statAsync(fpath)
+                    if(stats.size === '0' || stats.size === 0) {
+
+                    }
+                    else {
+                        msr.progress = 100
+                        msr.state = OGMSState.FINISHED_SUCCEED
+                        msr.cachedPosition = 'STD'
+                    }
                 }
                 catch(e) {
 
