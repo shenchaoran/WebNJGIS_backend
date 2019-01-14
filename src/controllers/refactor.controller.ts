@@ -4,7 +4,7 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
-import { ITaskDocument, GeoDataModel, StdDataModel, TaskModel, ISchemaDocument } from '../models';
+import { ITaskDocument, GeoDataModel, StdDataModel, TaskModel, ISchemaDocument, ObsSiteModel } from '../models';
 import { addYears, addDays, format, parse, addHours, max, min, differenceInDays } from 'date-fns';
 
 const refactorMap = {
@@ -19,6 +19,7 @@ export default class RefactorCtrl {
     index;
     lat;
     long;
+    obsSite;
     constructor(public task: ITaskDocument) {}
 
     private _formatDate(time, unit): Date {
@@ -64,9 +65,8 @@ export default class RefactorCtrl {
                         id = `${df.stdId}`
                         let stdData = await StdDataModel.findOne({_id: df.stdId})
                         if(stdData.schemaId === 'fluxdata-obs-table') {
-                            // TODO parse filename by spatial coordinate
-                            this.lat,this.long;
-    
+                            this.obsSite = await ObsSiteModel.findOne({ index: parseInt(this.index) })
+                            inputFilePath = path.join(setting.obs_data.path, `${this.obsSite.id}.csv`)
                         }
                         else {
                             inputFilePath = path.join(setting.geo_data.path, stdData.entries[0].path);
@@ -82,29 +82,55 @@ export default class RefactorCtrl {
                             data: null,
                             label: df.msName? df.msName: df.stdName,
                             metricNames: [],
+                            dfMetricNames: [],
                             colIndexs: [],
                             scales: [],
                             offsets: [],
-                            refactorScript: null
+                            refactorScript: null,
+                            tmp: [],
                         };
                         this.refactorIOs.push(refactorIO)
                     }
                     let schema = _.find((process as any).schemas, schema => schema.id === df.schemaId) as ISchemaDocument
-                    refactorIO.metricNames.push(df.field)
+                    // refactorIO.dfMetricNames.push(df.field)
+                    // refactorIO.metricNames.push(cmpObj.name)
                     this.metricNames.add(cmpObj.name)
                     if(schema) {
                         refactorIO.refactorScript = refactorMap[schema.structure.type]
-                        if(schema.structure.type === 'table' || schema.structure.type === 'obs-table') {
+                        if(schema.structure.type === 'table') {
                             refactorIO.startDate = this._formatDate(schema.structure.start, schema.structure.unit);
                             refactorIO.endDate = this._formatDate(schema.structure.end, schema.structure.unit);
                             refactorIO.start = schema.structure.start;
                             refactorIO.end = schema.structure.end;
                             refactorIO.step = schema.structure.step || 1;
                             refactorIO.unit = schema.structure.unit;
+                            refactorIO.sep = schema.structure.seperator;
+                            refactorIO.header = schema.structure.header;
+                            refactorIO.skiprows = schema.structure.skiprows;
                             let columnIndex = _.findIndex(schema.structure.columns, col => col.id === df.field)
                             if(columnIndex !== -1) {
                                 let column = schema.structure.columns[columnIndex]
-                                refactorIO.colIndexs.push(columnIndex)
+                                // refactorIO.colIndexs.push()
+                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex])
+                                refactorIO.scales.push(column.scale || 1)
+                                refactorIO.offsets.push(column.offset || 0)
+                            }
+                        }
+                        else if(schema.structure.type === 'obs-table') {
+                            refactorIO.start = 0;
+                            refactorIO.end = (this.obsSite.endTime - this.obsSite.startTime + 1)*365;
+                            refactorIO.step = 1;
+                            refactorIO.unit = `days since ${this.obsSite.startTime}-01-01`
+                            refactorIO.startDate = this._formatDate(0, refactorIO.unit)
+                            refactorIO.endDate = this._formatDate(refactorIO.end, refactorIO.unit)
+                            refactorIO.sep = schema.structure.seperator;
+                            refactorIO.header = schema.structure.header;
+                            refactorIO.skiprows = schema.structure.skiprows;
+                            let columnIndex = _.findIndex(schema.structure.columns, col => col.id === df.field)
+                            if(columnIndex !== -1) {
+                                let column = schema.structure.columns[columnIndex]
+                                // refactorIO.colIndexs.push(columnIndex)
+                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex])
                                 refactorIO.scales.push(column.scale || 1)
                                 refactorIO.offsets.push(column.offset || 0)
                             }
@@ -117,10 +143,12 @@ export default class RefactorCtrl {
                             refactorIO.end = timeVariable.end;
                             refactorIO.step = timeVariable.step || 1;
                             refactorIO.unit = timeVariable.unit;
-                            let variable = _.find(schema.structure.variables, variable => variable.name === df.field)
-                            if(variable) {
+                            let variableIndex = _.findIndex(schema.structure.variables, variable => variable.name === df.field)
+                            if(variableIndex != -1) {
+                                let variable = schema.structure.variables[variableIndex]
                                 refactorIO.scales.push(variable.scale || 1)
                                 refactorIO.offsets.push(variable.offset || 0)
+                                refactorIO.tmp.push([df.field, cmpObj.name, variableIndex])
                             }
                         }
                     }
@@ -140,6 +168,16 @@ export default class RefactorCtrl {
             refactorIO.start = parseInt(differenceInDays(maxStart, refactorIO.startDate)/refactorIO.step as any)
             refactorIO.end -= parseInt(differenceInDays(refactorIO.endDate, minEnd)/refactorIO.step as any)
             refactorIO.step = Math.ceil(maxStep/refactorIO.step)
+
+            if(refactorIO.tmp.length) {
+                refactorIO.tmp = refactorIO.tmp.sort((v1, v2) => v1[2] - v2[2])
+                refactorIO.tmp.map(v => {
+                    refactorIO.colIndexs.push(v[2])
+                    refactorIO.metricNames.push(v[1])
+                    refactorIO.dfMetricNames.push(v[0])
+                })
+            }
+            refactorIO.tmp = null
         })
     }
 
@@ -250,11 +288,14 @@ class RefactorIO {
     skiprows?: number;
     sep?: string;
     metricNames: string[];
+    dfMetricNames: string[];
     scales?: number[];
     offsets?: number[];
     colIndexs?: number[];
     data: [][];
     label: string;
     refactorScript: string;
+    header?: number;
+    tmp?: any;
 }
 

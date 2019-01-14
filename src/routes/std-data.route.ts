@@ -2,7 +2,7 @@ import { RouterExtends } from './base.route';
 const express = require('express');
 import {
     StdDataModel,
-    SiteModel,
+    ObsSiteModel,
 } from '../models';
 import STDDataCtrl from '../controllers/std-data.controller';
 const stdDataCtrl = new STDDataCtrl();

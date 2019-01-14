@@ -54,9 +54,9 @@ export default class CmpTaskCtrl {
                 succeedCmp = 0,
                 failedCmp = 0;
             _.chain(doc._doc)
-                .get('cmpObjs')
-                .map(cmpObj => {
-                    _.map(cmpObj.methods, method => {
+                .get('refactored')
+                .map(refactored => {
+                    _.map(refactored.methods, method => {
                         if(method.state === OGMSState.FINISHED_SUCCEED) {
                             succeedCmp++;
                         }
@@ -307,17 +307,17 @@ export default class CmpTaskCtrl {
         }
     }
 
-    async startOneCmpMethod(cmpTaskId, cmpObjId, methodId, type) {
+    async startOneCmpMethod(cmpTaskId, metricName, methodName, type) {
         if(type === 'start') {
             this.invokeAndCache(cmpTaskId).then(task => {
-                processCtrl.push(cmpTaskId, cmpObjId, methodId)
+                processCtrl.push(cmpTaskId, metricName, methodName)
             })
         }
         else if(type === 'restart') {
-            processCtrl.restart(cmpTaskId, cmpObjId, methodId)
+            processCtrl.restart(cmpTaskId, metricName, methodName)
         }
         else if(type === 'stop') {
-            processCtrl.shutdown(cmpTaskId, cmpObjId, methodId)
+            processCtrl.shutdown(cmpTaskId, metricName, methodName)
         }
         return true;
     }

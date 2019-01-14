@@ -47,7 +47,7 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                     // update progress
                     let output = data.toString()
                     stdout += output;
-                    console.log(output);
+                    // console.log(output);
                     try {
                         let group = output.match(setting.progressReg);
                         let progress = group? group[1]: undefined;

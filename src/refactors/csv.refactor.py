@@ -2,11 +2,13 @@ import pandas as pd
 import sys
 import json
 import numpy as np
+import pymongo
 
 # {
 #     header: number | None,
 #     inputFilePath: string,
 #     colIndexs: number[],
+#     dfMetricNames: string[],
 #     sep: string,
 #     skiprows: number,
 #     scales: number[],
@@ -14,37 +16,49 @@ import numpy as np
 #     step: number
 # }
 
-# argvStr = sys.argv[1].replace('\\s+', '\s+')
+argv = json.loads(sys.argv[1])
 
-params = json.loads(sys.argv[1])
-colNumber = len(params['colIndexs'])
-if 'header' not in params.keys():
-    params['header'] = None
-if 'scales' not in params.keys():
-    params['scales'] = np.ones((colNumber))
-if 'offsets' not in params.keys():
-    params['offsets'] = np.zeros((colNumber))
-if 'step' not in params.keys():
-    params['step'] = 1
-if 'sep' not in params.keys():
-    params['sep'] = '\s+'
-if 'skiprows' not in params.keys():
-    params['skiprows'] = 0
+# connection = pymongo.MongoClient('223.2.35.73', 27017)
+# cmpDB = connection['Comparison']
+# metricTable = cmpDB['Metric']
+# METRIC = metricTable.find_one({ "name" : argv['metricName']})
 
-if params['header'] == 'None':
-    params['header'] = None
-if params['sep'] == 's+':
-    params['sep'] = '\s+'
+colNumber = len(argv['colIndexs'])
+if 'header' not in argv.keys():
+    argv['header'] = None
+if 'scales' not in argv.keys():
+    argv['scales'] = np.ones((colNumber))
+if 'offsets' not in argv.keys():
+    argv['offsets'] = np.zeros((colNumber))
+if 'step' not in argv.keys():
+    argv['step'] = 1
+if 'sep' not in argv.keys():
+    argv['sep'] = '\s+'
+if 'skiprows' not in argv.keys():
+    argv['skiprows'] = 0
+if 'start' not in argv.keys():
+    argv['start'] = 0
 
-site = pd.read_csv(params['inputFilePath'], usecols=params['colIndexs'], \
-    sep=params['sep'], header=params['header'], skiprows=params['skiprows'])
+if argv['header'] == 'None':
+    argv['header'] = None
+if argv['sep'] == 's+':
+    argv['sep'] = '\s+'
+
+site = pd.read_csv(argv['inputFilePath'], usecols=argv['colIndexs'], \
+    sep=argv['sep'], header=argv['header'], skiprows=argv['skiprows'])
 
 cols = np.array(site.values.T)
 
+if 'end' not in argv.keys():
+    argv['end'] = site.iloc[:,0].shape[0]
 # TODO not step but average
 result = []
 for i in range(cols.shape[0]):
-    result.append((cols[i]*params['scales'][i] + params['offsets'][i])[::params['step']])
+    col = []
+    for j in range(argv['start'], argv['end'], argv['step']):
+        col.append(cols[i][j:j+argv['step']].mean())
+    # result.append((cols[i][argv['start']: argv['end']: argv['step']] * argv['scales'][i] + argv['offsets'][i]))
+    result.append(np.array(col) * argv['scales'][i] + argv['offsets'][i])
 
 formatted = []
 for i,row in enumerate(np.array(result).tolist()):

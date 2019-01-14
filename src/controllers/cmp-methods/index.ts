@@ -43,6 +43,6 @@ postal.channel('child-process').subscribe('start', async ({taskId, metricName, m
         methodName, 
     );
     await cmpMethod.start().catch(e => {
-        console.log(`******** cmp failed: ${methodName}`)
+        // console.log(`******** cmp failed: ${methodName}`)
     });
 })

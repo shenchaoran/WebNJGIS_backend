@@ -1,7 +1,7 @@
 import { StdDataModel, SchemaModel } from '../models';
 import * as proj4x from 'proj4';
 const proj4 = (proj4x as any).proj4;
-import { SiteModel } from '../models';
+import { ObsSiteModel } from '../models';
 import * as Bluebird from 'bluebird';
 import * as _ from 'lodash';
 import * as RequestCtrl from '../utils/request.utils';

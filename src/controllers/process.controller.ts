@@ -32,7 +32,7 @@ export default class ProcessCtrl {
             this.child_processes = [];
             this.child_processes = new Proxy(this.child_processes, {
                 set: (target, property, value, receiver) => {
-                    console.log(`******** cmp-process number: ${target.length}`);
+                    // console.log(`******** cmp-process number: ${target.length}`);
                     return Reflect.set(target, property, value, receiver)
                 }
             });
@@ -66,7 +66,7 @@ export default class ProcessCtrl {
     async add(cmpProcess: IProcessQueueDocument) {
         if(!_.find(this.child_processes, child_process => child_process.pid === cmpProcess.pid)) {
             console.log(`******** add started child_process record`, cmpProcess)
-            console.log(this.child_processes)
+            // console.log(this.child_processes)
             this.child_processes.push(cmpProcess)
         }
     }

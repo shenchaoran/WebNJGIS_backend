@@ -113,11 +113,11 @@ router.route('/:id/start')
 router.route('/:id/cmpMethod')
     .post((req, res, next) => {
         let taskId = req.params.id,
-            cmpObjId = req.body.cmpObjId,
-            methodId = req.body.methodId,
+            metricName = req.body.metricName,
+            methodName = req.body.methodName,
             message = req.body.message;
-        if(taskId && methodId && cmpObjId) {
-            new TaskCtrl().startOneCmpMethod(taskId, cmpObjId, methodId, message).then(msg => {
+        if(taskId && methodName && metricName) {
+            new TaskCtrl().startOneCmpMethod(taskId, metricName, methodName, message).then(msg => {
                 return res.json({data: msg})
             })
             .catch(next)

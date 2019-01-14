@@ -27,6 +27,9 @@ export const setting = {
     geo_data: {
         path: path.join(__dirname, '/../upload/geo-data')
     },
+    obs_data: {
+        path: '/home/scr/Data/Fluxdata/refactored'
+    },
     invoke_failed_tag: '-----this is an error identification-----',
     progressReg: /-----Progress:(.*)%-----/,
     debug: {
@@ -37,9 +40,9 @@ export const setting = {
     },
     // 缓存的结果文件夹
     STD_DATA: {
-        // 'IBIS_2.6b4': '/home/shencr/STD_DATA/IBIS_2.6b4',
-        'IBIS site': '/home/shencr/Data/IBIS_Data',
-        'Biome-BGC site': '/home/shencr/Data/Biome_BGC_Data',
+        // 'IBIS_2.6b4': '/home/scr/STD_DATA/IBIS_2.6b4',
+        'IBIS site': '/home/scr/Data/IBIS_Data',
+        'Biome-BGC site': '/home/scr/Data/Biome_BGC_Data',
         'LPJ': '',
         'IBIS global': '',              // 这个标准数据集存在上传文件夹中
         'Biome-BGC global': '',         // 这个标准数据集存在上传文件夹中
