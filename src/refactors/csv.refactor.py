@@ -54,11 +54,11 @@ if 'end' not in argv.keys():
 # TODO not step but average
 result = []
 for i in range(cols.shape[0]):
-    col = []
-    for j in range(argv['start'], argv['end'], argv['step']):
-        col.append(cols[i][j:j+argv['step']].mean())
-    # result.append((cols[i][argv['start']: argv['end']: argv['step']] * argv['scales'][i] + argv['offsets'][i]))
-    result.append(np.array(col) * argv['scales'][i] + argv['offsets'][i])
+    # col = []
+    # for j in range(argv['start'], argv['end'], argv['step']):
+    #     col.append(cols[i][j:j+argv['step']].mean())
+    # result.append(np.array(col) * argv['scales'][i] + argv['offsets'][i])
+    result.append((cols[i][argv['start']: argv['end']: argv['step']] * argv['scales'][i] + argv['offsets'][i]))
 
 formatted = []
 for i,row in enumerate(np.array(result).tolist()):

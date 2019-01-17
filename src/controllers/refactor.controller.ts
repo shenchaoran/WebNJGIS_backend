@@ -166,7 +166,8 @@ export default class RefactorCtrl {
         minEnd = min(...(_.map(this.refactorIOs, refactorIO => refactorIO.endDate) as any));
         _.map(this.refactorIOs, refactorIO => {
             refactorIO.start = parseInt(differenceInDays(maxStart, refactorIO.startDate)/refactorIO.step as any)
-            refactorIO.end -= parseInt(differenceInDays(refactorIO.endDate, minEnd)/refactorIO.step as any)
+            refactorIO.end -= differenceInDays(refactorIO.endDate, minEnd)
+            refactorIO.end = parseInt(refactorIO.end/refactorIO.step as any)
             refactorIO.step = Math.ceil(maxStep/refactorIO.step)
 
             if(refactorIO.tmp.length) {
@@ -239,19 +240,23 @@ export default class RefactorCtrl {
                     }
                 }
                 // 或者结尾用 solutionId 也行（前提是只有一套标准输入集），这样查找缓存更方便
-                let resultFname
+                let resultFname, resultFolder
                 if(this.task.isAllSTDCache) {
-                    resultFname = `${this.index}-${this.lat}-${this.long}-${metricName}-${this.task.solutionId}.csv`
-                }
-                else {
-                    resultFname = `${this.index}-${this.lat}-${this.long}-${metricName}-${this.task._id.toString()}.csv`
-                }
-                let resultFolder
-                if(this.task.isAllSTDCache) {
-                    resultFolder = path.join(setting.geo_data.path, '../std-refactor')
+                    resultFolder = path.join(setting.geo_data.path, '../std-refactor', this.task.solutionId)
+                    // resultFname = `${this.index}-${this.long}-${this.lat}-${metricName}.csv`
+                    resultFname = `${this.index}-${metricName}.csv`
+                    try {
+                        await fs.accessAsync(resultFolder, fs.constants.F_OK)
+                    }
+                    catch(e) {
+                        if(e.code === 'ENOENT') {
+                            await fs.mkdirAsync(resultFolder)
+                        }
+                    }
                 }
                 else {
                     resultFolder = path.join(setting.geo_data.path, '../custom-refactor')
+                    resultFname = `${this.index}-${this.long}-${this.lat}-${metricName}-${this.task._id.toString()}.csv`
                 }
                 let resultPath = path.join(resultFolder, resultFname)
                 let resultStr = _.chain(csvT).map(row => row.join(',')).join('\n').value()

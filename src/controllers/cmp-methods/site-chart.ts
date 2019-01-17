@@ -25,14 +25,39 @@ export default class SiteChart extends CmpMethod {
             let index = this.task.sites[0].index;
             let lat = this.task.sites[0].lat;
             let long = this.task.sites[0].long;
-            let outputName = `${index}-${lat}-${long}-${this.metricName}-${this.methodName}-${this.task._id}.png`;
-            let outputPath = path.join(__dirname, '../../public/images', this.task.isAllSTDCache? 'std-plots': 'custom-plots', outputName);
+            let outputPath, outputFolder, outputName;
+            if(this.task.isAllSTDCache) {
+                outputFolder = path.join(__dirname, '../../public/images', 'std-plots', this.task.solutionId)
+                // outputName = `${index}-${long}-${lat}-${this.metricName}-${this.methodName}.png`
+                outputName = `${index}-${this.metricName}-${this.methodName}.png`
+                try {
+                    await fs.accessAsync(outputFolder, fs.constants.F_OK)
+                }
+                catch(e) {
+                    if(e.code === 'ENOENT') {
+                        await fs.mkdirAsync(outputFolder)
+                    }
+                }
+            }
+            else {
+                outputFolder = path.join(__dirname, '../../public/images', 'custom-plots')
+                outputName = `${index}-${long}-${lat}-${this.metricName}-${this.methodName}-${this.task._id.toString()}.png`
+            }
+            outputPath = path.join(outputFolder, outputName);
             
             let i = _.findIndex(this.task.refactored, item => item.metricName === this.metricName)
             let j = _.findIndex(this.task.refactored[i].methods, item => item.name === this.methodName)   
             let inputFilePath, inputFolder;
             if(this.task.isAllSTDCache) {
-                inputFolder = path.join(setting.geo_data.path, '../std-refactor')
+                inputFolder = path.join(setting.geo_data.path, '../std-refactor', this.task.solutionId)
+                try {
+                    await fs.accessAsync(inputFolder, fs.constants.F_OK)
+                }
+                catch(e) {
+                    if(e.code === 'ENOENT') {
+                        await fs.mkdirAsync(inputFolder)
+                    }
+                }
             }
             else {
                 inputFolder = path.join(setting.geo_data.path, '../custom-refactor')

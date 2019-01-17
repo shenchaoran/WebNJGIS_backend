@@ -73,7 +73,7 @@ if argv['chart'] == 'Scatter diagram':
     plotIndex = 1
     # figH = 500
     # figW = 
-    fig = plt.figure(figsize=(18, 30), tight_layout=True)
+    fig = plt.figure(figsize=(18, 30))
 
     for i in range(len(simColumns)):
         simColumn = simColumns[i]
@@ -141,5 +141,5 @@ elif argv['chart'] == 'Box diagram':
     box = plt.boxplot(data, labels=simLabels)
     print('succeed')
 
-plt.savefig(argv['outputPath'], format='png', transparent=True)
+plt.savefig(argv['outputPath'])
 plt.close('all')

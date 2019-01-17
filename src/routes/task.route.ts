@@ -4,7 +4,7 @@ import { RouterExtends } from './base.route';
 const express = require('express');
 import TaskCtrl from '../controllers/task.controller';
 import CalcuTaskCtrl from '../controllers/calcu-task.controller';
-import { TaskModel, OGMSState } from '../models';
+import { TaskModel, OGMSState, CalcuTaskModel } from '../models';
 import ConversationCtrl from '../controllers/conversation.controller';
 const conversationCtrl = new ConversationCtrl();
 const taskCtrl = new TaskCtrl();
@@ -40,7 +40,7 @@ router.route('/')
             })
             .catch(next);
     })
-    .post((req: Request, res: Response, next: NextFunction) => {
+    .post(async (req: Request, res: Response, next: NextFunction) => {
         let calcuTasks = req.body.calcuTasks,
             task = req.body.task,
             conversation = req.body.conversation;
@@ -67,10 +67,24 @@ router.route('/')
                 })
                 .catch(next);
         }
+        else if(req.query.ac === 'insertMany' && req.body.tasks && req.body.calcuTasks) {
+            try{
+                let rsts = await Bluebird.all([
+                    TaskModel.insertMany(req.body.tasks),
+                    CalcuTaskModel.insertMany(req.body.calcuTasks),
+                ])
+                // console.log(rsts)
+                return res.json({ data: true })
+            }
+            catch(e) {
+                console.error(e)
+            }
+        }
         else {
             return next(new Error('invalid request body!'));
         }
     });
+
 
 router.route('/:id')
     .get((req: Request, res: Response, next: NextFunction) => {
@@ -95,6 +109,14 @@ router.route('/:id')
         catch(e) {
             return next(e);
         }
+    })
+
+router.route('/:id/hadFinished')
+    .get((req, res, next) => {
+        taskCtrl.hadFinished(req.params.id)
+            .then(rst => {
+                return res.json({data: rst})
+            })
     })
 
 router.route('/:id/start')

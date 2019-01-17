@@ -321,4 +321,29 @@ export default class CmpTaskCtrl {
         }
         return true;
     }
+
+    async hadFinished(taskId) {
+        try {
+            let task = await TaskModel.findOne({_id: taskId})
+            let state = OGMSState.FINISHED_SUCCEED
+            if(!task.refactored)
+                return false
+            for(let item of task.refactored) {
+                for(let method of item.methods) {
+                    if(method.state !== OGMSState.FINISHED_FAILED && method.state !== OGMSState.FINISHED_SUCCEED) {
+                        state = OGMSState.RUNNING
+                        break
+                    }
+                }
+                if(state === OGMSState.RUNNING)
+                    break
+            }
+            await TaskModel.updateOne({_id: taskId}, {$set: {state}})
+            return state === OGMSState.FINISHED_SUCCEED
+        }
+        catch(e) {
+            console.error(e)
+            return Bluebird.reject(e)
+        }
+    }
 }

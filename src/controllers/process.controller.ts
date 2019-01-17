@@ -26,7 +26,7 @@ export default class ProcessCtrl {
 
     // 最大同时运行的子进程
     // TODO 按照子进程名称列一个详细的 concurrency map
-    concurrency: number = 8;
+    concurrency: number = 28;
     constructor() {
         if(!(ProcessCtrl as any).instance) {
             this.child_processes = [];
@@ -65,7 +65,7 @@ export default class ProcessCtrl {
     // 添加子进程 id
     async add(cmpProcess: IProcessQueueDocument) {
         if(!_.find(this.child_processes, child_process => child_process.pid === cmpProcess.pid)) {
-            console.log(`******** add started child_process record`, cmpProcess)
+            // console.log(`******** add started child_process record`, cmpProcess)
             // console.log(this.child_processes)
             this.child_processes.push(cmpProcess)
         }
@@ -74,6 +74,7 @@ export default class ProcessCtrl {
     // 删除子进程 id
     async remove(pid) {
         let removed = _.remove(this.child_processes, child_process => child_process.pid === pid);
+        // console.log(`--------------- remain cp number: ${this.child_processes.length}`)
         return removed;
     }
 

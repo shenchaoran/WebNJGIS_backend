@@ -11,6 +11,7 @@ const TopicRouter = require('./topic.route');
 const SearchRouter = require('./search.route');
 const CalcuRouter = require('./calculation.route');
 const STDDataRouter = require('./std-data.route');
+const STDResultRouter = require('./std-result.route');
 const CmpMethodRouter = require('./cmp-methods.route');
 const ConversationRouter = require('./conversation.route');
 const SchemaRouter = require('./schema.route');
@@ -30,6 +31,7 @@ router.use('/comparison/tasks', CmpTaskRouter);
 router.use('/nodes', NodeRouter);
 router.use('/calculation', CalcuRouter);
 router.use('/std-data', STDDataRouter);
+router.use('/std-result', STDResultRouter);
 router.use('/conversations', ConversationRouter);
 router.use('/schemas', SchemaRouter);
 

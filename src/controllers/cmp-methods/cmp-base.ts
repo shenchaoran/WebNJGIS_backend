@@ -22,8 +22,8 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
     public start() {}
 
     protected async _start(interpretor, argv, cb) {
-        return new Bluebird(async (resolve, reject) => {
-            try {
+        try {
+            let {code, stdout, stderr} = await new Bluebird(async (resolve, reject) => {
                 let i = _.findIndex(this.task.refactored, item => item.metricName === this.metricName)
                 let j = _.findIndex(this.task.refactored[i].methods, item => item.name === this.methodName)    
                 const cp = child_process.spawn(interpretor, argv)
@@ -65,38 +65,37 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                     stderr += output;
                     console.error(`${interpretor} script error:`, output)
                 })
-                cp.on('close', async code => {
+                cp.on('close', code => {
                     console.log(`******** ${this.methodName} exit code: ${code}`);
                     processCtrl.remove(cp.pid);
                     processCtrl.shift();
-                    if(code === 0) {
-                        try {
-                            let isSucceed = await cb(stdout)
-                            if(isSucceed) {
-                                await this.updateProgress(100, OGMSState.FINISHED_SUCCEED)
-                                await this.updateResult()
-                            }
-                            else {
-                                await this.updateProgress(null, OGMSState.FINISHED_FAILED)
-                            }
-                            resolve();
-                        }
-                        catch(e) {
-                            console.error(e)
-                            reject(e)
-                        }
+                    resolve({code, stdout, stderr})
+                })
+            })
+            if(code === 0) {
+                try {
+                    let isSucceed = await cb(stdout)
+                    if(isSucceed) {
+                        await this.updateProgress(100, OGMSState.FINISHED_SUCCEED)
+                        await this.updateResult()
                     }
                     else {
-                        await this.updateProgress(undefined, OGMSState.FINISHED_FAILED)
-                        reject(stderr)
+                        await this.updateProgress(null, OGMSState.FINISHED_FAILED)
                     }
-                })
+                    return ;
+                }
+                catch(e) {
+                    console.error(e)
+                    // return Bluebird.reject(e)
+                }
             }
-            catch(e) {
-                console.error(e)
-                return Bluebird.reject(e)
+            else {
+                await this.updateProgress(undefined, OGMSState.FINISHED_FAILED)
             }
-        })
+        }
+        catch(e) {
+            console.error(e)
+        }
     }
 
     public async updateResult() {

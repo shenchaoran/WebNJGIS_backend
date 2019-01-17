@@ -23,9 +23,9 @@ export const preReqMid = (app) => {
     // 打印到调试控制台
     app.use(logger('dev'));
     // 解析json格式的http请求体，通过req.body使用
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ limit: '100mb' }));
     // 解析文本格式的http请求体，通过req.body使用
-    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
     // 验证用户提交的数据，通过req.checkBody, checkParams, checkQuery ...使用
     app.use(expressValidator());
     // 处理session的中间件，通过req.session使用

@@ -41,11 +41,15 @@ Navigate to `http://localhost:9999`
 
 ## TODO
 - [ ] 数据库重新设计
-    - [ ] 去除 Geo_data DB
-    - [ ] UserModel 中的 avator 存到文件系统中
-    - [ ] nodeDB 添加一些软硬件环境信息
-- [ ] bug: 数据缓存，异步流程控制，返回给前台的是空的
-- [ ] bug: Biome-BGC ini 配置文件，输出控制全部设为 1
+  - [ ] 去除 Geo_data DB
+  - [ ] UserModel 中的 avator 存到文件系统中
+  - [ ] nodeDB 添加一些软硬件环境信息
+- [ ] 对比
+  - [ ] 单站点
+  - [ ] 多站点
+  - [ ] 区域
+- [ ] 统计学对比
+  - [ ] 
 
 ## 数据处理
 actual data value (schema unit) = data value * schema scale + schema offset

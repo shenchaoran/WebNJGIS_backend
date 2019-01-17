@@ -19,6 +19,8 @@ module.exports = {
                 'src',
                 'site',
                 '.vscode',
+                '.git',
+                '.gitignore',
                 'node_modules'
             ],
             max_memory_restart: '2G',
@@ -45,6 +47,8 @@ module.exports = {
                 'src',
                 'site',
                 '.vscode',
+                '.git',
+                '.gitignore',
                 'node_modules'
             ],
             max_memory_restart: '2G',
