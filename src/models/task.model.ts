@@ -22,6 +22,7 @@ const schema = new Schema({
     cmpMethods: Array,
     refactored: Schema.Types.Mixed,
     isAllSTDCache: Boolean,
+    temporal: Number,
     regions: Schema.Types.Mixed,
     sites: Array,
     cid: String,
@@ -74,6 +75,7 @@ export interface ITaskDocument extends Document {
         }[],
     }[];
     isAllSTDCache?: boolean;
+    temporal: number;
     regions?: [][];
     sites?: {
         index: number,

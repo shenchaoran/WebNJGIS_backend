@@ -8,19 +8,22 @@ import { map, switchMap, filter, tap, startWith } from 'rxjs/operators';
 import { setting } from '../config/setting'
 
 const slnIds = {
-    '5c3f4bf02ba038eb47000012': 'time resulution of 1 day, with MODIS17A2',
     '5c3be0f7896f318e14000053': 'time resulution of 1 day',
     '5c3c70613139ed0427000004': 'time resulution of 1 year',
-    '5c3c87243139ed0427000030': 'time resolution of 8 days',
+    '5c3f4bf02ba038eb47000012': 'time resolution of 8 days',
+    '5c40b83f6a072dc638000081': 'time resolution of 1 month',
+    '5c413fbf29c7d5df0a000005': 'time resolution of 1 quarter',
+    '5c41ebb329c7d5df0a000053': 'time resolution of 8 days, with LPJ',
 }
 const msIds = {
     '5a1122b1a5559025a032b39c': 'IBIS site',
-    '5a1122b1a5559025a032b39d': 'Biome-BGC site'
+    '5a1122b1a5559025a032b39d': 'Biome-BGC site',
+    '5c41e8c03adedd515cb6f477': 'LPJ site'    
 }
 
 const taskURL = `http://127.0.0.1:9999${setting.API_prefix}/comparison/tasks`
 const tasks = [];
-const calcuTasks = [[], []];
+const calcuTasks = [[], [], []];
 let insertTasks = async () => {
     let [sites, slns, mss] = await Bluebird.all([
         ObsSiteModel.find({}),
@@ -84,13 +87,16 @@ let insertTasks = async () => {
                 topicId: sln.topicId,
                 calcuTaskIds: ptCalcuTasks.map(v => v._id.toString()),
                 observationIds: _.cloneDeep(sln.observationIds),
+                temporal: sln.temporal,
                 sites: [site],
                 cmpMethods: sln.cmpMethods,
                 cmpObjs: _.cloneDeep(sln.cmpObjs).map(cmpObj => {
                     ptCalcuTasks.map(msr => {
                         let dr = cmpObj.dataRefers.find(dr => dr.type === 'simulation' && dr.msId === msr.msId && !dr.msrId)
-                        dr.msrId = msr._id.toString()
-                        dr.msrName = msr.meta.name
+                        if(dr) {
+                            dr.msrId = msr._id.toString()
+                            dr.msrName = msr.meta.name
+                        }
                     })
                     return cmpObj
                 }),
@@ -160,18 +166,19 @@ let startOneTask = async () =>{
 
 let removeTasks = async () => {
     let removeSlnIds = [
-        '5c3f4bf02ba038eb47000012',
         '5c3be0f7896f318e14000053',
         '5c3c70613139ed0427000004',
-        '5c3c87243139ed0427000030',
+        '5c3f4bf02ba038eb47000012',
+        '5c40b83f6a072dc638000081',
+        '5c413fbf29c7d5df0a000005',
+        '5c41ebb329c7d5df0a000053',
     ]
     await Bluebird.all([
-        // TaskModel.remove({'meta.desc': 'batch create by admin'}),
-        // CalcuTaskModel.remove({'meta.desc': 'batch create by admin'})
-        TaskModel.remove({'solutionId': {$in: removeSlnIds}}),
-        CalcuTaskModel.remove({'solutionId': {$in: removeSlnIds}})
+        TaskModel.remove({'meta.desc': 'batch create by admin'}),
+        CalcuTaskModel.remove({'meta.desc': 'batch create by admin'})
+        // TaskModel.remove({'solutionId': {$in: removeSlnIds}}),
+        // CalcuTaskModel.remove({'solutionId': {$in: removeSlnIds}})
     ])
-    console.log('finished')
 }
 
 let main = async () => {

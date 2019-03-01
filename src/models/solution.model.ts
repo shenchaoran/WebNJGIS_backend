@@ -16,7 +16,7 @@ const schema = new Schema({
     msIds: Array,
     cmpObjs: Array,
     cmpMethods: Array,
-    temporal: String,
+    temporal: Number,
     cid: String,
     subscribed_uids: Array,
     observationIds: Array,
@@ -46,7 +46,7 @@ export interface ISolutionDocument extends Document {
         id: string,
         name: string
     }[];
-    temporal?: '1 day' | '8 day' | '1 year',
+    temporal?: number,          // 1 8 30 365
     cid: string;
     subscribed_uids: string[];
     [key: string]: any;

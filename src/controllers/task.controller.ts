@@ -264,11 +264,11 @@ export default class CmpTaskCtrl {
                         if(msr.cachedPosition === 'STD') {
                             if(dataRefer.type === 'simulation') {
                                 let index = _.find(msr.IO.std, std => std.id === '--index').value;
-                                if(dataRefer.eventId === '--do') {
+                                if(dataRefer.eventId === '--do' || dataRefer.eventId === '--outfile') {
                                     if(dataRefer.msName === 'IBIS site') {
                                         dataRefer.value = `${index}.daily.txt`
                                     }
-                                    else if(dataRefer.msName === 'Biome-BGC site') {
+                                    else if(dataRefer.msName === 'Biome-BGC site' || dataRefer.msName === 'LPJ site') {
                                         dataRefer.value = `${index}.daily.ascii`
                                     }
                                 }

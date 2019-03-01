@@ -52,6 +52,7 @@ class NETCDF4_Schema {
         end?: number,
         step?: number,
         unit?: string,
+        missing_value?: number,
         dimensions?: string[],
     }[];
 }

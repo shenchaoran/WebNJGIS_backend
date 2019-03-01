@@ -2,6 +2,7 @@ import sys
 import json
 import numpy as np
 from netCDF4 import Dataset
+import math
 
 GRID_LENGTH = 0.5
 LON_START = -179.75
@@ -16,7 +17,7 @@ LAT_END = 82.25 + GRID_LENGTH
 #     long: number,
 #     scales: number[],
 #     offsets: number[],
-#     step: number
+#     argv['step']: number
 # }
 
 argv = json.loads(sys.argv[1])
@@ -27,7 +28,12 @@ if 'offsets' not in argv.keys():
     argv['offsets'] = np.zeros((variableNumber))
 if 'step' not in argv.keys():
     argv['step'] = 1
-
+if 'mins' not in argv.keys():
+    argv['mins'] = None
+if 'maxs' not in argv.keys():
+    argv['maxs'] = None
+if 'missing_values' not in argv.keys():
+    argv['missing_values'] = None
 
 dataset = Dataset(argv['inputFilePath'], 'r', format='NETCDF4')
 result = []
@@ -37,15 +43,24 @@ for i, variableName in enumerate(argv['dfMetricNames']):
     longIndex = (float(argv['long']) - LON_START) // GRID_LENGTH
     scale = argv['scales'][i]
     offset = argv['offsets'][i]
-    step = argv['step']
-    start = argv['start']
-    end = argv['end']
+    minV = argv['mins'][i]
+    maxV = argv['maxs'][i]
+    missingV = argv['missing_values'][i]
     
-    col = variable[:, latIndex, longIndex]
-    compressedCol = []
-    for j in range(start, end, step):
-        compressedCol.append(col[j:j+step].mean())
-    result.append(np.array(compressedCol) * scale + offset)
+    col = variable[:, latIndex, longIndex].data
+    subcol = np.resize(col[argv['start']: argv['end']], math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']).reshape(-1, argv['step'])
+    subcol = np.ma.array(subcol)
+    if minV != None:
+        subcol = np.ma.masked_where(subcol <= minV, subcol)
+    if maxV != None:
+        subcol = np.ma.masked_where(subcol >= maxV, subcol)
+    if missingV != None:
+        subcol = np.ma.masked_where(subcol == missingV, subcol)
+    subcol = np.ma.masked_invalid(subcol)
+
+    meaned = subcol.mean(axis=1).data
+    # meaned[meaned==0] = np.nan
+    result.append(np.array(meaned) * scale + offset)
 
 dataset.close()
 

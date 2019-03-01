@@ -4,7 +4,7 @@ import * as path from 'path';
 const fs = Bluebird.promisifyAll(require('fs'));
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
-import { ITaskDocument, GeoDataModel, StdDataModel, TaskModel, ISchemaDocument, ObsSiteModel } from '../models';
+import { ITaskDocument, GeoDataModel, MetricModel, StdDataModel, TaskModel, ISchemaDocument, ObsSiteModel } from '../models';
 import { addYears, addDays, format, parse, addHours, max, min, differenceInDays } from 'date-fns';
 
 const refactorMap = {
@@ -47,6 +47,7 @@ export default class RefactorCtrl {
         
         this.task.isAllSTDCache = true
         for(let cmpObj of this.task.cmpObjs) {
+            let metric = await MetricModel.findOne({name: cmpObj.name})
             for(let df of cmpObj.dataRefers) {
                 try {
                     let id, inputFilePath;
@@ -88,6 +89,9 @@ export default class RefactorCtrl {
                             offsets: [],
                             refactorScript: null,
                             tmp: [],
+                            missing_values: [],
+                            mins: [],
+                            maxs: [],
                         };
                         this.refactorIOs.push(refactorIO)
                     }
@@ -95,6 +99,8 @@ export default class RefactorCtrl {
                     // refactorIO.dfMetricNames.push(df.field)
                     // refactorIO.metricNames.push(cmpObj.name)
                     this.metricNames.add(cmpObj.name)
+                    // refactorIO.mins.push(metric.min)
+                    // refactorIO.maxs.push(metric.max)
                     if(schema) {
                         refactorIO.refactorScript = refactorMap[schema.structure.type]
                         if(schema.structure.type === 'table') {
@@ -111,9 +117,10 @@ export default class RefactorCtrl {
                             if(columnIndex !== -1) {
                                 let column = schema.structure.columns[columnIndex]
                                 // refactorIO.colIndexs.push()
-                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex])
+                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex, metric.min, metric.max, column.missing_value])
                                 refactorIO.scales.push(column.scale || 1)
                                 refactorIO.offsets.push(column.offset || 0)
+                                // refactorIO.missing_values.push(column.missing_value)
                             }
                         }
                         else if(schema.structure.type === 'obs-table') {
@@ -130,9 +137,10 @@ export default class RefactorCtrl {
                             if(columnIndex !== -1) {
                                 let column = schema.structure.columns[columnIndex]
                                 // refactorIO.colIndexs.push(columnIndex)
-                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex])
+                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex, metric.min, metric.max, column.missing_value])
                                 refactorIO.scales.push(column.scale || 1)
                                 refactorIO.offsets.push(column.offset || 0)
+                                // refactorIO.missing_values.push(column.missing_value)
                             }
                         }
                         else if(schema.structure.type === 'NETCDF4') {
@@ -148,7 +156,8 @@ export default class RefactorCtrl {
                                 let variable = schema.structure.variables[variableIndex]
                                 refactorIO.scales.push(variable.scale || 1)
                                 refactorIO.offsets.push(variable.offset || 0)
-                                refactorIO.tmp.push([df.field, cmpObj.name, variableIndex])
+                                refactorIO.tmp.push([df.field, cmpObj.name, variableIndex, metric.min, metric.max, variable.missing_value])
+                                // refactorIO.missing_values.push(variable.missing_value)
                             }
                         }
                     }
@@ -161,7 +170,8 @@ export default class RefactorCtrl {
 
         // 处理 start, end, step
         let maxStart, minEnd, maxStep;
-        maxStep = _.chain(this.refactorIOs).map(refactorIO => refactorIO.step).max().value();
+        // maxStep = _.chain(this.refactorIOs).map(refactorIO => refactorIO.step).max().value();
+        maxStep = this.task.temporal
         maxStart = max(...(_.map(this.refactorIOs, refactorIO => refactorIO.startDate) as any));
         minEnd = min(...(_.map(this.refactorIOs, refactorIO => refactorIO.endDate) as any));
         _.map(this.refactorIOs, refactorIO => {
@@ -173,9 +183,12 @@ export default class RefactorCtrl {
             if(refactorIO.tmp.length) {
                 refactorIO.tmp = refactorIO.tmp.sort((v1, v2) => v1[2] - v2[2])
                 refactorIO.tmp.map(v => {
-                    refactorIO.colIndexs.push(v[2])
-                    refactorIO.metricNames.push(v[1])
                     refactorIO.dfMetricNames.push(v[0])
+                    refactorIO.metricNames.push(v[1])
+                    refactorIO.colIndexs.push(v[2])
+                    refactorIO.mins.push(v[3])
+                    refactorIO.maxs.push(v[4])
+                    refactorIO.missing_values.push(v[5])
                 })
             }
             refactorIO.tmp = null
@@ -200,8 +213,10 @@ export default class RefactorCtrl {
                         stderr += data.toString()
                     })
                     cp.on('close', async code => {
+                        console.log(stderr)
                         if(code === 0) {
                             try {
+                                stdout = stdout.replace(/NaN/g, 'null')
                                 refactorIO.data = JSON.parse(stdout)
                             }
                             catch(e) {
@@ -250,7 +265,10 @@ export default class RefactorCtrl {
                     }
                     catch(e) {
                         if(e.code === 'ENOENT') {
-                            await fs.mkdirAsync(resultFolder)
+                            try {
+                                await fs.mkdirAsync(resultFolder)
+                            }
+                            catch(e) {}
                         }
                     }
                 }
@@ -297,6 +315,9 @@ class RefactorIO {
     scales?: number[];
     offsets?: number[];
     colIndexs?: number[];
+    mins: number[];
+    maxs: number[];
+    missing_values: number[];
     data: [][];
     label: string;
     refactorScript: string;

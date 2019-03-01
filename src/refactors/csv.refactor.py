@@ -3,6 +3,7 @@ import sys
 import json
 import numpy as np
 import pymongo
+import math
 
 # {
 #     header: number | None,
@@ -13,7 +14,10 @@ import pymongo
 #     skiprows: number,
 #     scales: number[],
 #     offsets: number[],
-#     step: number
+#     step: number,
+#     min
+#     max
+#     missing_value
 # }
 
 argv = json.loads(sys.argv[1])
@@ -38,27 +42,48 @@ if 'skiprows' not in argv.keys():
     argv['skiprows'] = 0
 if 'start' not in argv.keys():
     argv['start'] = 0
+if 'min' not in argv.keys():
+    argv['min'] = None
+if 'max' not in argv.keys():
+    argv['max'] = None
+if 'missing_value' not in argv.keys():
+    argv['missing_value'] = None
 
 if argv['header'] == 'None':
     argv['header'] = None
 if argv['sep'] == 's+':
     argv['sep'] = '\s+'
 
-site = pd.read_csv(argv['inputFilePath'], usecols=argv['colIndexs'], \
+df = pd.read_csv(argv['inputFilePath'], usecols=argv['colIndexs'], \
     sep=argv['sep'], header=argv['header'], skiprows=argv['skiprows'])
 
-cols = np.array(site.values.T)
-
 if 'end' not in argv.keys():
-    argv['end'] = site.iloc[:,0].shape[0]
-# TODO not step but average
+    argv['end'] = df.iloc[:,0].shape[0]
+    
+cols = df.values.T
+
 result = []
 for i in range(cols.shape[0]):
-    # col = []
-    # for j in range(argv['start'], argv['end'], argv['step']):
-    #     col.append(cols[i][j:j+argv['step']].mean())
-    # result.append(np.array(col) * argv['scales'][i] + argv['offsets'][i])
-    result.append((cols[i][argv['start']: argv['end']: argv['step']] * argv['scales'][i] + argv['offsets'][i]))
+    scale = argv['scales'][i]
+    offset = argv['offsets'][i]
+    minV = argv['mins'][i]
+    maxV = argv['maxs'][i]
+    missingV = argv['missing_values'][i]
+
+    col = np.resize(cols[i][argv['start']: argv['end']], math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']).reshape(-1, argv['step'])
+    col = np.ma.array(col)
+    if minV != None:
+        col = np.ma.masked_where(col <= minV, col)
+    if maxV != None:
+        col = np.ma.masked_where(col >= maxV, col)
+    if missingV != None:
+        col = np.ma.masked_where(col == missingV, col)
+    col = np.ma.masked_invalid(col)
+
+    meaned = col.mean(axis=1).data
+    # meaned[meaned==0] = np.nan
+    result.append(np.array(meaned) * scale + offset)
+    # result.append((cols[i][start: end: step] * argv['scales'][i] + argv['offsets'][i]))
 
 formatted = []
 for i,row in enumerate(np.array(result).tolist()):

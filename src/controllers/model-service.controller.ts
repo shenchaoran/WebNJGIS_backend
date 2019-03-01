@@ -100,6 +100,9 @@ export default class ModelServiceCtrl {
                 else if(msr.msName === 'IBIS site') {
                     fsuffix = '.state.txt'
                 }
+                else if(msr.msName === 'LPJ site') {
+                    fsuffix = '.daily.ascii'
+                }
 
                 let fpath = path.join(setting.STD_DATA[msr.msName], datasetPath, 'outputs', `${index}${fsuffix}`)
                 try {

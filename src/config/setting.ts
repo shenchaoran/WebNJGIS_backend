@@ -43,7 +43,7 @@ export const setting = {
         // 'IBIS_2.6b4': '/home/scr/STD_DATA/IBIS_2.6b4',
         'IBIS site': '/home/scr/Data/IBIS_Data',
         'Biome-BGC site': '/home/scr/Data/Biome_BGC_Data',
-        'LPJ': '',
+        'LPJ site': '/home/scr/Data/LPJ',
         'IBIS global': '',              // 这个标准数据集存在上传文件夹中
         'Biome-BGC global': '',         // 这个标准数据集存在上传文件夹中
     }

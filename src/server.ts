@@ -8,11 +8,13 @@ import { preReqMid, postResMid } from './middlewares';
 import { init } from './init';
 import './controllers/process.controller';
 require('./controllers/cmp-methods')
-import { SchemaModel } from './models/UDX-schema.model';
+import { SchemaModel, MetricModel } from './models';
 
-init()
-    .then(async () => {
-        (process as any).schemas = await SchemaModel.find({})
+let main = async () => {
+    try{
+        await init();
+        (process as any).schemas = await SchemaModel.find({});
+        // (process as any).metrics = await MetricModel.find({});
         //////////////////////////////////////router
         // (<any>global).app = app;
         app.set('port', setting.port || 3000);
@@ -56,9 +58,11 @@ init()
             console.log(`******** start server succeed`);
             console.log(`******** ${bind}`);
         });
-    })
-    .catch(err => {
+    }
+    catch(err) {
         console.error(err)
-    });
+    }
+}
+main()
 
 module.exports = app;

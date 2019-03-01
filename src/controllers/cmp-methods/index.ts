@@ -21,6 +21,7 @@ export const CmpMethodFactory = function (
         case 'Taylor diagram':
         case 'Box diagram':
         case 'Scatter diagram':
+        case 'SE':
             return new SiteChart(task, metricName, methodName)
         // case 'Bias contour map':
         //     CmpMethod = ContourMap;

@@ -6,6 +6,11 @@ import skill_metrics as sm
 import json
 import pandas as pd
 from math import ceil
+import matplotlib as mpl
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn import metrics
 
 # {
 #     inputFilePath,
@@ -14,132 +19,158 @@ from math import ceil
 #     missing_value,
 #     header,
 #     metricName,
+#     timeInterval,
 # }
 
+sns.set()
 argv = json.loads(sys.argv[1])
-
-connection = pymongo.MongoClient('223.2.35.73', 27017)
-cmpDB = connection['Comparison']
-metricTable = cmpDB['Metric']
-METRIC = metricTable.find_one({ "name" : argv['metricName']})
-
+metricName = argv['metricName']
+chart = argv['chart']
 df = pd.read_csv(argv['inputFilePath'], header=0)
-df = df.mask((df > METRIC['max']) | (df < METRIC['min']), np.nan)
-if 'missing_value' in argv.keys():
-    df.mask(df == METRIC['missing_value'], np.nan)
-
-columnNumber = len(df.columns)
-rowNumber = len(df)
+df_noNaN = df.dropna()
+df_noZero = df_noNaN.mask(df == 0)
+df_noZero = df_noZero.dropna()
+colN = df.shape[1]
+rowN = df.shape[0]
 
 for i, col in enumerate(df.columns):
     if col == 'Fluxdata':
-        obsColIndex = i
-
-if argv['chart'] == 'Scatter diagram' or argv['chart'] == 'Taylor diagram':
-    if 'obsColIndex' not in locals().keys():
+        iObs = i
+if chart == 'Scatter diagram' or chart == 'Taylor diagram' or chart == 'SE':
+    if 'iObs' not in locals().keys():
         print('can\'t find observation column, failed')
         sys.exit(1)
 else:
-    obsColIndex = -1
+    iObs = -1
 
-# get the mask
-for i in range(columnNumber):
-    masked = np.ma.array(df.iloc[:, i].values)
-    masked = np.ma.masked_invalid(masked)
-    if 'mask' not in locals().keys():
-        mask = masked.recordmask
-    else:
-        mask = mask | masked.recordmask
+# 需要删除 nan/zero
+if chart == 'Line chart':
+    thisDF = df
+elif metricName == 'NEE' or metricName == 'NEP':
+    thisDF = df_noNaN
+else:
+    thisDF = df_noZero
 
-# get masked data
-obsLabel = ''
-simColumns = []
-simLabels = []
-for i in range(columnNumber):
-    if i == obsColIndex:
-        obsColumn = np.ma.masked_array(df.iloc[:,i].values, mask=mask)
-        obsColumn = np.ma.masked_invalid(obsColumn)
-        obsLabel = df.columns[i]
-    else:
-        simLabels.append(df.columns[i])
-        simColumn = np.ma.masked_array(df.iloc[:,i].values, mask=mask)
-        simColumn = np.ma.masked_invalid(simColumn)
-        simColumns.append(simColumn)
-        
-if argv['chart'] == 'Scatter diagram':
-    # 多幅子图：每一幅是 simulation 和 observation 的散点图/回归直线
-    plotColNumber = 1
-    plotRowNumber = ceil(columnNumber/plotColNumber)
-    plotIndex = 1
-    # figH = 500
-    # figW = 
-    fig = plt.figure(figsize=(18, 30))
-
-    for i in range(len(simColumns)):
-        simColumn = simColumns[i]
-        simLabel = simLabels[i]
-
-        ax = fig.add_subplot(plotRowNumber, plotColNumber, plotIndex)
-        ax.set_title(simLabel + '-' + obsLabel)
-        plt.sca(ax)
-        plt.tight_layout()
+def sePlot():
+    nyear_sum = round(rowN*argv['timeInterval']/365)
+    nyear_train = nyear_sum - 1
+    nday_train = round(nyear_train*365/argv['timeInterval'])
+    df_train = df[:nday_train]
+    df_test = df[nday_train:]
+    xloc_train = []
+    xLabels = []
+    for i, col in enumerate(df.columns):
+        if col == 'IBIS site' or col == 'Biome-BGC site' or col == 'LPJ site':
+            xloc_train.append(i)
+            xLabels.append(col)
+    x_train = df_train.iloc[:, xloc_train]
+    y_train = df_train.iloc[:, iObs]
+    x_test = df_test.iloc[:, xloc_train]
+    y_test = df_test.iloc[:, iObs]
+    y_avg = x_test.mean(axis=1)
+    linreg = LinearRegression()
+    model = linreg.fit(x_train, y_train)
+    B = list(zip(xLabels, linreg.coef_))
+    y_pred = linreg.predict(x_test)
+    dataset = {
+        'SE': y_pred, 
+        'EE': y_avg, 
+        'Fluxdata': y_test
+    }
+    for i in range(x_test.shape[1]):
+        dataset[x_test.columns[i]] = x_test.iloc[:,i]
+    plt.figure(figsize=(8, 10))
+    sns.lineplot(data=pd.DataFrame(dataset))
+    plt.savefig(argv['outputPath'])
+    plt.close('all')
     
-        # left, width = 0.1, 0.65
-        # bottom, height = 0.1, 0.65
-        # bottom_h = left_h = left + width + 0.02
-        # rect_scatter = [left, bottom, width, height]
-        # rect_histx = [left, bottom_h, width, 0.2]
-        # rect_histy = [left_h, bottom, 0.2, height]
-        # axScatter = 
-        ax.set_xlabel(simLabel)
-        ax.set_ylabel(obsLabel)
-        ax.scatter(simColumn, obsColumn, alpha=0.4)
+    sum_mean=0
+    for i in range(len(y_pred)):
+        sum_mean+=(y_pred[i] - y_test.values[i])**2
+    RMSE = np.sqrt(sum_mean/len(y_pred))
+    print('RMSE: ', RMSE)
 
-        z1 = np.ma.polyfit(simColumn, obsColumn, 1)
-        p1 = np.poly1d(z1)
-        # if abs(z1[0]) > 0.3:
-        x = np.linspace(simColumn.min(), simColumn.max(), 20)
-        y = np.polyval(p1, x)
-        ax.plot(x, y, '-', color='#ff7f0e')
-        plotIndex += 1
     print('succeed')
-elif argv['chart'] == 'Taylor diagram':
+
+def snsPlot(chart):
+    if chart == 'Line chart':
+        # 不能删除 nan
+        sns.lineplot(data=thisDF)
+    elif chart == 'Box diagram':
+        # 需要删除 nan
+        sns.boxplot(data=thisDF, width=0.45)
+    elif chart == 'Violin diagram':
+        # 需要删除 nan
+        sns.violinplot(data=thisDF)
+    print('succeed')
+    plt.savefig(argv['outputPath'])
+    plt.close('all')
+
+def taylorPlot():
+    obsCol = thisDF.iloc[:, iObs]
     stds = []
     rmsds = []
     coefs = []
-            
     labels = []
-    stds.append(obsColumn.std())
+    stds.append(obsCol.std())
     rmsds.append(0)
     coefs.append(1)
     labels.append('Fluxdata')
-    for i in range(len(simColumns)):
-        simColumn = simColumns[i]
-        simColName = simLabels[i]
-        labels.append(simColName)
-        std = simColumn.std()
-        rmsd = sm.rmsd(simColumn, obsColumn)
-        coef = np.ma.corrcoef(simColumn, obsColumn)[0, 1]
+    for i in range(colN):
+        if i == iObs:
+            pass
+        simCol = thisDF.iloc[:, i]
+        simLabel = thisDF.columns[i]
+        labels.append(simLabel)
+        std = simCol.std()
+        rmsd = sm.rmsd(simCol, obsCol)
+        coef = np.corrcoef(simCol, obsCol)[0, 1]
         
         stds.append(std)
         rmsds.append(rmsd)
         coefs.append(coef)
-    sm.taylor_diagram(np.array(stds), np.array(rmsds), np.array(coefs),
-        markerLabel = labels, rmslabelformat=':.1f')
+    sm.taylor_diagram(np.array(stds), np.array(rmsds), np.array(coefs), markerLabel = labels, rmslabelformat=':.1f')
     print('succeed')
-elif argv['chart'] == 'Line chart':
-    x = np.arange(rowNumber)
-    for i in range(columnNumber):
-        simCol = df.iloc[:, i]
-        simColName = df.columns[i]
-        simData = simCol.values
-        plt.plot(x, simData, label=simColName)
-    plt.legend()
-    print('succeed')
-elif argv['chart'] == 'Box diagram':
-    data = [col.compressed() for col in simColumns]
-    box = plt.boxplot(data, labels=simLabels)
-    print('succeed')
+    plt.savefig(argv['outputPath'])
+    plt.close('all')
 
-plt.savefig(argv['outputPath'])
-plt.close('all')
+def scatterPlot():
+    plotColN = 1
+    plotRowN = ceil((colN-1)/plotColN)
+    plotIndex = 1
+    # figH = 500
+    # figW = 500
+    fig = plt.figure(figsize=(18, 30))
+    obsCol = thisDF.iloc[:, iObs]
+    obsLabel = thisDF.columns[iObs]
+    # 多幅子图：每一幅是 simulation 和 observation 的散点图/回归直线
+    for i in range(colN):
+        if i == iObs:
+            continue
+        simCol = thisDF.iloc[:, i]
+        simLabel = thisDF.columns[i]
+
+        ax = fig.add_subplot(plotRowN, plotColN, plotIndex)
+        ax.set_title(simLabel + '-' + obsLabel)
+        
+        plt.sca(ax)
+        plt.tight_layout()
+    
+        # TODO unit
+        ax.set_xlabel(simLabel)
+        ax.set_ylabel(obsLabel)
+        sns.regplot(x=simLabel, y='Fluxdata', data={'Fluxdata': obsCol, simLabel: simCol})
+
+        plotIndex += 1
+    print('succeed')
+    plt.savefig(argv['outputPath'])
+    plt.close('all')
+        
+if chart == 'Scatter diagram':
+    scatterPlot()
+elif chart == 'Taylor diagram':
+    taylorPlot()
+elif chart == 'Line chart' or chart == 'Box diagram' or chart == 'Violin diagram':
+    snsPlot(chart)
+elif chart == 'SE':
+    sePlot()

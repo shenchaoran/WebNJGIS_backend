@@ -35,7 +35,10 @@ export default class SiteChart extends CmpMethod {
                 }
                 catch(e) {
                     if(e.code === 'ENOENT') {
-                        await fs.mkdirAsync(outputFolder)
+                        try{
+                            await fs.mkdirAsync(outputFolder)
+                        }
+                        catch(e){}
                     }
                 }
             }
@@ -71,6 +74,7 @@ export default class SiteChart extends CmpMethod {
                         chart: this.methodName,
                         outputPath: outputPath,
                         metricName: this.metricName,
+                        timeInterval: this.task.temporal,
                     })
                 ],
                 onSucceed = async stdout => {
