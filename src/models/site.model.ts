@@ -6,6 +6,10 @@ const schema = new Schema({
     id: String,
     lat: Number,
     long: Number,
+    elevation: Number,
+    PFT: String,
+    tier1: String,
+    tier2: String,
     name: String,
     url: String,
     startTime: Number,
@@ -22,7 +26,11 @@ interface IObsSiteDocument extends Document {
     long: number;
     name: string;
     url: string;
-    startTime: number;
-    endTime: number;
+    startTime: number;      // Tier 2 
+    endTime: number;        // Tier 2
+    elevation: number;
+    PFT: string;
+    tier1: string;
+    tier2: string;
     index: number;
 }
