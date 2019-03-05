@@ -58,6 +58,7 @@ else:
 def getStatisticalIndex():
     obsCol = thisDF.iloc[:, iObs]
     result = {
+        'means': [],
         'stds': [],
         'rmsds': [],
         'coefs': [],
@@ -65,15 +66,17 @@ def getStatisticalIndex():
         'r2s': [],
         'labels': []
     }
+    obs_bar = obsCol.mean()
     for i in range(colN):
         if i != iObs:
             simCol = thisDF.iloc[:, i]
             simLabel = thisDF.columns[i]
             std = simCol.std()
+            mean = simCol.mean()
             if simCol.any():
                 rmsd = sm.rmsd(simCol, obsCol)
                 coef = np.corrcoef(simCol, obsCol)[0, 1]
-                nse = 1 - sum((simCol - obsCol)**2)/sum((obsCol - np.mean(obsCol))**2)
+                nse = 1 - sum((simCol - obsCol)**2)/sum((obsCol - obs_bar)**2)
                 r2 = coef**2
             else:
                 rmsd = np.NaN
@@ -81,12 +84,21 @@ def getStatisticalIndex():
                 nse = np.NaN
                 r2 = np.NaN
 
+            result['means'].append(mean)
             result['labels'].append(simLabel)
             result['stds'].append(std)
             result['rmsds'].append(rmsd)
             result['coefs'].append(coef)
             result['nses'].append(nse)
             result['r2s'].append(r2)
+        else:
+            result['means'].append(obs_bar)
+            result['labels'].append('Fluxdata')
+            result['stds'].append(obsCol.std())
+            result['rmsds'].append(0)
+            result['coefs'].append(1)
+            result['nses'].append(0)
+            result['r2s'].append(1)
     
     jsonStr = json.dumps(result)
     print(jsonStr)

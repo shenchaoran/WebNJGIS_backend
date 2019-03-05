@@ -42,20 +42,20 @@ let batchCmpSite = async () => {
                 })
         })
     }, {
-        concurrency: 2
+        concurrency: 5
     })
 }
 
 let removeDocs = async () => {
     return Bluebird.all([
-        TaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, 1'}),
-        CalcuTaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, 1'}),
+        TaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, GPP, 8 day interval'}),
+        CalcuTaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, GPP, 8 day interval'}),
     ])
 }
 
 let main = async () => {
     await removeDocs()
-    console.log('had removed batch-created docs')
+    console.log('-----had removed batch-created docs')
     await batchCmpSite()
     console.log('get all sites succeed')
 }

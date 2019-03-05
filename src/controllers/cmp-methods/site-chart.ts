@@ -80,6 +80,7 @@ export default class SiteChart extends CmpMethod {
                 onSucceed = async stdout => {
                     if(this.methodName === 'statistical index') {
                         try {
+                            // console.error(stdout)
                             stdout = stdout.replace(/NaN/g, 'null')
                             this.result = JSON.parse(stdout)
                             this.result.state = OGMSState.FINISHED_SUCCEED

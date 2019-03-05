@@ -46,7 +46,7 @@ export default class CalcuTaskCtrl {
         //     // 删除无关字段
         //     doc._id = new ObjectID();
         // });
-        Bluebird.map(docs, doc => {
+        return Bluebird.map(docs, doc => {
             return CalcuTaskModel.insert(doc)
         })
     }
