@@ -76,19 +76,27 @@ export default class SiteChart extends CmpMethod {
                         metricName: this.metricName,
                         timeInterval: this.task.temporal,
                     })
-                ],
+                ],  
                 onSucceed = async stdout => {
-                    if(stdout.indexOf('succeed') !== -1) {
+                    if(this.methodName === 'statistical index') {
+                        try {
+                            stdout = stdout.replace(/NaN/g, 'null')
+                            this.result = JSON.parse(stdout)
+                            this.result.state = OGMSState.FINISHED_SUCCEED
+                        }
+                        catch(e) {
+                            console.error('parse JSON failed')
+                            console.error(stdout)
+                        }
+                    }
+                    else {
                         this.result = { 
                             state: OGMSState.FINISHED_SUCCEED,
                             img: outputName,
                             ext: '[".png"]',
                         }
-                        return true
                     }
-                    else if(stdout === 'failed') {
-                        return false
-                    }
+                    return true
                 };
             return super._start(interpretor, argv, onSucceed)
         }

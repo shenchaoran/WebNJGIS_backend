@@ -8,8 +8,8 @@ import math
 # {
 #     header: number | None,
 #     inputFilePath: string,
-#     colIndexs: number[],
-#     dfMetricNames: string[],
+#     colIndexs: number[],              列索引号，不一定对，因为观测数据的列顺序不固定，不推荐用
+#     dfMetricNames: string[],          列名
 #     sep: string,
 #     skiprows: number,
 #     scales: number[],
@@ -27,7 +27,7 @@ argv = json.loads(sys.argv[1])
 # metricTable = cmpDB['Metric']
 # METRIC = metricTable.find_one({ "name" : argv['metricName']})
 
-colNumber = len(argv['colIndexs'])
+colNumber = len(argv['dfMetricNames'])
 if 'header' not in argv.keys():
     argv['header'] = None
 if 'scales' not in argv.keys():
@@ -54,7 +54,12 @@ if argv['header'] == 'None':
 if argv['sep'] == 's+':
     argv['sep'] = '\s+'
 
-df = pd.read_csv(argv['inputFilePath'], usecols=argv['colIndexs'], \
+if argv['header'] == None:
+    cols = argv['colIndexs']
+else:
+    cols = argv['dfMetricNames']
+
+df = pd.read_csv(argv['inputFilePath'], usecols=cols, \
     sep=argv['sep'], header=argv['header'], skiprows=argv['skiprows'])
 
 if 'end' not in argv.keys():
@@ -70,14 +75,21 @@ for i in range(cols.shape[0]):
     maxV = argv['maxs'][i]
     missingV = argv['missing_values'][i]
 
-    col = np.resize(cols[i][argv['start']: argv['end']], math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']).reshape(-1, argv['step'])
+    if argv['header'] == None:
+        currentCol = cols[i]
+    else:
+        currentCol = df[argv['dfMetricNames'][i]]
+
+    col = np.resize(currentCol[argv['start']: argv['end']], math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']).reshape(-1, argv['step'])
     col = np.ma.array(col)
     if minV != None:
         col = np.ma.masked_where(col <= minV, col)
     if maxV != None:
         col = np.ma.masked_where(col >= maxV, col)
     if missingV != None:
-        col = np.ma.masked_where(col == missingV, col)
+        # col = np.ma.masked_where(col == missingV, col)
+        col[col==missingV]= -999999
+
     col = np.ma.masked_invalid(col)
 
     meaned = col.mean(axis=1).data

@@ -22,10 +22,15 @@ import {
     SchemaName,
     MetricModel,
     CmpObj,
+    ObsSiteModel,
 } from '../models';
 import { ResourceSrc } from '../models/resource.enum';
-import ProcessCtrl from './process.controller'
+import ProcessCtrl from './process.controller';
+import SolutionCtrl from './solution.controller';
+
 let processCtrl = new ProcessCtrl();
+const solutionCtrl = new SolutionCtrl();
+const calcuTaskCtrl = new CalcuTaskCtrl();
 
 export default class CmpTaskCtrl {
     constructor() { }
@@ -201,6 +206,68 @@ export default class CmpTaskCtrl {
             .catch(Bluebird.reject);
     }
 
+    // 测试用
+    async createTaskByIndex(siteIndex: Number, slnId: String) {
+        try {
+            let { solution, ptMSs, stds, } = await solutionCtrl.createTask(slnId)
+            let site = await ObsSiteModel.findOne({index: siteIndex})
+            let task = (TaskModel as any).ogms_constructor((process as any).administrator, solution)
+            task.state = OGMSState.COULD_START;
+            task.cmpMethods = solution.cmpMethods;
+            task.temporal = solution.temporal;
+            task.meta.name = `${siteIndex}`;
+            task.meta.desc = 'auto-create by admin for batch test, 1';
+            task.sites = [site];
+            task.solutionId = solution._id.toString();
+            task.topicId = solution.topicId;
+            task.calcuTaskIds = [];
+    
+            let calcuTasks = ptMSs.map(ms => {
+                let calcuTask = (CalcuTaskModel as any).ogms_constructor((process as any).administrator, ms)
+                task.calcuTaskIds.push(calcuTask._id.toString());
+                calcuTask.meta.name = `${siteIndex}`;
+                calcuTask.meta.desc = 'auto-create by admin for batch test, 1'
+                calcuTask.state = OGMSState.COULD_START;
+                calcuTask.IO.std.map(event => {
+                    if(event.id === '--dataset')
+                        event.value = '5b9012e4c29ca433443dcfab'
+                    else if(event.id === '--index')
+                        event.value = siteIndex
+                })
+                return calcuTask
+            });
+            task.cmpObjs.map(cmpObj => {
+                calcuTasks.map(msr => {
+                    let dr = cmpObj.dataRefers.find(dr => dr.type === 'simulation' && dr.msId === msr.msId.toString() && !dr.msrId);
+                    dr.msrId = msr._id.toString();
+                    dr.msrName = msr.meta.name;
+                });
+            });
+    
+            let rsts = await Bluebird.all([
+                taskCtrl.insert(task),
+                calcuTaskCtrl.insertMany(calcuTasks),
+            ])
+            let cmpTaskId = rsts[0]
+            return cmpTaskId
+        }
+        catch(e) {
+            e
+        }
+    }
+
+    // 测试用
+    async startByIndex(siteIndex: Number, slnId: String) {
+        try {
+            let taskId = await taskCtrl.createTaskByIndex(siteIndex, slnId)
+            console.log(`${siteIndex}`)
+            return taskCtrl.startInBackground(taskId);
+        }
+        catch(e) {
+            e
+        }
+    }
+
     async start(cmpTaskId) {
         try {
             this.startInBackground(cmpTaskId);
@@ -219,11 +286,23 @@ export default class CmpTaskCtrl {
             let task = await this.invokeAndCache(cmpTaskId);
             let refactorCtrl = new RefactorCtrl(task);
             task = await refactorCtrl.refactor();
-            // TODO 如果 isAllSTDCache && 有缓存的话直接返回
-            task.refactored.map(refactored => {
-                task.cmpMethods.map(method => {
-                    processCtrl.push(task._id, refactored.metricName, method.name)
+            return new Promise((resolve, reject) => {
+                let count = 0, sum = 0;
+                postal.channel(task._id).subscribe('cmp-method', ({metricName, methodName}) => {
+                    count++;
+                    if(count === sum) {
+                        resolve()
+                    }
                 })
+                
+                // TODO 如果 isAllSTDCache && 有缓存的话直接返回
+                task.refactored.map(refactored => {
+                    task.cmpMethods.map(method => {
+                        processCtrl.push(task._id, refactored.metricName, method.name)
+                        sum++;
+                    })
+                })
+
             })
         }
         catch(e) {
@@ -236,9 +315,13 @@ export default class CmpTaskCtrl {
             await TaskModel.updateOne({ _id: cmpTaskId }, { $set: { state: OGMSState.RUNNING } })
             let task = await TaskModel.findOne({ _id: cmpTaskId });
             let calcuTasks = await Bluebird.map(task.calcuTaskIds, calcuTaskId => {
+                if(!calcuTaskId) {
+                    console.log(task._id.toString())
+                    console.log(task.calcuTaskIds)
+                }
                 return new Bluebird((resolve, reject) => {
                     let msCtrl = new ModelServiceCtrl()
-                    msCtrl.invoke(calcuTaskId).catch(reject)
+                    msCtrl.invoke(calcuTaskId.toString()).catch(reject)
                     postal.channel(calcuTaskId).subscribe('onModelFinished', msg => {
                         if(msg.code !== 200) {
                             resolve(undefined);
@@ -347,3 +430,5 @@ export default class CmpTaskCtrl {
         }
     }
 }
+
+const taskCtrl = new CmpTaskCtrl();

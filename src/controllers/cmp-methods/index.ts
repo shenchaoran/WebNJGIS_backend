@@ -22,6 +22,7 @@ export const CmpMethodFactory = function (
         case 'Box diagram':
         case 'Scatter diagram':
         case 'SE':
+        case 'statistical index':
             return new SiteChart(task, metricName, methodName)
         // case 'Bias contour map':
         //     CmpMethod = ContourMap;
@@ -37,16 +38,13 @@ export const CmpMethodFactory = function (
 }
 
 postal.channel('child-process').subscribe('start', async ({taskId, metricName, methodName}) => {
-    await TaskModel.findOne({_id: taskId})
-        .then(task => {
-            let cmpMethod = CmpMethodFactory(
-                task, 
-                metricName, 
-                methodName, 
-            );
-            cmpMethod.start().catch(e => {
-                // console.log(`******** cmp failed: ${methodName}`)
-            });
-        })
-    
+    let task = await TaskModel.findOne({_id: taskId})
+    let cmpMethod = CmpMethodFactory(
+        task, 
+        metricName, 
+        methodName, 
+    );
+    cmpMethod.start().catch(e => {
+        // console.log(`******** cmp failed: ${methodName}`)
+    });
 })

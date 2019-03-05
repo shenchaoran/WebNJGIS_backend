@@ -6,14 +6,19 @@ import { setting } from './config/setting';
 import { router } from './routes/index.route';
 import { preReqMid, postResMid } from './middlewares';
 import { init } from './init';
+import * as Bluebird from 'bluebird';
 import './controllers/process.controller';
+// registe postal channel
 require('./controllers/cmp-methods')
-import { SchemaModel, MetricModel } from './models';
+import { SchemaModel, MetricModel, UserModel } from './models';
 
 let main = async () => {
     try{
         await init();
-        (process as any).schemas = await SchemaModel.find({});
+        await Bluebird.all([
+            (process as any).schemas = await SchemaModel.find({}),
+            (process as any).administrator = await UserModel.findOne({username: 'SCR'}),
+        ])
         // (process as any).metrics = await MetricModel.find({});
         //////////////////////////////////////router
         // (<any>global).app = app;

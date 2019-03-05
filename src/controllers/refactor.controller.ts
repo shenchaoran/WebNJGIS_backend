@@ -213,7 +213,7 @@ export default class RefactorCtrl {
                         stderr += data.toString()
                     })
                     cp.on('close', async code => {
-                        console.log(stderr)
+                        // console.log(stderr)
                         if(code === 0) {
                             try {
                                 stdout = stdout.replace(/NaN/g, 'null')
@@ -223,7 +223,7 @@ export default class RefactorCtrl {
 
                             }
                             // console.log(refactorIO.refactorScript, refactorIO.label, stdout)
-                            console.log(`******* ${refactorIO.label} refactor succeed`)
+                            // console.log(`******* ${refactorIO.label} refactor succeed`)
                             resolve()
                         }
                         else {
@@ -312,11 +312,11 @@ class RefactorIO {
     sep?: string;
     metricNames: string[];
     dfMetricNames: string[];
+    mins: number[];
+    maxs: number[];
     scales?: number[];
     offsets?: number[];
     colIndexs?: number[];
-    mins: number[];
-    maxs: number[];
     missing_values: number[];
     data: [][];
     label: string;

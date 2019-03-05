@@ -8,6 +8,8 @@ import { ResourceSrc } from './resource.enum';
 import * as _ from 'lodash';
 import { Event } from './model-service.model';
 import { OGMSState } from './task.model';
+import { IUserDocument } from './user.model';
+import { ObjectID } from 'mongodb';
 
 const collectionName = 'Calcu_Task';
 const schema = new Schema({
@@ -33,6 +35,47 @@ Object.assign(schema.statics, OgmsSchemaStatics)
 interface ICalcuTaskModel extends Model<ICalcuTaskDocument>, IOgmsModel {}
 
 export const CalcuTaskModel: ICalcuTaskModel = model<ICalcuTaskDocument, ICalcuTaskModel>(collectionName, schema);
+
+(CalcuTaskModel as any).ogms_constructor = (user?: IUserDocument, ms?) => {
+    let doc: any = {}
+    doc._id = new ObjectID().toString();
+    if (ms) {
+        doc.msId = ms._id;
+        doc.msName = ms.MDL.meta.name;
+        doc.topicId = ms.topicId;
+        doc.topicName = ms.topicName;
+        doc.IO = _.cloneDeep(ms.MDL.IO);
+        doc.IO.dataSrc = 'STD';
+        // TODO 选择节点
+        doc.nodeId = ms.nodeIds[0];
+    }
+    else {
+        doc.IO = {}
+    }
+    
+    doc.meta = {
+        name: undefined,
+        desc: undefined,
+        time: new Date().getTime()
+    };
+    doc.subscribed_uids = [];
+    doc.state = OGMSState.INIT;
+    if(user) {
+        doc.auth = {
+            userId: user._id,
+            userName: user.username,
+            src: ResourceSrc.PUBLIC
+        };
+    }
+    else {
+        doc.auth = {
+            userId: undefined,
+            userName: undefined,
+            src: undefined
+        };
+    }
+    return doc;
+}
 
 export interface ICalcuTaskDocument extends Document {
     meta: {

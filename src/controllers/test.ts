@@ -8,8 +8,7 @@ import { Document, Schema, Model, model } from 'mongoose';
 import * as unzip from 'unzip';
 import { Buffer } from 'buffer';
 import * as _ from 'lodash';
-import { SolutionModel } from '../models/solution.model';
-import { GeoDataModel } from '../models/UDX-data.model';
+import { UserModel, TaskModel, CalcuTaskModel, SolutionModel, GeoDataModel, ModelServiceModel, ObsSiteModel, SchemaModel } from '../models';
 import { ObjectID } from 'mongodb';
 import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
@@ -17,7 +16,52 @@ import { getByServer } from '../utils/request.utils';
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 import * as Papa from 'papaparse';
-import { ModelServiceModel } from '../models/model-service.model';
+import CmpTaskCtrl from './task.controller'
+require('./cmp-methods')
+
+let batchCmpSite = async () => {
+    await Bluebird.all([
+        (process as any).schemas = await SchemaModel.find({}),
+        (process as any).administrator = await UserModel.findOne({username: 'SCR'}),
+    ])
+    
+    const taskCtrl = new CmpTaskCtrl()
+    // ms: IBIS, Biome-BGC, LPJ, MOD17A3 obs: FLUXNET2015
+    // cmpMethods: scatter, line, box, taylor, se
+    const slnId = '5c41ebb329c7d5df0a000053';   
+    let sites = await ObsSiteModel.find({index: {$ne: null}})
+
+    // await taskCtrl.startByIndex(22641, slnId)
+
+    await Bluebird.map(sites, site => {
+        return new Bluebird((resolve, reject) => {
+            taskCtrl.startByIndex(site.index, slnId)
+                .then(() => {
+                    console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${site.index}: finished`)
+                    resolve()
+                })
+        })
+    }, {
+        concurrency: 2
+    })
+}
+
+let removeDocs = async () => {
+    return Bluebird.all([
+        TaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, 1'}),
+        CalcuTaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, 1'}),
+    ])
+}
+
+let main = async () => {
+    await removeDocs()
+    console.log('had removed batch-created docs')
+    await batchCmpSite()
+    console.log('get all sites succeed')
+}
+main()
+
+
 // import SubHeatMap from './cmp-methods/sub-region-heat-map';
 
 // (process as any).on('custom', msg => {

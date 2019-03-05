@@ -1,20 +1,21 @@
 import sys
 import numpy as np
-import pymongo
+# import pymongo
 import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
 import skill_metrics as sm
 import json
 import pandas as pd
 from math import ceil
-import matplotlib as mpl
+# import matplotlib as mpl
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-from sklearn import metrics
+# from sklearn import metrics
 
 # {
 #     inputFilePath,
-#     chart: 'scatter' | 'line' | 'taylor' | 'box',
+#     chart: 'scatter' | 'line' | 'taylor' | 'box' | 'statistical index',
 #     outputPath,
 #     missing_value,
 #     header,
@@ -28,6 +29,7 @@ metricName = argv['metricName']
 chart = argv['chart']
 df = pd.read_csv(argv['inputFilePath'], header=0)
 df_noNaN = df.dropna()
+df_noMissingV = df.mask(df == -999999)
 df_noZero = df_noNaN.mask(df == 0)
 df_noZero = df_noZero.dropna()
 colN = df.shape[1]
@@ -36,7 +38,7 @@ rowN = df.shape[0]
 for i, col in enumerate(df.columns):
     if col == 'Fluxdata':
         iObs = i
-if chart == 'Scatter diagram' or chart == 'Taylor diagram' or chart == 'SE':
+if chart == 'Scatter diagram' or chart == 'Taylor diagram' or chart == 'SE' or chart == 'statistical index':
     if 'iObs' not in locals().keys():
         print('can\'t find observation column, failed')
         sys.exit(1)
@@ -46,13 +48,55 @@ else:
 # 需要删除 nan/zero
 if chart == 'Line chart':
     thisDF = df
-elif metricName == 'NEE' or metricName == 'NEP':
-    thisDF = df_noNaN
+# elif metricName == 'NEE' or metricName == 'NEP' or chart == 'statistical index':
+# else:
+    # thisDF = df_noNaN
 else:
-    thisDF = df_noZero
+    thisDF = df_noMissingV
+
+
+def getStatisticalIndex():
+    obsCol = thisDF.iloc[:, iObs]
+    result = {
+        'stds': [],
+        'rmsds': [],
+        'coefs': [],
+        'nses': [],
+        'r2s': [],
+        'labels': []
+    }
+    for i in range(colN):
+        if i != iObs:
+            simCol = thisDF.iloc[:, i]
+            simLabel = thisDF.columns[i]
+            std = simCol.std()
+            if simCol.any():
+                rmsd = sm.rmsd(simCol, obsCol)
+                coef = np.corrcoef(simCol, obsCol)[0, 1]
+                nse = 1 - sum((simCol - obsCol)**2)/sum((obsCol - np.mean(obsCol))**2)
+                r2 = coef**2
+            else:
+                rmsd = np.NaN
+                coef = np.NaN
+                nse = np.NaN
+                r2 = np.NaN
+
+            result['labels'].append(simLabel)
+            result['stds'].append(std)
+            result['rmsds'].append(rmsd)
+            result['coefs'].append(coef)
+            result['nses'].append(nse)
+            result['r2s'].append(r2)
+    
+    jsonStr = json.dumps(result)
+    print(jsonStr)
 
 def sePlot():
     nyear_sum = round(rowN*argv['timeInterval']/365)
+    if nyear_sum == 1:
+        print('only 1 year of observation data, cann\'t set up train-dataset')
+        sys.exit(1)
+
     nyear_train = nyear_sum - 1
     nday_train = round(nyear_train*365/argv['timeInterval'])
     df_train = df[:nday_train]
@@ -90,7 +134,7 @@ def sePlot():
     RMSE = np.sqrt(sum_mean/len(y_pred))
     print('RMSE: ', RMSE)
 
-    print('succeed')
+    # print(chart, 'succeed')
 
 def snsPlot(chart):
     if chart == 'Line chart':
@@ -102,11 +146,12 @@ def snsPlot(chart):
     elif chart == 'Violin diagram':
         # 需要删除 nan
         sns.violinplot(data=thisDF)
-    print('succeed')
+    # print(chart, 'succeed')
     plt.savefig(argv['outputPath'])
     plt.close('all')
 
 def taylorPlot():
+    # try: 
     obsCol = thisDF.iloc[:, iObs]
     stds = []
     rmsds = []
@@ -121,18 +166,25 @@ def taylorPlot():
             pass
         simCol = thisDF.iloc[:, i]
         simLabel = thisDF.columns[i]
-        labels.append(simLabel)
-        std = simCol.std()
-        rmsd = sm.rmsd(simCol, obsCol)
-        coef = np.corrcoef(simCol, obsCol)[0, 1]
+        if simCol.any():
+            std = simCol.std()
+            rmsd = sm.rmsd(simCol, obsCol)
+            coef = np.corrcoef(simCol, obsCol)[0, 1]
+            
+            stds.append(std)
+            rmsds.append(rmsd)
+            coefs.append(coef)
+            labels.append(simLabel)
+        else:
+            pass
         
-        stds.append(std)
-        rmsds.append(rmsd)
-        coefs.append(coef)
     sm.taylor_diagram(np.array(stds), np.array(rmsds), np.array(coefs), markerLabel = labels, rmslabelformat=':.1f')
-    print('succeed')
+    # print(chart, 'succeed')
     plt.savefig(argv['outputPath'])
     plt.close('all')
+    # except Exception as instance:
+    #     sys.stderr.write(json.dumps(sys.argv[1]))
+    #     sys.stderr.write(instance)
 
 def scatterPlot():
     plotColN = 1
@@ -162,10 +214,12 @@ def scatterPlot():
         sns.regplot(x=simLabel, y='Fluxdata', data={'Fluxdata': obsCol, simLabel: simCol})
 
         plotIndex += 1
-    print('succeed')
+    # print(chart, 'succeed')
     plt.savefig(argv['outputPath'])
     plt.close('all')
         
+
+# try:
 if chart == 'Scatter diagram':
     scatterPlot()
 elif chart == 'Taylor diagram':
@@ -174,3 +228,9 @@ elif chart == 'Line chart' or chart == 'Box diagram' or chart == 'Violin diagram
     snsPlot(chart)
 elif chart == 'SE':
     sePlot()
+elif chart == 'statistical index':
+    getStatisticalIndex()
+# except Exception as instance:
+#     sys.stderr.write(json.dumps(sys.argv[1]))
+#     sys.stderr.write(instance)
+#     sys.exit(1)

@@ -83,10 +83,18 @@ export default class ModelServiceCtrl {
      */
     invoke(msr);
     invoke(msrId: string);
-    async invoke(msr) {
+    async invoke(msr1) {
+        let msr
         try {
-            if (typeof msr === 'string')
-                msr = await CalcuTaskModel.findOne({ _id: msr });
+            if (typeof msr1 === 'string') {
+                msr = await CalcuTaskModel.findOne({ _id: msr1 });
+                if(!msr) {
+                    console.log('msr not found: ', msr1)
+                    
+                }
+            }
+            else 
+                msr = msr1
             if (!msr._id)
                 msr._id = new ObjectID()
             if(msr.IO.dataSrc === 'STD' && (!msr.IO.parameters || msr.IO.parameters.length === 0)) {

@@ -6,8 +6,10 @@
 import {  OgmsSchemaStatics, IOgmsModel } from './mongoose.base';
 import { Document, Schema, Model, model } from 'mongoose';
 import { ResourceSrc } from './resource.enum';
-import { DataRefer, CmpObj } from './solution.model';
+import { DataRefer, CmpObj, ISolutionDocument } from './solution.model';
 import { ISchemaDocument } from './UDX-schema.model';
+import { IUserDocument } from './user.model';
+import * as _ from 'lodash';
 
 const collectionName = 'CmpTask';
 const schema = new Schema({
@@ -31,6 +33,38 @@ const schema = new Schema({
 Object.assign(schema.statics, OgmsSchemaStatics)
 interface ITaskModel extends Model<ITaskDocument>, IOgmsModel {}
 export const TaskModel: ITaskModel = model<ITaskDocument, ITaskModel>(collectionName, schema);
+
+(TaskModel as any).ogms_constructor = (user?: IUserDocument, sln?: ISolutionDocument) => {
+    let task: any = {
+        meta: {
+            name: null,
+            desc: null,
+            time: new Date().getTime(),
+        },
+        calcuTaskIds: [],
+        cmpObjs: _.cloneDeep(sln.cmpObjs),
+        cmpMethods: [],
+        refactored: [],
+        subscribed_uids: [],
+        regions: [],
+        sites: [],
+    }
+    if(user) {
+        task.auth = {
+            userId: user._id,
+            userName: user.username,
+            src: ResourceSrc.PUBLIC
+        };
+    }
+    else {
+        task.auth = {
+            userId: null,
+            userName: null,
+            src: null
+        };
+    }
+    return task;
+}
 
 export interface ITaskDocument extends Document {
     meta: {

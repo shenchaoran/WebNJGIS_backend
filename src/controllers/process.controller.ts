@@ -30,12 +30,12 @@ export default class ProcessCtrl {
     constructor() {
         if(!(ProcessCtrl as any).instance) {
             this.child_processes = [];
-            this.child_processes = new Proxy(this.child_processes, {
-                set: (target, property, value, receiver) => {
-                    // console.log(`******** cmp-process number: ${target.length}`);
-                    return Reflect.set(target, property, value, receiver)
-                }
-            });
+            // this.child_processes = new Proxy(this.child_processes, {
+            //     set: (target, property, value, receiver) => {
+            //         // console.log(`******** cmp-process number: ${target.length}`);
+            //         return Reflect.set(target, property, value, receiver)
+            //     }
+            // });
 
             (ProcessCtrl as any).instance = this
         }
@@ -68,6 +68,7 @@ export default class ProcessCtrl {
             // console.log(`******** add started child_process record`, cmpProcess)
             // console.log(this.child_processes)
             this.child_processes.push(cmpProcess)
+            // console.log(`******** cmp-process number: ${this.child_processes.length}`);
         }
     }
 
@@ -75,15 +76,18 @@ export default class ProcessCtrl {
     async remove(pid) {
         let removed = _.remove(this.child_processes, child_process => child_process.pid === pid);
         // console.log(`--------------- remain cp number: ${this.child_processes.length}`)
+        // console.log(`******** cmp-process number: ${this.child_processes.length}`);
         return removed;
     }
 
     // 添加比较任务到队列
     async push(taskId, metricName, methodName, rightNow=false) {
+        // console.log(this.child_processes.length)
         if(this.child_processes.length < this.concurrency || rightNow) {
             postal.channel('child-process').publish('start', { taskId, metricName, methodName })
         }
         else {
+            console.log('========================================================insert task to queue')
             ProcessQueueModel.insert({
                 taskId,
                 metricName,

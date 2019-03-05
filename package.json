@@ -19,7 +19,8 @@
         "gulp": "gulp",
         "nodemon": "nodemon --nolazy --inspect=0.0.0.0:65535 --config nodemon.json dist/server.js",
         "pm2-debug": "pm2 start ecosystem.config.js --only CMIP-backend-debug",
-        "pm2-release": "pm2 start ecosystem.config.js --only CMIP-backend-release"
+        "pm2-release": "pm2 start ecosystem.config.js --only CMIP-backend-release",
+        "test": "node dist/controllers/test.js"
     },
     "jest": {
         "globals": {

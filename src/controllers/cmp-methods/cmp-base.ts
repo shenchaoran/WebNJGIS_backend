@@ -4,6 +4,7 @@ import * as EventEmitter from 'events';
 import * as child_process from 'child_process';
 import { setting } from '../../config/setting';
 import ProcessCtrl from '../process.controller';
+import * as postal from 'postal';
 let processCtrl = new ProcessCtrl()
 import * as _ from 'lodash';
 
@@ -29,8 +30,8 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                 const cp = child_process.spawn(interpretor, argv)
                 let condition = { _id: this.task._id };
                 this.updatePath = `refactored.${i}.methods.${j}`;
-                console.log(`******** start ${this.methodName}`)
-                console.log(`******** pid: ${cp.pid}`)
+                // console.log(`******** start ${this.methodName}`)
+                // console.log(`******** pid: ${cp.pid}`)
                 processCtrl.add({
                     pid: cp.pid,
                     condition,
@@ -66,12 +67,24 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                     console.error(`${interpretor} script error:`, output)
                 })
                 cp.on('close', code => {
-                    console.log(`******** ${this.methodName} exit code: ${code}`);
+                    if(code !== 0) {
+                        console.error(`******** ${this.methodName} exit code: ${code}`);
+                    }
+                    else {
+                        console.log(`******** ${this.methodName} exit code: ${code}`);
+                    }
                     processCtrl.remove(cp.pid);
                     processCtrl.shift();
                     resolve({code, stdout, stderr})
                 })
             })
+            postal.channel(this.task._id).publish('cmp-method', {
+                metricName: this.metricName,
+                methodName: this.methodName
+            })
+            if(stderr.trim() !== '')
+                console.error(stderr)
+            // console.log(stdout)
             if(code === 0) {
                 try {
                     let isSucceed = await cb(stdout)
@@ -94,6 +107,10 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
             }
         }
         catch(e) {
+            postal.channel(this.task._id).publish('cmp-method', {
+                metricName: this.metricName,
+                methodName: this.methodName
+            })
             console.error(e)
         }
     }
