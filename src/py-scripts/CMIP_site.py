@@ -28,10 +28,10 @@ argv = json.loads(sys.argv[1])
 metricName = argv['metricName']
 chart = argv['chart']
 df = pd.read_csv(argv['inputFilePath'], header=0)
-df_noNaN = df.dropna()
-df_noMissingV = df.mask(df == -999999)
-df_noZero = df_noNaN.mask(df == 0)
-df_noZero = df_noZero.dropna()
+df.replace({'null': np.nan, 'None': np.nan, 'NaN': np.nan, 'nan': np.nan})
+# df_noNaN = df.dropna()
+# df_noZero = df_noNaN.mask(df == 0)
+# df_noZero = df_noZero.dropna()
 colN = df.shape[1]
 rowN = df.shape[0]
 
@@ -46,13 +46,13 @@ else:
     iObs = -1
 
 # 需要删除 nan/zero
-if chart == 'Line chart':
-    thisDF = df
+# if chart == 'Line chart':
+#     thisDF = df
 # elif metricName == 'NEE' or metricName == 'NEP' or chart == 'statistical index':
 # else:
     # thisDF = df_noNaN
-else:
-    thisDF = df_noMissingV
+# else:
+#     thisDF = df_noMissingV
 
 
 def getStatisticalIndex():
@@ -69,6 +69,7 @@ def getStatisticalIndex():
     obs_bar = obsCol.mean()
     for i in range(colN):
         if i != iObs:
+            
             simCol = thisDF.iloc[:, i]
             simLabel = thisDF.columns[i]
             std = simCol.std()

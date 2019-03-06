@@ -28,22 +28,24 @@ let batchCmpSite = async () => {
     const taskCtrl = new CmpTaskCtrl()
     // ms: IBIS, Biome-BGC, LPJ, MOD17A3 obs: FLUXNET2015
     // cmpMethods: scatter, line, box, taylor, se
-    const slnId = '5c41ebb329c7d5df0a000053';   
+    // const slnId = '5c41ebb329c7d5df0a000053';   
+    // ms: IBIS, Biome-BGC LPJ; no obs
+    const slnId = '5c7f7ae890c1497f4f000003'
     let sites = await ObsSiteModel.find({index: {$ne: null}})
 
-    // await taskCtrl.startByIndex(22641, slnId)
+    await taskCtrl.startByIndex(22641, slnId)
 
-    await Bluebird.map(sites, site => {
-        return new Bluebird((resolve, reject) => {
-            taskCtrl.startByIndex(site.index, slnId)
-                .then(() => {
-                    console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${site.index}: finished`)
-                    resolve()
-                })
-        })
-    }, {
-        concurrency: 5
-    })
+    // await Bluebird.map(sites, site => {
+    //     return new Bluebird((resolve, reject) => {
+    //         taskCtrl.startByIndex(site.index, slnId)
+    //             .then(() => {
+    //                 console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~${site.index}: finished`)
+    //                 resolve()
+    //             })
+    //     })
+    // }, {
+    //     concurrency: 5
+    // })
 }
 
 let removeDocs = async () => {

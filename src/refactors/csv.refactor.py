@@ -80,21 +80,23 @@ for i in range(cols.shape[0]):
     else:
         currentCol = df[argv['dfMetricNames'][i]]
 
-    col = np.resize(currentCol[argv['start']: argv['end']], math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']).reshape(-1, argv['step'])
+    col = np.resize(
+        currentCol[argv['start']: argv['end']], 
+        math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']        # 防止闰年出现，每年只当做有365天
+    ).reshape(-1, argv['step'])                                                 # -1表示自己计算行数
     col = np.ma.array(col)
     if minV != None:
         col = np.ma.masked_where(col <= minV, col)
     if maxV != None:
         col = np.ma.masked_where(col >= maxV, col)
     if missingV != None:
-        # col = np.ma.masked_where(col == missingV, col)
-        col[col==missingV]= -999999
+        col = np.ma.masked_where(col == missingV, col)
 
     col = np.ma.masked_invalid(col)
-
-    meaned = col.mean(axis=1).data
-    # meaned[meaned==0] = np.nan
-    result.append(np.array(meaned) * scale + offset)
+    meaned = col.mean(axis=1)
+    meaned = np.ma.filled(meaned, np.nan)
+    meaned = np.array(meaned) * scale + offset
+    result.append(meaned)
     # result.append((cols[i][start: end: step] * argv['scales'][i] + argv['offsets'][i]))
 
 formatted = []
@@ -102,4 +104,4 @@ for i,row in enumerate(np.array(result).tolist()):
     formatted.append([])
     for j,cell in enumerate(row):
         formatted[i].append(round(cell, 4))
-print(json.dumps(formatted))
+print(json.dumps(formatted).replace('NaN', 'null'))

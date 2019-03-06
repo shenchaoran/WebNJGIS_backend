@@ -48,7 +48,10 @@ for i, variableName in enumerate(argv['dfMetricNames']):
     missingV = argv['missing_values'][i]
     
     col = variable[:, latIndex, longIndex].data
-    subcol = np.resize(col[argv['start']: argv['end']], math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']).reshape(-1, argv['step'])
+    subcol = np.resize(
+        col[argv['start']: argv['end']], 
+        math.ceil((argv['end']-argv['start'])/argv['step'])*argv['step']
+    ).reshape(-1, argv['step'])
     subcol = np.ma.array(subcol)
     if minV != None:
         subcol = np.ma.masked_where(subcol <= minV, subcol)
@@ -56,11 +59,12 @@ for i, variableName in enumerate(argv['dfMetricNames']):
         subcol = np.ma.masked_where(subcol >= maxV, subcol)
     if missingV != None:
         subcol = np.ma.masked_where(subcol == missingV, subcol)
+        # subcol[subcol==missingV]= -999999
     subcol = np.ma.masked_invalid(subcol)
-
-    meaned = subcol.mean(axis=1).data
-    # meaned[meaned==0] = np.nan
-    result.append(np.array(meaned) * scale + offset)
+    meaned = subcol.mean(axis=1)
+    meaned = np.ma.filled(meaned, np.nan)
+    meaned = np.array(meaned) * scale + offset
+    result.append(meaned)
 
 dataset.close()
 
