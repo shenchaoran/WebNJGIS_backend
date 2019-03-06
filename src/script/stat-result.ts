@@ -3,6 +3,8 @@ import { UserModel, TaskModel, CalcuTaskModel, SolutionModel, GeoDataModel, Mode
 import { ObjectID } from 'mongodb';
 import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
+const Bluebird = require('bluebird')
+const fs = Bluebird.promisifyAll(require('fs'))
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 
@@ -12,7 +14,7 @@ let msOrder = [
     'Biome-BGC site', 
     'LPJ site', 
     'MODIS MOD 17 A2', 
-    'Fluxdata', 
+    'Fluxnet', 
 ]
 
 class Result {
@@ -21,13 +23,13 @@ class Result {
     avg_mean: Number[];
     avg_std: Number[];
     avg_coef: Number[];
-    avg_rmsd: Number[];
+    avg_rmse: Number[];
     avg_nse: Number[];
     avg_r2: Number[];
     means: Number[][];
     stds: Number[][];
     coefs: Number[][];
-    rmsds: Number[][];
+    rmses: Number[][];
     nses: Number[][];
     r2s: Number[][];
 }
@@ -70,7 +72,7 @@ let statResult = async () => {
             continue
         }
         if(method.result.stds.indexOf(0) != -1) {
-            console.log(`${index} simulation all zero`)
+            console.log(`--------------${index} simulation all zero`)
             continue
         }
 
@@ -82,25 +84,35 @@ let statResult = async () => {
                 avg_mean: [],
                 avg_std: [],
                 avg_coef: [],
-                avg_rmsd: [],
+                avg_rmse: [],
                 avg_nse: [],
                 avg_r2: [],
                 means: [],
                 stds: [],
                 coefs: [],
-                rmsds: [],
+                rmses: [],
                 nses: [],
                 r2s: []
             }
             results.push(item)
         }
-        item.indexs.push(index)
-        item.means.push(method.result.means)
-        item.stds.push(method.result.stds)
-        item.rmsds.push(method.result.rmsds)
-        item.coefs.push(method.result.coefs)
-        item.nses.push(method.result.nses)
-        item.r2s.push(method.result.r2s)
+        // filter null value
+        let invalid = _.some(_.concat(method.result.means, method.result.stds, method.result.coefs, method.result.rmses, method.result.nses, method.result.r2s), v => v===null)
+        if(invalid) {
+            continue
+        }
+        else {
+            method.result.rmses[4] = 0
+            method.result.coefs[4] = 1
+            method.result.r2s[4] = 1
+            item.means.push(method.result.means)
+            item.stds.push(method.result.stds)
+            item.rmses.push(method.result.rmses)
+            item.coefs.push(method.result.coefs)
+            item.nses.push(method.result.nses)
+            item.r2s.push(method.result.r2s)
+            item.indexs.push(index)
+        }
     }
     let getAvgByCol = (matrix) => {
         let rst = []
@@ -119,12 +131,25 @@ let statResult = async () => {
     for(let result of results) {
         result.avg_mean = getAvgByCol(result.means)
         result.avg_std = getAvgByCol(result.stds)
-        result.avg_rmsd = getAvgByCol(result.rmsds)
+        result.avg_rmse = getAvgByCol(result.rmses)
         result.avg_coef = getAvgByCol(result.coefs)
         result.avg_nse = getAvgByCol(result.nses)
         result.avg_r2 = getAvgByCol(result.r2s)
     }
+    // let shortResult = results.map(result => {
+    //     delete result.means
+    //     delete result.stds
+    //     delete result.coefs
+    //     delete result.rmses
+    //     delete result.nses
+    //     delete result.r2s
+    // })
+    let fpath = path.join(__dirname, '../../src/script/data/sites-stat.json')
+    // console.log(fpath)
+
+    await fs.writeFileAsync(fpath, JSON.stringify(results), 'utf8')
     return results
+    console.log('finished')
 }
 
 let checkOrder = async () => {

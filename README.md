@@ -53,3 +53,14 @@ Navigate to `http://localhost:9999`
 
 ## 数据处理
 actual data value (schema unit) = data value * schema scale + schema offset
+
+## 结果统计
+**站点级**
+1. controllers/test: 批量运行所有站点
+2. script/stat-result: 统计站点的平均统计指标
+3. script/stat-plot: 作图
+
+**区域级**
+1. 批量运行40595*3次
+2. 结果数据汇总为nc
+3. 作图

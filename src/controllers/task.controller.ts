@@ -354,8 +354,11 @@ export default class CmpTaskCtrl {
                                     if(dataRefer.msName === 'IBIS site') {
                                         dataRefer.value = `${index}.daily.txt`
                                     }
-                                    else if(dataRefer.msName === 'Biome-BGC site' || dataRefer.msName === 'LPJ site') {
+                                    else if(dataRefer.msName === 'Biome-BGC site') {
                                         dataRefer.value = `${index}.daily.ascii`
+                                    }
+                                    else if(dataRefer.msName === 'LPJ site') {
+                                        dataRefer.value = `${index}.daily.csv`
                                     }
                                 }
                                 else if(dataRefer.eventId === '--ao') {

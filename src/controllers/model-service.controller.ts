@@ -105,7 +105,7 @@ export default class ModelServiceCtrl {
                     fsuffix = '.state.txt'
                 }
                 else if(msr.msName === 'LPJ site') {
-                    fsuffix = '.daily.ascii'
+                    fsuffix = '.daily.csv'
                 }
 
                 let fpath = path.join(setting.STD_DATA[msr.msName], datasetPath, 'outputs', `${index}${fsuffix}`)

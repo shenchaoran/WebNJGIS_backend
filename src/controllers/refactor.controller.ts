@@ -202,8 +202,8 @@ export default class RefactorCtrl {
                 let refactorIO = v;
                 return new Bluebird((resolve, reject) => {
                     let cmdStr = path.join(__dirname, '../refactors', refactorIO.refactorScript)
-                    let args = [cmdStr, JSON.stringify(refactorIO)]
-                    const cp = child_process.spawn('python', args)
+                    let argv = [cmdStr, JSON.stringify(refactorIO)]
+                    const cp = child_process.spawn('python', argv)
                     // console.log(args)
                     let stdout = '', stderr = '';
                     cp.stdout.on('data', data => {
