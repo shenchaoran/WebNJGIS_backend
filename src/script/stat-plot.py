@@ -114,38 +114,136 @@ def plotBar():
         stats = json.load(load_f)
 
         meanDict = {}
+        stdDict = {}
+        coefDict = {}
+        r2sDict = {}
+        rmseDict = {}
         for stat in stats:
+            stat['avg_coef'] = np.array(stat['avg_coef'])
+            stat['avg_r2'] = np.array(stat['avg_r2'])
+            stat['avg_nse'] = np.array(stat['avg_nse'])
+            stat['avg_coef'][stat['avg_coef']>1]=1
+            stat['avg_r2'][stat['avg_r2']>1]=1
+            stat['avg_nse'][stat['avg_nse']>1]=1
+            stat['avg_coef'] = stat['avg_coef'].tolist()
+            stat['avg_r2'] = stat['avg_r2'].tolist()
+            stat['avg_nse'] = stat['avg_nse'].tolist()
             meanDict[stat['pft']] = stat['avg_mean']
+            stdDict[stat['pft']] = stat['avg_std']
+            coefDict[stat['pft']] = stat['avg_coef']
+            r2sDict[stat['pft']] = stat['avg_r2']
+            rmseDict[stat['pft']] = stat['avg_rmse']
         pd_mean = pd.DataFrame(meanDict)*.365
+        pd_std = pd.DataFrame(stdDict)
+        pd_coef = pd.DataFrame(coefDict)
+        pd_r2s = pd.DataFrame(r2sDict)
+        pd_rmse = pd.DataFrame(rmseDict)
 
         rowIndex = {0: 'IBIS', 1: 'Biome-BGC', 2: 'LPJ', 3: 'MODIS', 4: 'Fluxnet'}
         pd_mean.rename(index=rowIndex, inplace=True)
+        pd_std.rename(index=rowIndex, inplace=True)
+        pd_coef.rename(index=rowIndex, inplace=True)
+        pd_r2s.rename(index=rowIndex, inplace=True)
+        pd_rmse.rename(index=rowIndex, inplace=True)
+        
+        pd_coef.drop(['Fluxnet'], inplace=True)
+
+        pd_std.columns.name = 'PFT'
+        pd_coef.columns.name = 'PFT'
+        pd_r2s.columns.name = 'PFT'
+        pd_rmse.columns.name = 'PFT'
         pd_mean.columns.name='PFT'
+
+        pd_std.index.name = 'model'
+        pd_coef.index.name = 'model'
+        pd_r2s.index.name = 'model'
+        pd_rmse.index.name = 'model'
         pd_mean.index.name='model'
-        data = pd_mean.stack().reset_index(name='val')
-        # print(data)
-        sns.barplot(x='PFT', y='val', hue='model', data=data)
 
-        # fig, axes = plt.subplots(nrows=pd_mean.index.shape[0], ncols=1, sharex=True)
-        # axes=axes.flatten()
-        # for i, rowName in enumerate(pd_mean.index):
-        #     ax = axes[i]
-        #     if i!=0:
-        #         ax
-        #     sns.barplot(x=pfts, y=pd_mean.loc[rowName], ax=ax)
-        #     ax.set_ylabel(rowIndex[i])
-        #     # ax.set_xlabel('Observed ' + featureName + ' (kgC m-2 y-1)')
-        # fig.tight_layout(h_pad=0)
-        # fig.subplots_adjust(left=.15, bottom=.15)
-        # fig.text(0.515, 0.03, 'Observed ' + featureName + ' (kgC m-2 y-1)', ha="center", va="center")
-        # fig.text(0.03, 0.5, featureName + ' (kgC m-2 y-1)', ha="center", va="center", rotation=90)
+        data_std = pd_std.stack().reset_index(name='val')
+        data_coef = pd_coef.stack().reset_index(name='val')
+        data_r2s = pd_r2s.stack().reset_index(name='val')
+        data_rmse = pd_rmse.stack().reset_index(name='val')
+        data_mean = pd_mean.stack().reset_index(name='val')
 
+        sns.barplot(x='PFT', y='val', hue='model', data=data_std)
+        fpath = './src/script/data/bar-' + featureName + '-std.jpg'
+        plt.xlabel('PFT')
+        plt.ylabel('std ' + featureName + ' (kgC m-2 y-1)')
+        plt.tight_layout()
+        plt.savefig(fpath, format='jpg')
+        plt.close('all')
+
+        sns.barplot(x='PFT', y='val', hue='model', data=data_coef)
+        fpath = './src/script/data/bar-' + featureName + '-coef.jpg'
+        plt.xlabel('PFT')
+        plt.ylabel('coef ' + featureName + ' (kgC m-2 y-1)')
+        plt.tight_layout()
+        plt.savefig(fpath, format='jpg')
+        plt.close('all')
+
+        sns.barplot(x='PFT', y='val', hue='model', data=data_r2s)
+        fpath = './src/script/data/bar-' + featureName + '-r2s.jpg'
+        plt.xlabel('PFT')
+        plt.ylabel('r2s ' + featureName + ' (kgC m-2 y-1)')
+        plt.tight_layout()
+        plt.savefig(fpath, format='jpg')
+        plt.close('all')
+
+        sns.barplot(x='PFT', y='val', hue='model', data=data_rmse)
+        fpath = './src/script/data/bar-' + featureName + '-rmse.jpg'
+        plt.xlabel('PFT')
+        plt.ylabel('rmse ' + featureName + ' (kgC m-2 y-1)')
+        plt.tight_layout()
+        plt.savefig(fpath, format='jpg')
+        plt.close('all')
+
+        sns.barplot(x='PFT', y='val', hue='model', data=data_mean)
         fpath = './src/script/data/bar-' + featureName + '-mean.jpg'
         plt.xlabel('PFT')
         plt.ylabel('mean ' + featureName + ' (kgC m-2 y-1)')
+        plt.tight_layout()
         plt.savefig(fpath, format='jpg')
         plt.close('all')
+
         print('--------finished')
+
+    # with open(dbPath) as load_f:
+    #     stats = json.load(load_f)
+
+    #     meanDict = {}
+    #     for stat in stats:
+    #         meanDict[stat['pft']] = stat['avg_mean']
+    #     pd_mean = pd.DataFrame(meanDict)*.365
+
+    #     rowIndex = {0: 'IBIS', 1: 'Biome-BGC', 2: 'LPJ', 3: 'MODIS', 4: 'Fluxnet'}
+    #     pd_mean.rename(index=rowIndex, inplace=True)
+    #     pd_mean.columns.name='PFT'
+    #     pd_mean.index.name='model'
+    #     data = pd_mean.stack().reset_index(name='val')
+    #     # print(data)
+    #     sns.barplot(x='PFT', y='val', hue='model', data=data)
+
+    #     # fig, axes = plt.subplots(nrows=pd_mean.index.shape[0], ncols=1, sharex=True)
+    #     # axes=axes.flatten()
+    #     # for i, rowName in enumerate(pd_mean.index):
+    #     #     ax = axes[i]
+    #     #     if i!=0:
+    #     #         ax
+    #     #     sns.barplot(x=pfts, y=pd_mean.loc[rowName], ax=ax)
+    #     #     ax.set_ylabel(rowIndex[i])
+    #     #     # ax.set_xlabel('Observed ' + featureName + ' (kgC m-2 y-1)')
+    #     # fig.tight_layout(h_pad=0)
+    #     # fig.subplots_adjust(left=.15, bottom=.15)
+    #     # fig.text(0.515, 0.03, 'Observed ' + featureName + ' (kgC m-2 y-1)', ha="center", va="center")
+    #     # fig.text(0.03, 0.5, featureName + ' (kgC m-2 y-1)', ha="center", va="center", rotation=90)
+
+    #     fpath = './src/script/data/bar-' + featureName + '-mean.jpg'
+    #     plt.xlabel('PFT')
+    #     plt.ylabel('mean ' + featureName + ' (kgC m-2 y-1)')
+    #     plt.savefig(fpath, format='jpg')
+    #     plt.close('all')
+    #     print('--------finished')
 
 def gridScatter():
     with open(dbPath) as load_f:
@@ -226,8 +324,8 @@ featureName = 'GPP'
 # plotTaylor()
 # plotHeatmap()
 # plotScatter()
-# plotBar()
-gridScatter()
+plotBar()
+# gridScatter()
 
 
 

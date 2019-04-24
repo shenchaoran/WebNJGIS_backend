@@ -5,6 +5,7 @@ import * as RequestCtrl from '../utils/request.utils';
 import * as path from 'path';
 const Bluebird = require('bluebird')
 const fs = Bluebird.promisifyAll(require('fs'))
+const stats = require('../../src/script/data/sites-stat.json')
 import { setting } from '../config/setting';
 import * as child_process from 'child_process';
 
@@ -32,6 +33,7 @@ class Result {
     rmses: Number[][];
     nses: Number[][];
     r2s: Number[][];
+    sites: any[];
 }
 
 // let sortStat = (stats) => {
@@ -92,7 +94,8 @@ let statResult = async () => {
                 coefs: [],
                 rmses: [],
                 nses: [],
-                r2s: []
+                r2s: [],
+                sites: [],
             }
             results.push(item)
         }
@@ -112,6 +115,15 @@ let statResult = async () => {
             item.nses.push(method.result.nses)
             item.r2s.push(method.result.r2s)
             item.indexs.push(index)
+            item.sites.push({
+                long: site.long, 
+                lat: site.lat, 
+                PFT: site.PFT,
+                startTime: site.startTime,
+                endTime: site.endTime,
+                id: site.id,
+                index: site.index,
+            })
         }
     }
     let getAvgByCol = (matrix) => {
@@ -148,8 +160,8 @@ let statResult = async () => {
     // console.log(fpath)
 
     await fs.writeFileAsync(fpath, JSON.stringify(results), 'utf8')
-    return results
     console.log('finished')
+    return results
 }
 
 let checkOrder = async () => {
@@ -171,10 +183,78 @@ let checkOrder = async () => {
     console.log('checked')
 }
 
-let main = async () => {
-    // await checkOrder();
+let print = () => {
+    let sum = 0
+    let pointCount = []
+    let pfts = []
+    let rst = Array(25).fill(null).map(v => [])
+    for(let item of stats) {
+        let statIndexs = ['avg_mean', 'avg_std', 'avg_coef', 'avg_rmse', 'avg_nse']
+        pfts.push(item.pft)
+        pointCount.push(item.indexs.length);
+        sum += item.indexs.length
+        for(let [i, index] of statIndexs.entries()) {
+            for(let [j, cell] of item[index].entries()) {
+                rst[j*statIndexs.length + i].push(cell.toFixed(2))
+            }
+        }
+    }
+    let str = _.chain(rst).map(row => row.join(' & ')).join(' \\\\\n').value()
+    console.log(str)
+    console.log(pfts)
+    console.log(sum)
+    console.log(pointCount)
+}
 
-    await statResult()
+let getSiteNames = async () => {
+    let tasks = await TaskModel.find({'meta.desc': 'auto-create by admin for batch test, GPP, 8 day interval'})
+    let names = tasks.map(task => task.sites[0].id)
+    // console.log(indexs.join(', '))
+    await fs.writeFileAsync(path.join(__dirname, '../../src/script/data/siteNames.json'), names, 'utf8' )
+    return names
+}
+
+let checkPFT = async() => {
+    let tasks = await TaskModel.find({'meta.desc': 'auto-create by admin for batch test, GPP, 8 day interval'})
+    let sites = await ObsSiteModel.find({})
+    let data: {
+        id: String,
+        obsPFT: String,
+        IBISPFT: Number,
+        index: String,
+    }[] = []
+    await Bluebird.map(tasks, task => {
+        return new Bluebird(async (resolve, reject) => {
+            try {
+                let {PFT: obsPFT, id, index} = task.sites[0]
+                let IBISsitePath = `/home/scr/Data/IBIS_Data/5b9012e4c29ca433443dcfab/site/${index}.txt`
+                let str = await fs.readFileAsync(IBISsitePath, 'utf8')
+                let IBISPFT = parseInt(str.split(/\n/g)[5])
+                data.push({id, obsPFT, IBISPFT, index})
+                return resolve()
+            }
+            catch(e) {
+                console.log(e)
+                resolve()
+            }
+        })
+    }, {
+        concurrency: 10
+    })
+    // await fs.writeFileAsync(path.join(__dirname, '../../src/script/data/check-PFT.json'), JSON.stringify(data), 'utf8')
+    
+    let pftMap = {
+        
+    }
+}
+
+let main = async () => {
+    // await checkOrder()
+    // await statResult()
+    // print()
+
+    await checkPFT()
+    process.exit(0)
 }
 
 main()

@@ -20,7 +20,7 @@ Object.assign(schema.statics, OgmsSchemaStatics)
 interface IObsSiteModel extends Model<IObsSiteDocument>, IOgmsModel {}
 export const ObsSiteModel: IObsSiteModel = model<IObsSiteDocument, IObsSiteModel>(collectionName, schema);
 
-interface IObsSiteDocument extends Document {
+export interface IObsSiteDocument extends Document {
     id: string;
     lat: number;
     long: number;

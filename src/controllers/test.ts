@@ -28,7 +28,10 @@ let batchCmpSite = async () => {
     const taskCtrl = new CmpTaskCtrl()
     // ms: IBIS, Biome-BGC, LPJ, MOD17A3 obs: FLUXNET2015
     // cmpMethods: scatter, line, box, taylor, se
-    const slnId = '5c41ebb329c7d5df0a000053';   
+    // const slnId = '5c41ebb329c7d5df0a000053';   
+    
+    // only statistic
+    const slnId = '5c9cc65269c63a2c5500001c'
     
     // ms: IBIS, Biome-BGC LPJ; no obs
     // const slnId = '5c7f7ae890c1497f4f000003'
