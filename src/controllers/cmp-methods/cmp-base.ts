@@ -68,10 +68,12 @@ export default class CmpMethod extends EventEmitter implements ICmpMethod {
                 })
                 cp.on('close', code => {
                     if(code !== 0) {
-                        console.error(`******** ${this.methodName} exit code: ${code}`);
+                        console.error(`******** ${code} : ${this.methodName} exit code`);
+                        console.log(stdout)
+                        console.log(stderr)
                     }
                     else {
-                        console.log(`******** ${this.methodName} exit code: ${code}`);
+                        console.log(`******** ${code} : ${this.methodName} exit code`);
                     }
                     processCtrl.remove(cp.pid);
                     processCtrl.shift();

@@ -216,7 +216,7 @@ export default class CmpTaskCtrl {
             task.cmpMethods = solution.cmpMethods;
             task.temporal = solution.temporal;
             task.meta.name = `${siteIndex}`;
-            task.meta.desc = 'auto-create by admin for batch test, 1';
+            task.meta.desc = 'auto-create by admin for batch test, GPP, 8 day interval';
             task.sites = [site];
             task.solutionId = solution._id.toString();
             task.topicId = solution.topicId;
@@ -226,7 +226,7 @@ export default class CmpTaskCtrl {
                 let calcuTask = (CalcuTaskModel as any).ogms_constructor((process as any).administrator, ms)
                 task.calcuTaskIds.push(calcuTask._id.toString());
                 calcuTask.meta.name = `${siteIndex}`;
-                calcuTask.meta.desc = 'auto-create by admin for batch test, 1'
+                calcuTask.meta.desc = 'auto-create by admin for batch test, GPP, 8 day interval'
                 calcuTask.state = OGMSState.COULD_START;
                 calcuTask.IO.std.map(event => {
                     if(event.id === '--dataset')
@@ -291,7 +291,10 @@ export default class CmpTaskCtrl {
                 postal.channel(task._id).subscribe('cmp-method', ({metricName, methodName}) => {
                     count++;
                     if(count === sum) {
-                        resolve()
+                        TaskModel.updateOne({_id: task._id}, {$set: {state: OGMSState.FINISHED_SUCCEED}})
+                            .then(msg => {
+                                resolve()
+                            })
                     }
                 })
                 
@@ -351,8 +354,11 @@ export default class CmpTaskCtrl {
                                     if(dataRefer.msName === 'IBIS site') {
                                         dataRefer.value = `${index}.daily.txt`
                                     }
-                                    else if(dataRefer.msName === 'Biome-BGC site' || dataRefer.msName === 'LPJ site') {
+                                    else if(dataRefer.msName === 'Biome-BGC site') {
                                         dataRefer.value = `${index}.daily.ascii`
+                                    }
+                                    else if(dataRefer.msName === 'LPJ site') {
+                                        dataRefer.value = `${index}.daily.csv`
                                     }
                                 }
                                 else if(dataRefer.eventId === '--ao') {

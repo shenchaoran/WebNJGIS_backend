@@ -9,6 +9,7 @@ import { ResourceSrc } from './resource.enum';
 import { DataRefer, CmpObj, ISolutionDocument } from './solution.model';
 import { ISchemaDocument } from './UDX-schema.model';
 import { IUserDocument } from './user.model';
+import { IObsSiteDocument } from './site.model';
 import * as _ from 'lodash';
 
 const collectionName = 'CmpTask';
@@ -111,12 +112,7 @@ export interface ITaskDocument extends Document {
     isAllSTDCache?: boolean;
     temporal: number;
     regions?: [][];
-    sites?: {
-        index: number,
-        lat: number,
-        long: number,
-        coor?: string
-    }[];
+    sites?: IObsSiteDocument[];
     cid: string;
     subscribed_uids: string[];
 }

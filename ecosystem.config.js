@@ -34,7 +34,7 @@ module.exports = {
             script: 'dist/server.js',
             args: '--nolazy --inspect=0.0.0.0:65535',
             node_args: '--nolazy --inspect=0.0.0.0:65535',
-            instances: 4,
+            instances: 8,
             autorestart: true,
             watch: true,
             ignore_watch: [

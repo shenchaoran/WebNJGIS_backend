@@ -12,10 +12,10 @@ if __name__ == '__main__':
         observationData = observationData.reshape(observationData.size)
         
         stds = []
-        rmsds = []
+        rmses = []
         coefs = []
         stds.append(observationData.std())
-        rmsds.append(0)
+        rmses.append(0)
         coefs.append(1)
 
         for i, nc in enumerate(cmip.ncPaths):
@@ -24,14 +24,14 @@ if __name__ == '__main__':
             data = cmip.getData(i, allTime=False, timeIndex = 0)
             data = data.reshape(data.size)
             std = data.std()
-            rmsd = sm.rmsd(data, observationData)
+            rmse = sm.rmsd(data, observationData)
             coef = np.ma.corrcoef(data, observationData)[0, 1]
             
             stds.append(std)
-            rmsds.append(rmsd)
+            rmses.append(rmse)
             coefs.append(coef)
         # intervalsCOR = np.concatenate((np.arange(0,1.0,0.2), [0.9, 0.95, 0.99, 1]))
-        sm.taylor_diagram(np.array(stds), np.array(rmsds), np.array(coefs), 
+        sm.taylor_diagram(np.array(stds), np.array(rmses), np.array(coefs), 
                         markerLabel = cmip.markerLabels, 
                         # tickRMS = np.arange(0,25,10), 
                         # tickSTD = np.arange(9,20,5), 

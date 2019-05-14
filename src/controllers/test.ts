@@ -28,7 +28,14 @@ let batchCmpSite = async () => {
     const taskCtrl = new CmpTaskCtrl()
     // ms: IBIS, Biome-BGC, LPJ, MOD17A3 obs: FLUXNET2015
     // cmpMethods: scatter, line, box, taylor, se
-    const slnId = '5c41ebb329c7d5df0a000053';   
+    // const slnId = '5c41ebb329c7d5df0a000053';   
+    
+    // only statistic
+    const slnId = '5c9cc65269c63a2c5500001c'
+    
+    // ms: IBIS, Biome-BGC LPJ; no obs
+    // const slnId = '5c7f7ae890c1497f4f000003'
+    
     let sites = await ObsSiteModel.find({index: {$ne: null}})
 
     // await taskCtrl.startByIndex(22641, slnId)
@@ -42,20 +49,20 @@ let batchCmpSite = async () => {
                 })
         })
     }, {
-        concurrency: 2
+        concurrency: 5
     })
 }
 
 let removeDocs = async () => {
     return Bluebird.all([
-        TaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, 1'}),
-        CalcuTaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, 1'}),
+        TaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, GPP, 8 day interval'}),
+        CalcuTaskModel.deleteMany({'meta.desc': 'auto-create by admin for batch test, GPP, 8 day interval'}),
     ])
 }
 
 let main = async () => {
     await removeDocs()
-    console.log('had removed batch-created docs')
+    console.log('-----had removed batch-created docs')
     await batchCmpSite()
     console.log('get all sites succeed')
 }
