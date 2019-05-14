@@ -66,14 +66,15 @@ class Table_Schema {
     end?: number; 
     step?: number; 
     unit?: string;                   // "days since 1982-01-01"
-    columns: {
-        id: string,
+    columns: {                          // must sort by order
+        id: string,                     // model output csv/nc column/variable name
+        metricName: string,             // metric name
         type: string,
         description: string,
-        unit: string,
-        scale: number,
-        offset: number,
-        missing_value: number,
+        unit: string,                   // model output unit
+        scale: number,                  // model output unit * scale + offset => metric unit 
+        offset: number,                 // 
+        missing_value: number,          // model output csv/nc missing_value
     }[]
 }
 

@@ -82,8 +82,8 @@ export default class RefactorCtrl {
                             long: this.long,
                             data: null,
                             label: df.msName? df.msName: df.stdName,
-                            metricNames: [],
-                            dfMetricNames: [],
+                            metricNames: [],                            // 标准度量表的名称
+                            dfMetricNames: [],                          // 模型输出量的列名
                             colIndexs: [],
                             scales: [],
                             offsets: [],
@@ -116,11 +116,8 @@ export default class RefactorCtrl {
                             let columnIndex = _.findIndex(schema.structure.columns, col => col.id === df.field)
                             if(columnIndex !== -1) {
                                 let column = schema.structure.columns[columnIndex]
-                                // refactorIO.colIndexs.push()
-                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex, metric.min, metric.max, column.missing_value])
-                                refactorIO.scales.push(column.scale || 1)
-                                refactorIO.offsets.push(column.offset || 0)
-                                // refactorIO.missing_values.push(column.missing_value)
+                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex, metric.min, metric.max, 
+                                    column.missing_value, column.scale || 1, column.offset || 0])
                             }
                         }
                         else if(schema.structure.type === 'obs-table') {
@@ -136,11 +133,8 @@ export default class RefactorCtrl {
                             let columnIndex = _.findIndex(schema.structure.columns, col => col.id === df.field)
                             if(columnIndex !== -1) {
                                 let column = schema.structure.columns[columnIndex]
-                                // refactorIO.colIndexs.push(columnIndex)
-                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex, metric.min, metric.max, column.missing_value])
-                                refactorIO.scales.push(column.scale || 1)
-                                refactorIO.offsets.push(column.offset || 0)
-                                // refactorIO.missing_values.push(column.missing_value)
+                                refactorIO.tmp.push([df.field, cmpObj.name, columnIndex, metric.min, metric.max, 
+                                    column.missing_value, column.scale || 1, column.offset || 0])
                             }
                         }
                         else if(schema.structure.type === 'NETCDF4') {
@@ -154,10 +148,8 @@ export default class RefactorCtrl {
                             let variableIndex = _.findIndex(schema.structure.variables, variable => variable.name === df.field)
                             if(variableIndex != -1) {
                                 let variable = schema.structure.variables[variableIndex]
-                                refactorIO.scales.push(variable.scale || 1)
-                                refactorIO.offsets.push(variable.offset || 0)
-                                refactorIO.tmp.push([df.field, cmpObj.name, variableIndex, metric.min, metric.max, variable.missing_value])
-                                // refactorIO.missing_values.push(variable.missing_value)
+                                refactorIO.tmp.push([df.field, cmpObj.name, variableIndex, metric.min, metric.max, 
+                                    variable.missing_value, variable.scale || 1, variable.scale || 0])
                             }
                         }
                     }
@@ -183,12 +175,15 @@ export default class RefactorCtrl {
             if(refactorIO.tmp.length) {
                 refactorIO.tmp = refactorIO.tmp.sort((v1, v2) => v1[2] - v2[2])
                 refactorIO.tmp.map(v => {
+                    // [dfMetricName, metricName, colIndex, metrixMin, metrixMax, colMissingV, scale, offset]
                     refactorIO.dfMetricNames.push(v[0])
                     refactorIO.metricNames.push(v[1])
                     refactorIO.colIndexs.push(v[2])
                     refactorIO.mins.push(v[3])
                     refactorIO.maxs.push(v[4])
                     refactorIO.missing_values.push(v[5])
+                    refactorIO.scales.push(v[6])
+                    refactorIO.offsets.push(v[7])
                 })
             }
             refactorIO.tmp = null
